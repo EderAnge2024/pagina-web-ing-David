@@ -1,5 +1,5 @@
 import {create} from 'zustand'
-import axios from 'axios'  // para hacer peticiones
+import axios from 'axios'  
 
 const useSalidaStore = create((set)=>({
     salidas: [],
