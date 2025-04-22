@@ -1,7 +1,7 @@
 const Producto= require('../models/Productos')
-const createProductoController = async({productoId, categoriaId, nombreProducto, fechaIngreso, fechaVencimiento, cantidadEntrada,cantidadDisponible, precio, precioFinal})=>{
+const createProductoController = async({ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, Cantidad_Disponible, Url, Precio_Final})=>{
     try {
-        const newProducto = await Producto.create({productoId, categoriaId, nombreProducto, fechaIngreso, fechaVencimiento, cantidadEntrada,cantidadDisponible, precio, precioFinal})
+        const newProducto = await Producto.create({ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, Cantidad_Disponible, Url, Precio_Final})
         return newProducto
     } catch (error) {
         throw new Error (error.message)
@@ -17,9 +17,9 @@ const getAllProductoController = async ()=>{
     }
 }
 
-const updateProductoByIdController = async (productoId,productoData)=>{
+const updateProductoByIdController = async (ID_Producto,productoData)=>{
     try {
-        const producto = await Producto.findByPk(productoId)
+        const producto = await Producto.findByPk(ID_Producto)
         if(!producto){
             return null
         }
@@ -30,9 +30,9 @@ const updateProductoByIdController = async (productoId,productoData)=>{
     }
 }
 
-const deletedProductoByIdController = async (productoId)=>{
+const deletedProductoByIdController = async (ID_Producto)=>{
     try {
-        const producto= await Producto.findByPk(productoId)
+        const producto= await Producto.findByPk(ID_Producto)
         if(!producto){
             return null
         }

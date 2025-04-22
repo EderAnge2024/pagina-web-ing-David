@@ -4,9 +4,9 @@ const {Producto} = require ('../models')
 const productoRouters = Router()
 
 productoRouters.post("/",async(req, res)=>{
-    const {productoId, categoriaId, nombreProducto, fechaIngreso, fechaVencimiento, cantidadEntrada,cantidadDisponible, precio, precioFinal} = req.body
+    const {ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, Cantidad_Disponible, Url, Precio_Final} = req.body
     try {
-        const newProducto = await createProductoController({productoId, categoriaId, nombreProducto, fechaIngreso, fechaVencimiento, cantidadEntrada,cantidadDisponible, precio, precioFinal})
+        const newProducto = await createProductoController({ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, Cantidad_Disponible, Url, Precio_Final})
         res.status(201).json(newProducto)
     } catch (error) {
         res.status(400).json({error: error.  message})
@@ -22,11 +22,11 @@ productoRouters.get("/",async(req,res)=>{
     }
 })
 
-productoRouters.put("/:productoId", async(req,res)=>{
-    const {productoId}= req.params
+productoRouters.put("/:ID_Producto", async(req,res)=>{
+    const {ID_Producto}= req.params
     const productoData = req.body
     try {
-        const updateProducto = await updateProductoByIdController(productoId, productoData)
+        const updateProducto = await updateProductoByIdController(ID_Producto, productoData)
         if(!updateProducto){
             return res.status(404).json({error: "Producto no encontrado"})
         }
@@ -36,10 +36,10 @@ productoRouters.put("/:productoId", async(req,res)=>{
     }
 })
 
-productoRouters.delete("/:productoId", async(req, res)=>{
-    const {productoId} = req.params
+productoRouters.delete("/:ID_Producto", async(req, res)=>{
+    const {ID_Producto} = req.params
     try {
-       const deletedProducto = await deletedProductoByIdController(productoId)
+       const deletedProducto = await deletedProductoByIdController(ID_Producto)
        if(!deletedProducto){
         return res.status.apply(404).json({error:"Producto no encontrado"})
        }

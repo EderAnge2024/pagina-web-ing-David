@@ -1,7 +1,7 @@
 const Categoria= require('../models/Categorias')
-const createCategoriaController = async({categoriaId, categoria, descripcion})=>{
+const createCategoriaController = async({ID_Categoria, Tipo_Producto,Descripcion})=>{
     try {
-        const newCategoria = await Categoria.create({categoriaId, categoria, descripcion})
+        const newCategoria = await Categoria.create({ID_Categoria, Tipo_Producto,Descripcion})
         return newCategoria
     } catch (error) {
         throw new Error (error.message)
@@ -17,9 +17,9 @@ const getAllCategoriaController = async ()=>{
     }
 }
 
-const updateCategoriaByIdController = async (categoriaId,categoriaData)=>{
+const updateCategoriaByIdController = async (ID_Categoria,categoriaData)=>{
     try {
-        const categoria = await Categoria.findByPk(categoriaId)
+        const categoria = await Categoria.findByPk(ID_Categoria)
         if(!categoria){
             return null
         }
@@ -30,9 +30,9 @@ const updateCategoriaByIdController = async (categoriaId,categoriaData)=>{
     }
 }
 
-const deletedCategoriaByIdController = async (categoriaId)=>{
+const deletedCategoriaByIdController = async (ID_Categoria)=>{
     try {
-        const categoria= await Categoria.findByPk(categoriaId)
+        const categoria= await Categoria.findByPk(ID_Categoria)
         if(!categoria){
             return null
         }
