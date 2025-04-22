@@ -3,44 +3,56 @@ const sequelize = require('../db')
 
 
 const Producto = sequelize.define('Producto',{
-    productoId:{
+    ID_Producto:{
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
-    categoriaId:{
+    ID_Categoria:{
         type: DataTypes.INTEGER,
         allowNull:false,
         references:{
             model: 'Categoria',
-            key: 'categoriaId'
+            key: 'ID_Categoria'
         }
     },
-    nombreProducto:{
+    Codigo:{
         type: DataTypes.STRING,
         allowNull: false
     },
-    fechaIngreso:{
-        type: DataTypes.DATE,
+    Nombre_Producto:{
+        type: DataTypes.STRING,
         allowNull: false
     },
-    fechaVencimiento:{
-        type: DataTypes.DATE,
+    Descripcion:{
+        type: DataTypes.TEXT,
         allowNull: false
     },
-    cantidadEntrada:{
+    Descuento:{
+        type: DataTypes.DECIMAL,
+        allowNull: false
+    },
+    Precio_Producto:{
+        type: DataTypes.DECIMAL,
+        allowNull: false
+    },
+    Marca:{
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    Cantidad:{
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    cantidadDisponible:{
+    cantidad_Disponible:{
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    precio:{
+    Url:{
         type: DataTypes.DECIMAL,
         allowNull: false    
     },
-    precioFinal:{
+    Precio_Final:{
         type: DataTypes.DECIMAL,
         allowNull: false
     }
@@ -49,6 +61,6 @@ const Producto = sequelize.define('Producto',{
     timestamps: false
 })
 
-Producto.belongsTo(require('./Categorias'),{foreignKey: 'categoriaId'})
+Producto.belongsTo(require('./Categorias'),{foreignKey: 'ID_Categoria'})
 
 module.exports = Producto

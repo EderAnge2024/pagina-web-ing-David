@@ -1,51 +1,69 @@
-const Producto= require('../models/Productos')
-const createProductoController = async({productoId, categoriaId, nombreProducto, fechaIngreso, fechaVencimiento, cantidadEntrada,cantidadDisponible, precio, precioFinal})=>{
-    try {
-        const newProducto = await Producto.create({productoId, categoriaId, nombreProducto, fechaIngreso, fechaVencimiento, cantidadEntrada,cantidadDisponible, precio, precioFinal})
-        return newProducto
-    } catch (error) {
-        throw new Error (error.message)
-    }
-}
+const Producto = require('../models/Productos');
 
-const getAllProductoController = async ()=>{
-    try {
-        const productos = await Producto.findAll()
-        return productos
-    } catch (error) {
-        throw new Error(error.message)
-    }
-}
 
-const updateProductoByIdController = async (productoId,productoData)=>{
+const createProductoController = async (data) => {
     try {
-        const producto = await Producto.findByPk(productoId)
-        if(!producto){
-            return null
+        const newProducto = await Producto.create(data);
+        return newProducto;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+
+const getAllProductosController = async () => {
+    try {
+        const productos = await Producto.findAll({
+            include: ['Categoria'] 
+        });
+        return productos;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+
+const getProductoByIdController = async (ID_Producto) => {
+    try {
+        const producto = await Producto.findByPk(ID_Producto);
+        return producto;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+
+const updateProductoByIdController = async (ID_Producto, productoData) => {
+    try {
+        const producto = await Producto.findByPk(ID_Producto);
+        if (!producto) {
+            return null;
         }
-        await producto.update(productoData)
-        return producto
+        await producto.update(productoData);
+        return producto;
     } catch (error) {
-        throw new Error(error)
+        throw new Error(error.message);
     }
-}
+};
 
-const deletedProductoByIdController = async (productoId)=>{
+
+const deleteProductoByIdController = async (ID_Producto) => {
     try {
-        const producto= await Producto.findByPk(productoId)
-        if(!producto){
-            return null
+        const producto = await Producto.findByPk(ID_Producto);
+        if (!producto) {
+            return null;
         }
-        await producto.destroy()
-        return producto
+        await producto.destroy();
+        return producto;
     } catch (error) {
-        throw new Error(error.message)
+        throw new Error(error.message);
     }
-}
+};
 
-module.exports={
+module.exports = {
     createProductoController,
-    getAllProductoController,
+    getAllProductosController,
+    getProductoByIdController,
     updateProductoByIdController,
-    deletedProductoByIdController
-}
+    deleteProductoByIdController
+};

@@ -5,7 +5,7 @@ const useClienteStore = create((set)=>({
     clientes: [],
     addCliente: async(cliente)=>{
         try {
-            const response = await axios.post('http://localhost:3001/cliente',cliente)
+            const response = await axios.post('http://localhost:3001/clientes',cliente)
             set((state)=>({clientes: [...state.clientes, response.data]}))// crea una copia el "..."
         } catch (error) {
             console.log("Error adding user", error.message)

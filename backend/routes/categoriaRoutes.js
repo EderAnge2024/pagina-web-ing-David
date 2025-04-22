@@ -1,54 +1,65 @@
-const {Router} = require('express')
-const {createCategoriaController,getAllCategoriaController,updateCategoriaByIdController,deletedCategoriaByIdController}= require('../controllers/categoriaControllers')
-const {Categoria} = require ('../models')
-const categoriaRouters = Router()
+const { Router } = require('express');
+const {
+    createCategoriaController,
+    getAllCategoriasController,
+    updateCategoriaByIdController,
+    deleteCategoriaByIdController
+} = require('../controllers/categoriaControllers');
 
-categoriaRouters.post("/",async(req, res)=>{
-    const {categoriaId, categoria, descripcion} = req.body
+const categoriaRouters = Router();
+
+// Crear una nueva categoría
+categoriaRouters.post("/", async (req, res) => {
+    const { categoria, descripcion } = req.body;
     try {
-        const newCategoria = await createCategoriaController({categoriaId, categoria, descripcion})
-        res.status(201).json(newCategoria)
+        const newCategoria = await createCategoriaController({ categoria, descripcion });
+        res.status(201).json(newCategoria); // Devuelve la categoría creada
     } catch (error) {
-        res.status(400).json({error: error.  message})
+        res.status(400).json({ error: error.message }); // Manejo de errores
     }
-})
+});
 
-categoriaRouters.get("/",async(req,res)=>{
+// Obtener todas las categorías
+categoriaRouters.get("/", async (req, res) => {
     try {
-        const categorias = await getAllCategoriaController()
-        res.status(200).json(categorias)
+        const categorias = await getAllCategoriasController();
+        res.status(200).json(categorias); // Devuelve la lista de categorías
     } catch (error) {
-        res.status(400).json({error: error.message}) 
+        res.status(400).json({ error: error.message }); // Manejo de errores
     }
-})
+});
 
-categoriaRouters.put("/:categoriaId", async(req,res)=>{
-    const {categoriaId}= req.params
-    const categoriaData = req.body
+// Actualizar una categoría por ID
+categoriaRouters.put("/:categoriaId", async (req, res) => {
+    const { categoriaId } = req.params;
+    const categoriaData = req.body;
+
     try {
-        const updateCategoria = await updateCategoriaByIdController(categoriaId, categoriaData)
-        if(!updateCategoria){
-            return res.status(404).json({error: "Categoria no encontrado"})
+        const updatedCategoria = await updateCategoriaByIdController(categoriaId, categoriaData);
+        if (!updatedCategoria) {
+            return res.status(404).json({ error: "Categoría no encontrada" }); // Si no se encuentra la categoría
         }
-        res.status(200).json(updateCategoria)
+        res.status(200).json(updatedCategoria); // Devuelve la categoría actualizada
     } catch (error) {
-        res.status(400).json({error: error.message})
+        res.status(400).json({ error: error.message }); // Manejo de errores
     }
-})
+});
 
-categoriaRouters.delete("/:categoriaId", async(req, res)=>{
-    const {categoriaId} = req.params
+// Eliminar una categoría por ID
+categoriaRouters.delete("/:categoriaId", async (req, res) => {
+    const { categoriaId } = req.params;
+
     try {
-       const deletedCategoria = await deletedCategoriaByIdController(categoriaId)
-       if(!deletedCategoria){
-        return res.status.apply(404).json({error:"Categoria no encontrado"})
-       }
-       res. status(200).json({message: "Categoria eliminado exitosamente"})
+        const deletedCategoria = await deleteCategoriaByIdController(categoriaId);
+        if (!deletedCategoria) {
+            return res.status(404).json({ error: "Categoría no encontrada" }); // Si no se encuentra la categoría
+        }
+        res.status(200).json({ message: "Categoría eliminada exitosamente" }); // Devuelve mensaje de éxito
     } catch (error) {
-        res.status(500).json({error: error.message})
+        res.status(500).json({ error: error.message }); // Manejo de errores
     }
-})
+});
 
-module.exports={
+module.exports = {
     categoriaRouters
-}
+};

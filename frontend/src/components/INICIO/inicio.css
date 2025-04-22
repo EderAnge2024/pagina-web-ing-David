@@ -1,0 +1,180 @@
+/*--------------------el contenido que esta bajo el encabezado xd, no se como decribirlo en una palabra----------------------------------*/
+.cassio-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+  }
+  
+  .cassio-left {
+    flex: 1;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .cassio-left h1 {
+    font-size: 40px;
+    margin-bottom: 20px;
+  }
+  
+  .cassio-left p {
+    font-size: 18px;
+    margin-bottom: 30px;
+    line-height: 1.5;
+  }
+  
+  .btn {
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    width: fit-content;
+  }
+  
+  .white {
+    background-color: white;
+    color: black;
+  }
+  
+  .blue {
+    background-color: white;
+    color: black;
+  }
+  
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .divider hr {
+    flex: 1;
+    border: 0;
+    height: 1px;
+    background-color: #444;
+  }
+  
+  .divider span {
+    color: #aaa;
+  }
+  
+  .prime-right {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px;
+  }
+  
+  .content-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .content-box {
+    background-color: #222;
+    height: 80px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cassio-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    padding-top: 80px; 
+  }
+  
+  
+  /*--------------- Encabezado .------------------*/
+  .cassio-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #0f1111;
+    padding: 15px 30px;
+    font-size: 18px;
+  }
+  
+  
+  .logo {
+    font-weight: bold;
+    color: #fff;
+  }
+  
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .language-selector {
+    cursor: pointer;
+    color: #fff;
+    position: relative;
+  }
+  
+  .arrow {
+    font-size: 10px;
+    margin-left: 5px;
+  }
+  
+  .user-menu {
+    position: relative;
+  }
+  
+  .user-icon {
+    width: 32px;
+    height: 32px;
+    background-color: #d0d5db;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 32px;
+    cursor: pointer;
+    font-size: 18px;
+  }
+  
+  .dropdown-menu {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background-color: #1f1f1f;
+    border: 1px solid #333;
+    border-radius: 5px;
+    overflow: hidden;
+    z-index: 999;
+  }
+  
+  .dropdown-menu button {
+    background: none;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+  
+  .dropdown-menu button:hover {
+    background-color: #333;
+  }
+  

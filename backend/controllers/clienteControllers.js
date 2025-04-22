@@ -1,51 +1,85 @@
-const Cliente= require('../models/Clientes')
-const createClienteController = async({clienteId, nombre, apellido, telefono, direccion})=>{
-    try {
-        const newCliente = await Cliente.create({clienteId,nombre,apellido,telefono,direccion})
-        return newCliente
-    } catch (error) {
-        throw new Error (error.message)
-    }
-}
+const Cliente = require('../models/Clientes');
+const bcrypt = require('bcrypt');
 
-const getAllClienteController = async ()=>{
+const createClienteController = async ({ Nombre, Apellidos, Correo, Direccion, NumCelular, Contraseña }) => {
+    const hashedPassword = await bcrypt.hash(Contraseña, 10);
     try {
-        const clientes = await Cliente.findAll()
-        return clientes
+        const newCliente = await Cliente.create({
+            Nombre,
+            Apellidos,
+            Correo,
+            Direccion,
+            NumCelular,
+            Contraseña: hashedPassword
+        });
+        return newCliente;
     } catch (error) {
-        throw new Error(error.message)
+        throw new Error(error.message);
     }
-}
+};
 
-const updateClienteByIdController = async (clienteId,clienteData)=>{
+const getAllClienteController = async () => {
     try {
-        const cliente = await Cliente.findByPk(clienteId)
-        if(!cliente){
-            return null
+        const clientes = await Cliente.findAll();
+        return clientes;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+const updateClienteByIdController = async (clienteId, clienteData) => {
+    try {
+        const cliente = await Cliente.findByPk(clienteId);
+        if (!cliente) {
+            return null;
         }
-        await cliente.update(clienteData)
-        return cliente
+        await cliente.update(clienteData);
+        return cliente;
     } catch (error) {
-        throw new Error(error)
+        throw new Error(error.message);
     }
-}
+};
 
-const deletedClienteByIdController = async (clienteId)=>{
+const deleteClienteByIdController = async (clienteId) => {
     try {
-        const cliente= await Cliente.findByPk(clienteId)
-        if(!cliente){
-            return null
+        const cliente = await Cliente.findByPk(clienteId);
+        if (!cliente) {
+            return null;
         }
-        await cliente.destroy()
-        return cliente
+        await cliente.destroy();
+        return cliente;
     } catch (error) {
-        throw new Error(error.message)
+        throw new Error(error.message);
     }
-}
+};
 
-module.exports={
+
+const loginClienteController = async ({ correo, contraseña }) => {
+    try {
+        // Buscar al cliente por correo
+        const cliente = await Cliente.findOne({ where: { Correo: correo } });
+        if (!cliente) {
+            throw new Error('Correo o contraseña incorrectos');
+        }
+
+        // Comparar la contraseña proporcionada con la almacenada
+        const passwordMatch = await bcrypt.compare(contraseña, cliente.Contraseña);
+        if (!passwordMatch) {
+            throw new Error('Correo o contraseña incorrectos');
+        }
+
+        // Si la contraseña es correcta, devolver los datos del cliente (sin la contraseña)
+        const { Contraseña, ...clienteSinContraseña } = cliente.toJSON();
+        return clienteSinContraseña;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+module.exports = {
     createClienteController,
     getAllClienteController,
     updateClienteByIdController,
-    deletedClienteByIdController
-}
+    deleteClienteByIdController,
+    loginClienteController
+};

@@ -1,0 +1,82 @@
+/*----------------------- Fondo centrado y visual -------------------------*/
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298); /*----- fondo degradado moderno 😒---*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .registro-container {
+    background: #ffffff;
+    padding: 40px 35px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 420px;
+    animation: fadeIn 0.8s ease;
+  }
+  
+  .registro-container h2 {
+    text-align: center;
+    color: #2a2a2a;
+    margin-bottom: 30px;
+    font-size: 28px;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  
+  form input {
+    padding: 14px 16px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    transition: 0.3s ease;
+  }
+  
+  form input:focus {
+    border-color: #2a5298;
+    outline: none;
+    box-shadow: 0 0 6px rgba(42, 82, 152, 0.25);
+  }
+  
+  button[type="submit"] {
+    background-color: #2a5298;
+    color: white;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  button[type="submit"]:hover {
+    background-color: #1e3c72;
+  }
+  
+  @media (max-width: 500px) {
+    .registro-container {
+      margin: 20px;
+      padding: 30px 25px;
+    }
+  }
+  
+  @keyframes fadeIn {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
