@@ -12,7 +12,7 @@ const Pedido = sequelize.define('Pedido',{
         type: DataTypes.INTEGER,
         allowNull:false,
         references:{
-            model: 'Cliente',
+            model: 'Clientes',
             key: 'ID_Cliente'
         }
     },
