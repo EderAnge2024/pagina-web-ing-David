@@ -1,7 +1,7 @@
 const Inicio=()=>{
     return(
                 <div>
-                   <h1> Inicio</h1>
+                   <h1> registro</h1>
                 </div>
     )
 }

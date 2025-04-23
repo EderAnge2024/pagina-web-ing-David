@@ -4,9 +4,9 @@ const {Cliente} = require ('../models')
 const clienteRouters = Router()
 
 clienteRouters.post("/",async(req, res)=>{
-    const {clienteId, nombre, apellido, telefono, direccion} = req.body
+    const {ID_Cliente, Nombre, Apellido, Correo, Direccion, NumCelular, Contrasena} = req.body
     try {
-        const newCliente = await createClienteController({clienteId, nombre, apellido, telefono, direccion})
+        const newCliente = await createClienteController({ID_Cliente, Nombre, Apellido, Correo, Direccion, NumCelular, Contrasena})
         res.status(201).json(newCliente)
     } catch (error) {
         res.status(400).json({error: error.  message})
@@ -22,11 +22,11 @@ clienteRouters.get("/",async(req,res)=>{
     }
 })
 
-clienteRouters.put("/:clienteId", async(req,res)=>{
-    const {clienteId}= req.params
+clienteRouters.put("/:ID_Cliente", async(req,res)=>{
+    const {ID_Cliente}= req.params
     const clienteData = req.body
     try {
-        const updateCliente = await updateClienteByIdController(clienteId, clienteData)
+        const updateCliente = await updateClienteByIdController(ID_Cliente, clienteData)
         if(!updateCliente){
             return res.status(404).json({error: "cliente no encontrado"})
         }
@@ -36,10 +36,10 @@ clienteRouters.put("/:clienteId", async(req,res)=>{
     }
 })
 
-clienteRouters.delete("/:clienteId", async(req, res)=>{
-    const {clienteId} = req.params
+clienteRouters.delete("/:ID_Cliente", async(req, res)=>{
+    const {ID_Cliente} = req.params
     try {
-       const deletedCliente = await deletedClienteByIdController(clienteId)
+       const deletedCliente = await deletedClienteByIdController(ID_Cliente)
        if(!deletedCliente){
         return res.status.apply(404).json({error:"cliente no encontrado"})
        }

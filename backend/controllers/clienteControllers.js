@@ -1,7 +1,7 @@
 const Cliente= require('../models/Clientes')
-const createClienteController = async({clienteId, nombre, apellido, telefono, direccion})=>{
+const createClienteController = async({ID_Cliente, Nombre, Apellido, Correo, Direccion, NumCelular, Contrasena})=>{
     try {
-        const newCliente = await Cliente.create({clienteId,nombre,apellido,telefono,direccion})
+        const newCliente = await Cliente.create({ID_Cliente, Nombre, Apellido, Correo, Direccion, NumCelular, Contrasena})
         return newCliente
     } catch (error) {
         throw new Error (error.message)
@@ -17,9 +17,9 @@ const getAllClienteController = async ()=>{
     }
 }
 
-const updateClienteByIdController = async (clienteId,clienteData)=>{
+const updateClienteByIdController = async (ID_Cliente,clienteData)=>{
     try {
-        const cliente = await Cliente.findByPk(clienteId)
+        const cliente = await Cliente.findByPk(ID_Cliente)
         if(!cliente){
             return null
         }
@@ -30,9 +30,9 @@ const updateClienteByIdController = async (clienteId,clienteData)=>{
     }
 }
 
-const deletedClienteByIdController = async (clienteId)=>{
+const deletedClienteByIdController = async (ID_Cliente)=>{
     try {
-        const cliente= await Cliente.findByPk(clienteId)
+        const cliente= await Cliente.findByPk(ID_Cliente)
         if(!cliente){
             return null
         }
