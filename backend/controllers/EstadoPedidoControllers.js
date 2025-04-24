@@ -1,9 +1,9 @@
 const EstadoPedido = require('../models/EstadoPedido');
 
 
-const createEstadoPedidoController = async ({ Estado }) => {
+const createEstadoPedidoController = async ({ ID_EstadoPedidoPedido,Estado }) => {
     try {
-        const newEstado = await EstadoPedido.create({ Estado });
+        const newEstado = await EstadoPedido.create({ ID_EstadoPedidoPedido,Estado });
         return newEstado;
     } catch (error) {
         throw new Error(error.message);
@@ -21,9 +21,9 @@ const getAllEstadoPedidosController = async () => {
 };
 
 
-const updateEstadoPedidoByIdController = async (ID_Estado, estadoData) => {
+const updateEstadoPedidoByIdController = async (ID_EstadoPedido, estadoData) => {
     try {
-        const estado = await EstadoPedido.findByPk(ID_Estado);
+        const estado = await EstadoPedido.findByPk(ID_EstadoPedido);
         if (!estado) {
             return null;
         }
@@ -35,9 +35,9 @@ const updateEstadoPedidoByIdController = async (ID_Estado, estadoData) => {
 };
 
 
-const deleteEstadoPedidoByIdController = async (ID_Estado) => {
+const deleteEstadoPedidoByIdController = async (ID_EstadoPedido) => {
     try {
-        const estado = await EstadoPedido.findByPk(ID_Estado);
+        const estado = await EstadoPedido.findByPk(ID_EstadoPedido);
         if (!estado) {
             return null;
         }

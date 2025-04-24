@@ -4,7 +4,7 @@ const {
     getAllEmpleadosController,
     updateEmpleadoByIdController,
     deleteEmpleadoByIdController
-} = require('../controllers/empleadoControllers');
+} = require('../controllers/EmpleadoControllers');
 
 const empleadoRouters = Router();
 

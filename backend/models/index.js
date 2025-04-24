@@ -10,6 +10,7 @@ const EstadoPedido  = require('./EstadoPedido')
 const Factura = require('./Factura')
 const HistorialEstado = require('./HistorialEstado')
 const Proyecto = require('./Proyecto')
+const Administrador = require('./Administrador')
 
 const db={
     sequelize,
@@ -22,7 +23,8 @@ const db={
     EstadoPedido,
     Factura,
     HistorialEstado,
-    Proyecto
+    Proyecto,
+    Administrador
 }
 
 module.exports= db
