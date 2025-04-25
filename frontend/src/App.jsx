@@ -1,11 +1,11 @@
 import {BrowserRouter, Routes, Route} from 'react-router-dom'
-import Inicio from "./components/Inicio"
+import Principal from './components/Principal'
 
 function App(){
   return(
     <BrowserRouter>
     <Routes>
-      <Route path='/' element={<Inicio></Inicio>}/>
+      <Route path='/' element={<Principal></Principal>}/>
     </Routes>
     </BrowserRouter>
   )
