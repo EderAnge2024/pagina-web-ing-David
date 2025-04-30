@@ -1,7 +1,10 @@
 const Cliente= require('../models/Clientes')
+const bcrypt = require('bcrypt')
+
 const createClienteController = async({ID_Cliente, Nombre, Apellido, Correo, Direccion, NumCelular, Contrasena})=>{
     try {
-        const newCliente = await Cliente.create({ID_Cliente, Nombre, Apellido, Correo, Direccion, NumCelular, Contrasena})
+        const hashedPassword = await bcrypt.hash(Contrasena, 10)
+        const newCliente = await Cliente.create({ID_Cliente, Nombre, Apellido, Correo, Direccion, NumCelular, Contrasena: hashedPassword})
         return newCliente
     } catch (error) {
         throw new Error (error.message)
