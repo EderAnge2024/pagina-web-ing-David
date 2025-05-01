@@ -4,9 +4,9 @@ const {Producto} = require ('../models')
 const productoRouters = Router()
 
 productoRouters.post("/",async(req, res)=>{
-    const {ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, Cantidad_Disponible, Url, Precio_Final} = req.body
+    const {ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, cantidad_Disponible, Url, Precio_Final} = req.body
     try {
-        const newProducto = await createProductoController({ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, Cantidad_Disponible, Url, Precio_Final})
+        const newProducto = await createProductoController({ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, cantidad_Disponible, Url, Precio_Final})
         res.status(201).json(newProducto)
     } catch (error) {
         res.status(400).json({error: error.  message})

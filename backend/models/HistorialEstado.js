@@ -15,9 +15,13 @@ const HistorialEstado = sequelize.define('HistorialEstado', {
       key:'ID_EstadoPedido'
     }
   },
-  ID_Estado: {
+  ID_Pedido: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references:{
+      model: 'Pedidos',
+      key: 'ID_Pedido'
+    }
   },
   Fecha: {
     type: DataTypes.DATE,
@@ -29,5 +33,6 @@ const HistorialEstado = sequelize.define('HistorialEstado', {
 });
 
 HistorialEstado.belongsTo(require('./EstadoPedido'),{foreignKey: 'ID_EstadoPedido'})
+HistorialEstado.belongsTo(require('./Pedidos'),{foreignKey: 'ID_Pedido'})
 
 module.exports = HistorialEstado;

@@ -10,9 +10,9 @@ const estadoPedidoRouters = Router();
 
 
 estadoPedidoRouters.post("/", async (req, res) => {
-    const { ID_EstadoPedidoPedido,Estado } = req.body;
+    const { ID_EstadoPedido,Estado } = req.body;
     try {
-        const newEstado = await createEstadoPedidoController({ ID_EstadoPedidoPedido,Estado });
+        const newEstado = await createEstadoPedidoController({ ID_EstadoPedido,Estado });
         res.status(201).json(newEstado);
     } catch (error) {
         res.status(400).json({ error: error.message }); 

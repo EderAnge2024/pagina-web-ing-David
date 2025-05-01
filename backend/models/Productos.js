@@ -49,7 +49,7 @@ const Producto = sequelize.define('Producto',{
         allowNull: false
     },
     Url:{
-        type: DataTypes.DECIMAL,
+        type: DataTypes.STRING,
         allowNull: false    
     },
     Precio_Final:{

@@ -1,9 +1,9 @@
 const EstadoPedido = require('../models/EstadoPedido');
 
 
-const createEstadoPedidoController = async ({ ID_EstadoPedidoPedido,Estado }) => {
+const createEstadoPedidoController = async ({ ID_EstadoPedido,Estado }) => {
     try {
-        const newEstado = await EstadoPedido.create({ ID_EstadoPedidoPedido,Estado });
+        const newEstado = await EstadoPedido.create({ ID_EstadoPedido,Estado });
         return newEstado;
     } catch (error) {
         throw new Error(error.message);

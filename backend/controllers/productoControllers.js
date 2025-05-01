@@ -1,7 +1,7 @@
 const Producto= require('../models/Productos')
-const createProductoController = async({ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, Cantidad_Disponible, Url, Precio_Final})=>{
+const createProductoController = async({ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, cantidad_Disponible, Url, Precio_Final})=>{
     try {
-        const newProducto = await Producto.create({ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, Cantidad_Disponible, Url, Precio_Final})
+        const newProducto = await Producto.create({ID_Producto, ID_Categoria, Codigo, Nombre_Producto, Descripcion, Descuento, Precio_Producto, Marca, Cantidad, cantidad_Disponible, Url, Precio_Final})
         return newProducto
     } catch (error) {
         throw new Error (error.message)

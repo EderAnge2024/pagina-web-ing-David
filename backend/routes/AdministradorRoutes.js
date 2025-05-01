@@ -10,9 +10,9 @@ const administradorRouters = Router();
 
 
 administradorRouters.post("/", async (req, res) => {
-    const {  ID_Administrador, Nombre_Administrador, usuario, Contrasena } = req.body;
+    const {  ID_Administrador, Nombre_Administrador, Usuario, Contrasena } = req.body;
     try {
-        const newAdministrador = await createAdministradorController({  ID_Administrador, Nombre_Administrador, usuario, Contrasena });
+        const newAdministrador = await createAdministradorController({  ID_Administrador, Nombre_Administrador, Usuario, Contrasena });
         res.status(201).json(newAdministrador);
     } catch (error) {
         res.status(400).json({ error: error.message }); 
