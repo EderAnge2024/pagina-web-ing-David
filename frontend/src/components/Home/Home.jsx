@@ -2,9 +2,8 @@ import React from 'react';
 import './Home.css';
 import video1 from '../IMG/barca.mp4';
 
-
 const Home = () => {
-  const videos = [video1];  // Aquí agregas más videos si es necesario
+  const videos = [video1]; // Agrega más videos si es necesario
 
   return (
     <main className="home">
@@ -23,16 +22,16 @@ const Home = () => {
                 className="producto-video"
                 muted
                 loop
-                onMouseEnter={(e) => e.target.play()}   // Reproduce el video al pasar el mouse
-                onMouseLeave={(e) => {e.target.pause();  // Pausa el video al quitar el mouse
-                  e.target.currentTime = 0;   // Regresa el video a 0 al quitar el cursor
-                }}  
+                onMouseEnter={(e) => e.target.play()}
+                onMouseLeave={(e) => {
+                  e.target.pause();
+                  e.target.currentTime = 0;
+                }}
                 src={video}
-              >
-                Tu navegador no soporta la etiqueta de video.
-              </video>
-              <p>Producto y precio</p>
-              <button>Agregar al carrito</button>
+              />
+              <p>Producto</p>
+              <p>Precio</p>
+              <button className="btn-agregar">Agregar al carrito</button>
             </div>
           ))}
         </div>
@@ -53,5 +52,6 @@ const Home = () => {
 };
 
 export default Home;
+
 
 

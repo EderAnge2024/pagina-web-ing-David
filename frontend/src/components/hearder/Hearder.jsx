@@ -1,26 +1,41 @@
-import React from "react";
-import './hearder.css'
+import React, { useState } from "react";
+import './hearder.css';
 import logo from '../IMG/bradatecsrl.png';
-import '../Home/Home'
 
 const Header = () => {
-    return (
-        <header className="header">
-            <img src={logo} alt="Brada_logo" className="logo" />
+  const [mostrarMenu, setMostrarMenu] = useState(false);
 
-            <div className="search-box">
-                <input type="text" placeholder="Search..." />
-                <button>🔍</button>
+  const Dmenu = () => {
+    setMostrarMenu(!mostrarMenu);
+  };
+
+  return (
+    <header className="header">
+      <img src={logo} alt="Brada_logo" className="logo" />
+
+      <div className="search-box">
+        <input type="text" placeholder="Search..." />
+        <button>🔍</button>
+      </div>
+
+      <nav className="nav-iconos">
+        <a href="#">Inicio 🏠</a>
+
+        <div className="menu">
+          <button onClick={Dmenu} className="btn-menu">Menú ☰</button>
+          {mostrarMenu && (
+            <div className="sub-menu">
+              <a href="#">Categorías</a>
+              <a href="#">Proyectos</a>
             </div>
+          )}
+        </div>
 
-            <nav className="nav-iconos">
-                <a href="#">Inicio 🏠</a>
-                <a href="#">Menú ☰</a>
-                <a href="#">Servicio 📞</a>
-                <a href="#">Carrito 🛒</a>
-            </nav>
-        </header>
-    );
+        <a href="#">Servicio 📞</a>
+        <a href="#">Carrito 🛒</a>
+      </nav>
+    </header>
+  );
 };
 
 export default Header;
