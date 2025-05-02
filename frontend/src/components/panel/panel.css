@@ -75,3 +75,23 @@
 .panel a:hover .ico {
     opacity: 1;
 }
+.logout-container {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.logout-button {
+    background-color: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+    background-color: #c0392b;
+}

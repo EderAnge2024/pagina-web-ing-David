@@ -9,6 +9,7 @@ import CategoriaForm from './components/panel/categorias/CategoriaForm'
 import ProyectoForm from './components/panel/proyecto/ProyectoForm'
 import ProyectoList from './components/panel/proyecto/proyectolista/ProyectoList'
 import CursorEffect from './components/panel/cursorEfec/CursorEffect'
+import ProductoList from './components/panel/productos/productolista/ProductoList'
 
 function App(){
   return(
@@ -25,6 +26,7 @@ function App(){
       <Route path='/categorias' element={<CategoriaForm></CategoriaForm>}/>
       <Route path='/proyectos' element={<ProyectoForm></ProyectoForm>}/>
       <Route path='/proyectoslista' element={<ProyectoList></ProyectoList>}/>
+      <Route path='/productoslistas' element={<ProductoList></ProductoList>}/>
 
       
 
