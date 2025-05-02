@@ -4,9 +4,9 @@ const {Cliente} = require ('../models')
 const clienteRouters = Router()
 
 clienteRouters.post("/",async(req, res)=>{
-    const {ID_Cliente, Nombre, Apellido, Correo, Direccion, NumCelular, Contrasena} = req.body
+    const {ID_Cliente, Nombre, Apellido, NumCelular} = req.body
     try {
-        const newCliente = await createClienteController({ID_Cliente, Nombre, Apellido, Correo, Direccion, NumCelular, Contrasena})
+        const newCliente = await createClienteController({ID_Cliente, Nombre, Apellido, NumCelular})
         res.status(201).json(newCliente)
     } catch (error) {
         res.status(400).json({error: error.  message})

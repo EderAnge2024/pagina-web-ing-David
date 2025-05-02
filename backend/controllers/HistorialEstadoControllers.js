@@ -1,10 +1,11 @@
 const HistorialEstado = require('../models/HistorialEstado');
 
 
-const createHistorialEstadoController = async ({ ID_Pedido, ID_Estado, Fecha }) => {
+const createHistorialEstadoController = async ({ ID_Historial, ID_EstadoPedido, ID_Estado, Fecha }) => {
     try {
         const newHistorial = await HistorialEstado.create({
-            ID_Pedido,
+            ID_Historial,
+            ID_EstadoPedido,
             ID_Estado,
             Fecha
         });
@@ -25,11 +26,11 @@ const getAllHistorialEstadosController = async () => {
 };
 
 
-const updateHistorialEstadoController = async ({ ID_Pedido, ID_Estado, Fecha }, updateData) => {
+const updateHistorialEstadoController = async ({ ID_Historial, ID_Estado, Fecha }, updateData) => {
     try {
         const historial = await HistorialEstado.findOne({
             where: {
-                ID_Pedido,
+                ID_Historial,
                 ID_Estado,
                 Fecha
             }
@@ -47,11 +48,11 @@ const updateHistorialEstadoController = async ({ ID_Pedido, ID_Estado, Fecha }, 
 };
 
 
-const deleteHistorialEstadoController = async ({ ID_Pedido, ID_Estado, Fecha }) => {
+const deleteHistorialEstadoController = async ({ ID_Historial, ID_Estado, Fecha }) => {
     try {
         const historial = await HistorialEstado.findOne({
             where: {
-                ID_Pedido,
+                ID_Historial,
                 ID_Estado,
                 Fecha
             }

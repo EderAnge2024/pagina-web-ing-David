@@ -9,7 +9,11 @@ const Proyecto = sequelize.define('Proyecto', {
   },
   ID_Empleados: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references:{
+      model: 'Empleados',
+      key: 'ID_Empleado'
+    }
   },
   Lugar: {
     type: DataTypes.STRING,
@@ -19,6 +23,11 @@ const Proyecto = sequelize.define('Proyecto', {
     type: DataTypes.STRING,
     allowNull: true
   }
+},{
+  tableName: 'Proyectos',
+  timestamps: false
 });
+
+Proyecto.belongsTo(require('./Empleado'),{foreignKey: 'ID_Empleado'})
 
 module.exports = Proyecto;

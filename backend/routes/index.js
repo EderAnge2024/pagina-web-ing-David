@@ -9,6 +9,7 @@ const {estadoPedidoRouters} = require('../routes/EstadoPedidoRoutes')
 const {facturaRouters} = require('../routes/FacturaRoutes')
 const {historialEstadoRouters} = require('../routes/HistorialEstadoRoutes')
 const {proyectoRouters} = require('../routes/ProyectoRoutes')
+const {administradorRouters} = require('../routes/AdministradorRoutes')
 
 const router= Router()
 router.use('/clientes',clienteRouters)
@@ -21,5 +22,6 @@ router.use('/estadoPedido',estadoPedidoRouters)
 router.use('/factura',facturaRouters)
 router.use('/historialEstado',historialEstadoRouters)
 router.use('/proyecto',proyectoRouters)
+router.use('/administrador',administradorRouters)
 
 module.exports = router

@@ -9,11 +9,19 @@ const PedidoDetalle = sequelize.define('PedidoDetalle', {
   },
   ID_Pedido: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references:{
+      model: 'Pedidos',
+      key: 'ID_Pedido'
+  }
   },
   ID_Producto: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references:{
+      model: 'Productos',
+      key: 'ID_Producto'
+    }
   },
   Cantidad: {
     type: DataTypes.INTEGER,
@@ -31,6 +39,12 @@ const PedidoDetalle = sequelize.define('PedidoDetalle', {
     type: DataTypes.DECIMAL,
     allowNull: false
   }
+},{
+  tableName: 'PedidoDetalles',
+  timestamps: false
 });
+
+PedidoDetalle.belongsTo(require('./Pedidos'),{foreignKey: 'ID_Pedido'})
+PedidoDetalle.belongsTo(require('./Productos'),{foreignKey: 'ID_Producto'})
 
 module.exports = PedidoDetalle;

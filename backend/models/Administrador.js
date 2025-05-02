@@ -1,24 +1,24 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db');
 
-const Empleado = sequelize.define('Empleado', {
-  ID_Empleado: {
+const Administrador = sequelize.define('Administrador', {
+  ID_Administrador: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
-  Nombre_Empleado: {
+  Nombre_Administrador: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  NumCelular:{
+  Usuario:{
      type: DataTypes.INTEGER,
      allowNull: false
   },
-  URL: {
+  Contrasena: {
     type: DataTypes.STRING,
     allowNull: true
   }
 });
 
-module.exports = Empleado;
+module.exports = Administrador;

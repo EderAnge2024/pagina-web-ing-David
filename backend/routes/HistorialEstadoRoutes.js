@@ -10,9 +10,9 @@ const historialEstadoRouters = Router();
 
 
 historialEstadoRouters.post("/", async (req, res) => {
-    const { ID_Pedido, ID_Estado, Fecha } = req.body;
+    const { ID_Historial, ID_EstadoPedido, ID_Estado, Fecha } = req.body;
     try {
-        const newHistorial = await createHistorialEstadoController({ ID_Pedido, ID_Estado, Fecha });
+        const newHistorial = await createHistorialEstadoController({ ID_Historial, ID_EstadoPedido, ID_Estado, Fecha });
         res.status(201).json(newHistorial);
     } catch (error) {
         res.status(400).json({ error: error.message });
@@ -31,10 +31,10 @@ historialEstadoRouters.get("/", async (req, res) => {
 
 
 historialEstadoRouters.put("/:ID_Pedido/:ID_Estado/:Fecha", async (req, res) => {
-    const { ID_Pedido, ID_Estado, Fecha } = req.params;
+    const { ID_Historial, ID_EstadoPedido, ID_Estado, Fecha } = req.params;
     const updateData = req.body;
     try {
-        const updatedHistorial = await updateHistorialEstadoController({ ID_Pedido, ID_Estado, Fecha }, updateData);
+        const updatedHistorial = await updateHistorialEstadoController({ ID_Historial, ID_EstadoPedido, ID_Estado, Fecha }, updateData);
         if (!updatedHistorial) {
             return res.status(404).json({ error: "Historial no encontrado" });
         }
@@ -46,9 +46,9 @@ historialEstadoRouters.put("/:ID_Pedido/:ID_Estado/:Fecha", async (req, res) => 
 
 
 historialEstadoRouters.delete("/:ID_Pedido/:ID_Estado/:Fecha", async (req, res) => {
-    const { ID_Pedido, ID_Estado, Fecha } = req.params;
+    const { ID_Historial, ID_EstadoPedido, ID_Estado, Fecha } = req.params;
     try {
-        const deletedHistorial = await deleteHistorialEstadoController({ ID_Pedido, ID_Estado, Fecha });
+        const deletedHistorial = await deleteHistorialEstadoController({ ID_Historial, ID_EstadoPedido, ID_Estado, Fecha });
         if (!deletedHistorial) {
             return res.status(404).json({ error: "Historial no encontrado" });
         }
