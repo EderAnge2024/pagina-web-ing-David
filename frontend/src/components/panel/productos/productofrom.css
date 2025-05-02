@@ -1,0 +1,66 @@
+.register {
+    background-color: #007BFF;
+    padding: 40px;
+    border-radius: 8px;
+    color: white;
+    width: 90%;
+    max-width: 1250px;
+    margin: 40px auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.register h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2.5rem;
+}
+
+.register form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.register input,
+.register textarea {
+    width: 300px;
+    height: 60px;
+    padding: 10px;
+    font-size: 18px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    color: #333;
+}
+
+.register textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+.register button {
+    width: 250px;
+    height: 60px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 1.1em;
+    font-weight: bold;
+    background-color: #00bfff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.register button:hover {
+    border-color: aqua;
+    background-color: #009acd;
+}
+
+.volver-link {
+    background-color: #ff4d4d;
+}
+
+.volver-link:hover {
+    background-color: #e60000;
+    border-color: #ffcccc;
+}

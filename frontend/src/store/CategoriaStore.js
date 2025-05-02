@@ -5,7 +5,7 @@ const useCategoriaStore = create((set)=>({
     categorias: [],
     addCategoria: async(categoria)=>{
         try {
-            const response = await axios.post('http://localhost:3001/categoria',categoria)
+            const response = await axios.post('http://localhost:3001/categorias',categoria)
             set((state)=>({categorias: [...state.categorias, response.data]}))// crea una copia el "..."
         } catch (error) {
             console.log("Error adding categoria", error.message)
@@ -13,7 +13,7 @@ const useCategoriaStore = create((set)=>({
     },
     fetchCategoria: async()=>{
         try {
-            const response = await axios.get('http://localhost:3001/categoria')
+            const response = await axios.get('http://localhost:3001/categorias')
             set({categorias: response.data})
         } catch (error) {
             console.log("Error fecthing categorias", error.message)
@@ -21,20 +21,20 @@ const useCategoriaStore = create((set)=>({
     },
     deleteCategoria: async(ID_Categoria)=>{
         try {
-            const response = await axios.delete(`http://localhost:3001/categoria/${ID_Categoria}`)
+            const response = await axios.delete(`http://localhost:3001/categorias/${ID_Categoria}`)
             console.log("categoria delete:",response.data)
-            set((state)=>({categorias: state.categorias.filter(categoria=>categoria.ID_Categoria !== ID_Categoria)})) // filtra todos lo estudiantes actualizados o
+            set((state)=>({categorias: state.categorias.filter(categoria=>categoria.ID_Categoria !== ID_Categoria)})) // filtra todos lo  categorias actualizados o
         } catch (error) {                                                               // diferentes del id eliminado
             console.log("Error deleting categoria:", error.message)
         }
     },
     //____----------Agregado---------------________
     updateCategoria: async (ID_Categoria, updatedData) => {
-        try {  // Realiza una solicitud PUT para actualizar el estudiante en el servidor.
-            const response = await axios.put(`http://localhost:3001/categoria/${ID_Categoria}`, updatedData)
+        try {  // Realiza una solicitud PUT para actualizar el  categoria en el servidor.
+            const response = await axios.put(`http://localhost:3001/categorias/${ID_Categoria}`, updatedData)
             console.log("categoria updated:", response.data)
-            // Actualiza el estado localmente, modificando solo el estudiante con el id coincidente.
-            set((state) => ({categorias: state.categorias.map((categoria)=> categoria.ID_Categoria === ID_Categoria ? {...categoria, ...response.data} : categoria)})) // actualiza el estudiante en el estado
+            // Actualiza el estado localmente, modificando solo el  categoria con el id coincidente.
+            set((state) => ({categorias: state.categorias.map((categoria)=> categoria.ID_Categoria === ID_Categoria ? {...categoria, ...response.data} : categoria)})) // actualiza el  categoria en el estado
         } catch (error) {
             console.log("Error updating categoria:", error.message)
         }

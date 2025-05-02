@@ -3,12 +3,7 @@ const Factura = require('../models/Factura');
 
 const createFacturaController = async ({ ID_Pedido, ID_Cliente, Fecha, Monto_Total }) => {
     try {
-        const newFactura = await Factura.create({
-            ID_Pedido,
-            ID_Cliente,
-            Fecha,
-            Monto_Total
-        });
+        const newFactura = await Factura.create({ID_Pedido,ID_Cliente,Fecha,Monto_Total});
         return newFactura;
     } catch (error) {
         throw new Error(error.message);

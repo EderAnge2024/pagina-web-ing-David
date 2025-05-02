@@ -12,8 +12,8 @@ const Empleado = sequelize.define('Empleado', {
     allowNull: false
   },
   NumCelular:{
-     type: DataTypes.INTEGER,
-     allowNull: false
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   URL: {
     type: DataTypes.STRING,

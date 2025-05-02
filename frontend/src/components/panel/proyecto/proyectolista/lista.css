@@ -1,0 +1,83 @@
+.lista {
+    background-color: #f4f4f4;
+    padding: 40px;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+}
+
+.cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    width: 250px;
+    text-align: center;
+    position: relative;
+}
+
+.imagen-empleado {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.edit-ico, .delete-ico {
+    font-size: 24px;
+    cursor: pointer;
+    margin: 10px;
+}
+
+.search-input {
+    width: 300px;
+    padding: 10px;
+    font-size: 16px;
+    margin-bottom: 30px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.modal-delete {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-delete .contend {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.btn-SI, .btn-NO {
+    margin: 10px;
+    padding: 10px 20px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-SI {
+    background-color: red;
+    color: white;
+}
+
+.btn-NO {
+    background-color: gray;
+    color: white;
+}
