@@ -28,7 +28,7 @@ const EmpleadoList = () => {
 
     const handleDelete = async (id) => {
         try {
-            await axios.delete(`http://localhost:3001/empleados/${id}`);
+            await axios.delete(`http://localhost:3001/empleado/${id}`);
             setEmpleados(empleados.filter(emp => emp.ID_Empleado !== id));
             setDeleteModal(false);
         } catch (error) {

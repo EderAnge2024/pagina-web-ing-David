@@ -4,6 +4,8 @@ import Inicio from "./subComponente/Inicio"
 import Menu from "./subComponente/Menu"
 import Servicio from "./subComponente/Servicio"
 
+
+
 const Principal=()=>{
     const [activateComponent, setActivateComponent] = useState('inicio')
     const handleNavClick = (component) =>{
@@ -20,10 +22,11 @@ const Principal=()=>{
                         </nav>
                         </header>
                         <main>
-                            {activateComponent === 'inicio' && <Inicio/>}
+                            {activateComponent === 'inicio' && <Inicio setActivateComponent={setActivateComponent} />}
                             {activateComponent === 'menu' && <Menu/>}
                             {activateComponent === 'servicio' && <Servicio/>}
-                            {activateComponent === 'carrito' && <Carrito/>}
+                            {activateComponent === 'carrito' && <Carrito setActivateComponent={setActivateComponent} />}
+
                         </main>
                 </div>
     )

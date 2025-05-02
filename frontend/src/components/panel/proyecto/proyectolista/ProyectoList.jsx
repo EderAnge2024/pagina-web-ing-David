@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './lista.css';
 import axios from 'axios';
+import ModalProyecto from './ModalProyecto';
 import { RiDeleteBin5Fill } from "react-icons/ri";
 
 const ProyectoList = () => {
@@ -8,6 +9,7 @@ const ProyectoList = () => {
     const [deleteModal, setDeleteModal] = useState(false);
     const [proyectoToDelete, setProyectoToDelete] = useState(null); 
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedProyecto, setSelectedProyecto] = useState(null);  // Estado para el proyecto seleccionado
 
     useEffect(() => {
         fetchProyectos();
@@ -16,6 +18,7 @@ const ProyectoList = () => {
     const fetchProyectos = async () => {
         try {
             const response = await axios.get('http://localhost:3001/proyecto');
+            console.log(response.data);  // Verifica los datos que llegan
             setProyectos(response.data);
         } catch (error) {
             console.error('Error al obtener proyectos:', error);
@@ -37,8 +40,12 @@ const ProyectoList = () => {
         setDeleteModal(true);
     };
 
-    const filteredProyectos = proyectos.filter(pro =>
-        pro.Empleado?.Nombre_Empleado?.toLowerCase().includes(searchTerm.toLowerCase())
+    const handleProyectoSelect = (proyecto) => {
+        setSelectedProyecto(proyecto); // Establecer el proyecto seleccionado
+    };
+
+    const filteredProyectos = proyectos.filter(pro => 
+        pro.Empleado?.Nombre_Empleado?.toLowerCase().includes(searchTerm.toLowerCase()) || !pro.Empleado
     );
 
     return (
@@ -61,6 +68,7 @@ const ProyectoList = () => {
                         <p><strong>Empleado:</strong> {pro.Empleado?.Nombre_Empleado}</p>
                         <p><strong>📞</strong> {pro.Empleado?.NumCelular}</p>
                         <RiDeleteBin5Fill className='delete-ico' onClick={() => handleDeleteModal(pro.ID_Proyectos)} />
+                        <button className="view-details-btn" onClick={() => handleProyectoSelect(pro)}>Ver Detalles</button>
                     </div>
                 ))}
             </div>
@@ -75,6 +83,14 @@ const ProyectoList = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Modal de detalles del proyecto */}
+            {selectedProyecto && (
+                <ModalProyecto 
+                    proyecto={selectedProyecto}
+                    onClose={() => setSelectedProyecto(null)}  // Función para cerrar el modal
+                />
             )}
         </div>
     );

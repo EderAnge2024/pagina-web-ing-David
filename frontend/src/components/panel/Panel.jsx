@@ -11,7 +11,7 @@ const Panel = () => {
         localStorage.removeItem('usuario'); // Ejemplo
         sessionStorage.clear(); // Si usas sessionStorage
         // Redirige al login
-        navigate('/login');
+        navigate('/');
     };
 
     return (
@@ -48,6 +48,11 @@ const Panel = () => {
                     <Link to='/productoslistas'>
                         <IoMdOpen className='ico' />
                         <p>LISTA DE PRODUCTOS</p>
+                        <button>INGRESAR</button>
+                    </Link>
+                    <Link to='/proyectoslista'>
+                        <IoMdOpen className='ico' />
+                        <p>LISTA DE PROYECTOS</p>
                         <button>INGRESAR</button>
                     </Link>
                 </div>
