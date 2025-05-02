@@ -11,13 +11,9 @@ const Empleado = sequelize.define('Empleado', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  Correo: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  Contraseña: {
-    type: DataTypes.STRING,
-    allowNull: false
+  NumCelular:{
+     type: DataTypes.INTEGER,
+     allowNull: false
   },
   URL: {
     type: DataTypes.STRING,

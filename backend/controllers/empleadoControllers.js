@@ -2,15 +2,9 @@ const Empleado = require('../models/Empleado');
 const bcrypt = require('bcrypt');
 
 
-const createEmpleadoController = async ({ Nombre_Empleado, Correo, Contraseña, URL }) => {
+const createEmpleadoController = async ({ ID_Empleado,Nombre_Empleado, NumCelular,URL }) => {
     try {
-        const hashedPassword = await bcrypt.hash(Contraseña, 10);
-        const newEmpleado = await Empleado.create({
-            Nombre_Empleado,
-            Correo,
-            Contraseña: hashedPassword,
-            URL
-        });
+        const newEmpleado = await Empleado.create({ID_Empleado,Nombre_Empleado,NumCelular,URL});
         return newEmpleado;
     } catch (error) {
         throw new Error(error.message);
@@ -34,12 +28,7 @@ const updateEmpleadoByIdController = async (ID_Empleado, empleadoData) => {
         if (!empleado) {
             return null;
         }
-
-        if (empleadoData.Contraseña) {
-            empleadoData.Contraseña = await bcrypt.hash(empleadoData.Contraseña, 10);
-        }
-
-        await empleado.update(empleadoData);
+       await empleado.update(empleadoData);
         return empleado;
     } catch (error) {
         throw new Error(error.message);

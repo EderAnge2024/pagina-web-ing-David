@@ -4,7 +4,7 @@ const {
   getAllFacturasController,
   updateFacturaByIdController,
   deleteFacturaByIdController
-} = require("../controllers/FacturaControlllers");
+} = require("../controllers/FacturaControllers");
 
 const facturaRouters = Router();
 
@@ -72,4 +72,6 @@ facturaRouters.delete("/:ID_Factura", async (req, res) => {
   }
 });
 
-module.exports = facturaRouters;
+module.exports = {
+    facturaRouters 
+};

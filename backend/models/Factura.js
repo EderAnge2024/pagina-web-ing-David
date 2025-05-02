@@ -9,11 +9,19 @@ const Factura = sequelize.define('Factura', {
   },
   ID_Pedido: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references:{
+      model: 'Pedidos',
+      key: 'ID_Pedido'
+    }
   },
   ID_Cliente: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references:{
+      model: 'Clientes',
+      key: 'ID_Cliente'
+    }
   },
   Fecha: {
     type: DataTypes.DATE,
@@ -23,6 +31,12 @@ const Factura = sequelize.define('Factura', {
     type: DataTypes.DECIMAL,
     allowNull: false
   }
+},{
+  tableName: 'Facturas',
+  timestamps: false
 });
+
+Factura.belongsTo(require('./Pedidos'),{foreignKey: 'ID_Pedido'})
+Factura.belongsTo(require('./Clientes'),{foreignKey: 'ID_Cliente'})
 
 module.exports = Factura;

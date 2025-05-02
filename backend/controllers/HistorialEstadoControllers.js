@@ -1,11 +1,12 @@
 const HistorialEstado = require('../models/HistorialEstado');
 
 
-const createHistorialEstadoController = async ({ ID_Pedido, ID_Estado, Fecha }) => {
+const createHistorialEstadoController = async ({ ID_Historial, ID_EstadoPedido, ID_Pedido, Fecha }) => {
     try {
         const newHistorial = await HistorialEstado.create({
+            ID_Historial,
+            ID_EstadoPedido,
             ID_Pedido,
-            ID_Estado,
             Fecha
         });
         return newHistorial;
@@ -25,21 +26,15 @@ const getAllHistorialEstadosController = async () => {
 };
 
 
-const updateHistorialEstadoController = async ({ ID_Pedido, ID_Estado, Fecha }, updateData) => {
+const updateHistorialEstadoByIdController = async ( ID_Historial,historialData) => {
     try {
-        const historial = await HistorialEstado.findOne({
-            where: {
-                ID_Pedido,
-                ID_Estado,
-                Fecha
-            }
-        });
+        const historial = await HistorialEstado.findByPk(ID_Historial);
 
         if (!historial) {
             return null;
         }
 
-        await historial.update(updateData);
+        await historial.update(historialData);
         return historial;
     } catch (error) {
         throw new Error(error.message);
@@ -47,15 +42,9 @@ const updateHistorialEstadoController = async ({ ID_Pedido, ID_Estado, Fecha }, 
 };
 
 
-const deleteHistorialEstadoController = async ({ ID_Pedido, ID_Estado, Fecha }) => {
+const deleteHistorialEstadoByIdController = async (ID_Historial) => {
     try {
-        const historial = await HistorialEstado.findOne({
-            where: {
-                ID_Pedido,
-                ID_Estado,
-                Fecha
-            }
-        });
+        const historial = await HistorialEstado.findByPk(ID_Historial);
 
         if (!historial) {
             return null;
@@ -71,6 +60,6 @@ const deleteHistorialEstadoController = async ({ ID_Pedido, ID_Estado, Fecha }) 
 module.exports = {
     createHistorialEstadoController,
     getAllHistorialEstadosController,
-    updateHistorialEstadoController,
-    deleteHistorialEstadoController
+    updateHistorialEstadoByIdController,
+    deleteHistorialEstadoByIdController
 };

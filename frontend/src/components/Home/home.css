@@ -1,0 +1,90 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+/*-------------- Asegura que el contenido no sobrepase la pantalla---------------------- */
+.home {
+  width: 100vw;
+  margin-top: 80px;
+}
+
+/*------------------------------------ Sección de portada ------------------------------*/
+.hero {
+  width: 100%;
+  background-color: #4a90e2;
+  color: white;
+  text-align: center;
+  padding: 50px 20px;
+}
+
+/*------------------------------------------- Productos ---------------------------*/
+.productos {
+  width: 100%;
+  padding: 20px 40px;
+  box-sizing: border-box;
+}
+
+.producto-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
+}
+
+.producto-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  width: 150px;
+  text-align: center;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.producto-video {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #000;
+  margin-bottom: 10px;
+}
+
+.producto-card button {
+  background-color: #6ea8fe;
+  border: none;
+  padding: 5px 10px;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/*------------------------------------------------ Footer ----------------------*/
+.footer {
+  background: #f4f4f4;
+  display: flex;
+  justify-content: space-around;
+  padding: 20px;
+  margin-top: 40px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.footer .gg {
+  color: black;
+}
+
+.footer .hh {
+  color: black;
+}
+
+.producto-video {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #000;
+  margin-bottom: 10px;
+}

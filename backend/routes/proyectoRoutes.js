@@ -2,10 +2,9 @@ const { Router } = require("express");
 const {
   createProyectoController,
   getAllProyectosController,
-  getProyectoByIdController,
   updateProyectoByIdController,
   deleteProyectoByIdController
-} = require("../controllers/proyectoControllers");
+} = require("../controllers/ProyectoControllers");
 
 const proyectoRouters = Router();
 
@@ -30,26 +29,11 @@ proyectoRouters.get("/", async (req, res) => {
   }
 });
 
-
-proyectoRouters.get("/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const proyecto = await getProyectoByIdController(id);
-    if (!proyecto) {
-      return res.status(404).json({ error: "Proyecto no encontrado" });
-    }
-    res.status(200).json(proyecto);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-
-proyectoRouters.put("/:id", async (req, res) => {
-  const { id } = req.params;
+proyectoRouters.put("/:ID_Proyectos", async (req, res) => {
+  const { ID_Proyectos } = req.params;
   const data = req.body;
   try {
-    const updatedProyecto = await updateProyectoByIdController(id, data);
+    const updatedProyecto = await updateProyectoByIdController(ID_Proyectos, data);
     if (!updatedProyecto) {
       return res.status(404).json({ error: "Proyecto no encontrado" });
     }
@@ -60,10 +44,10 @@ proyectoRouters.put("/:id", async (req, res) => {
 });
 
 
-proyectoRouters.delete("/:id", async (req, res) => {
-  const { id } = req.params;
+proyectoRouters.delete("/:ID_Proyectos", async (req, res) => {
+  const { ID_Proyectos } = req.params;
   try {
-    const deletedProyecto = await deleteProyectoByIdController(id);
+    const deletedProyecto = await deleteProyectoByIdController(ID_Proyectos);
     if (!deletedProyecto) {
       return res.status(404).json({ error: "Proyecto no encontrado" });
     }

@@ -4,15 +4,15 @@ const {
     getAllEstadoPedidosController,
     updateEstadoPedidoByIdController,
     deleteEstadoPedidoByIdController
-} = require('../controllers/estadoPedidoControllers');
+} = require('../controllers/EstadoPedidoControllers');
 
 const estadoPedidoRouters = Router();
 
 
 estadoPedidoRouters.post("/", async (req, res) => {
-    const { Estado } = req.body;
+    const { ID_EstadoPedido,Estado } = req.body;
     try {
-        const newEstado = await createEstadoPedidoController({ Estado });
+        const newEstado = await createEstadoPedidoController({ ID_EstadoPedido,Estado });
         res.status(201).json(newEstado);
     } catch (error) {
         res.status(400).json({ error: error.message }); 
@@ -30,12 +30,12 @@ estadoPedidoRouters.get("/", async (req, res) => {
 });
 
 
-estadoPedidoRouters.put("/:ID_Estado", async (req, res) => {
-    const { ID_Estado } = req.params;
+estadoPedidoRouters.put("/:ID_EstadoPedido", async (req, res) => {
+    const { ID_EstadoPedido } = req.params;
     const estadoData = req.body;
 
     try {
-        const updatedEstado = await updateEstadoPedidoByIdController(ID_Estado, estadoData);
+        const updatedEstado = await updateEstadoPedidoByIdController(ID_EstadoPedido, estadoData);
         if (!updatedEstado) {
             return res.status(404).json({ error: "Estado de pedido no encontrado" });
         }
@@ -46,11 +46,11 @@ estadoPedidoRouters.put("/:ID_Estado", async (req, res) => {
 });
 
 
-estadoPedidoRouters.delete("/:ID_Estado", async (req, res) => {
-    const { ID_Estado } = req.params;
+estadoPedidoRouters.delete("/:ID_EstadoPedido", async (req, res) => {
+    const { ID_EstadoPedido } = req.params;
 
     try {
-        const deletedEstado = await deleteEstadoPedidoByIdController(ID_Estado);
+        const deletedEstado = await deleteEstadoPedidoByIdController(ID_EstadoPedido);
         if (!deletedEstado) {
             return res.status(404).json({ error: "Estado de pedido no encontrado" }); 
         }
@@ -63,4 +63,3 @@ estadoPedidoRouters.delete("/:ID_Estado", async (req, res) => {
 module.exports = {
     estadoPedidoRouters
 };
-

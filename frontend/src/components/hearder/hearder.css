@@ -1,0 +1,57 @@
+/*------------------------------- Header principal -------------------------*/
+.header {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    background-color: white;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    box-sizing: border-box;
+}
+
+/*-------------------- Logo (osea eso que dice bradtec) ----------------------------------------------------*/
+.logo {
+    height: 60px;
+}
+
+/*-------------------------------------- Caja de búsqueda ---------------------------------------------*/
+.search-box {
+    display: flex;
+    align-items: center;
+    border: 1px solid #999;
+    border-radius: 20px;
+    padding: 5px 10px;
+    background-color: #fff;
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    padding: 5px;
+    width: 150px;
+}
+
+.search-box button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+/*---------Los iconos de Navegación ------------------*/
+.nav-iconos {
+    display: flex;
+    align-items: center;
+}
+
+.nav-iconos a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #000;
+    font-weight: 500;
+}

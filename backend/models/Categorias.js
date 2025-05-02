@@ -2,17 +2,17 @@ const  {DataTypes} = require('sequelize')
 const sequelize = require('../db')
 
 const Categoria = sequelize.define('Categoria',{
-    categoriaId:{
+    ID_Categoria:{
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement:true
     },
-    categoria:{
+    Tipo_Producto:{
         type: DataTypes.STRING,
         allowNull: false
     },
-    descripcion:{
-        type: DataTypes.STRING,
+    Descripcion:{
+        type: DataTypes.TEXT,
         allowNull: false
     }
 })

@@ -4,15 +4,15 @@ const {
     getAllEmpleadosController,
     updateEmpleadoByIdController,
     deleteEmpleadoByIdController
-} = require('../controllers/empleadoControllers');
+} = require('../controllers/EmpleadoControllers');
 
 const empleadoRouters = Router();
 
 
 empleadoRouters.post("/", async (req, res) => {
-    const { Nombre_Empleado, Correo, Contraseña, URL } = req.body;
+    const { ID_Empleado,Nombre_Empleado, NumCelular,URL } = req.body;
     try {
-        const newEmpleado = await createEmpleadoController({ Nombre_Empleado, Correo, Contraseña, URL });
+        const newEmpleado = await createEmpleadoController({ ID_Empleado,Nombre_Empleado, NumCelular,URL });
         res.status(201).json(newEmpleado);
     } catch (error) {
         res.status(400).json({ error: error.message }); 
@@ -63,4 +63,3 @@ empleadoRouters.delete("/:ID_Empleado", async (req, res) => {
 module.exports = {
     empleadoRouters
 };
-

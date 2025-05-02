@@ -1,65 +1,54 @@
-const { Router } = require('express');
-const {
-    createCategoriaController,
-    getAllCategoriasController,
-    updateCategoriaByIdController,
-    deleteCategoriaByIdController
-} = require('../controllers/categoriaControllers');
+const {Router} = require('express')
+const {createCategoriaController,getAllCategoriaController,updateCategoriaByIdController,deletedCategoriaByIdController}= require('../controllers/categoriaControllers')
+const {Categoria} = require ('../models')
+const categoriaRouters = Router()
 
-const categoriaRouters = Router();
-
-// Crear una nueva categoría
-categoriaRouters.post("/", async (req, res) => {
-    const { categoria, descripcion } = req.body;
+categoriaRouters.post("/",async(req, res)=>{
+    const {ID_Categoria, Tipo_Producto,Descripcion} = req.body
     try {
-        const newCategoria = await createCategoriaController({ categoria, descripcion });
-        res.status(201).json(newCategoria); // Devuelve la categoría creada
+        const newCategoria = await createCategoriaController({ID_Categoria, Tipo_Producto,Descripcion})
+        res.status(201).json(newCategoria)
     } catch (error) {
-        res.status(400).json({ error: error.message }); // Manejo de errores
+        res.status(400).json({error: error.  message})
     }
-});
+})
 
-// Obtener todas las categorías
-categoriaRouters.get("/", async (req, res) => {
+categoriaRouters.get("/",async(req,res)=>{
     try {
-        const categorias = await getAllCategoriasController();
-        res.status(200).json(categorias); // Devuelve la lista de categorías
+        const categorias = await getAllCategoriaController()
+        res.status(200).json(categorias)
     } catch (error) {
-        res.status(400).json({ error: error.message }); // Manejo de errores
+        res.status(400).json({error: error.message}) 
     }
-});
+})
 
-// Actualizar una categoría por ID
-categoriaRouters.put("/:categoriaId", async (req, res) => {
-    const { categoriaId } = req.params;
-    const categoriaData = req.body;
-
+categoriaRouters.put("/:ID_Categoria", async(req,res)=>{
+    const {ID_Categoria}= req.params
+    const categoriaData = req.body
     try {
-        const updatedCategoria = await updateCategoriaByIdController(categoriaId, categoriaData);
-        if (!updatedCategoria) {
-            return res.status(404).json({ error: "Categoría no encontrada" }); // Si no se encuentra la categoría
+        const updateCategoria = await updateCategoriaByIdController(ID_Categoria, categoriaData)
+        if(!updateCategoria){
+            return res.status(404).json({error: "Categoria no encontrado"})
         }
-        res.status(200).json(updatedCategoria); // Devuelve la categoría actualizada
+        res.status(200).json(updateCategoria)
     } catch (error) {
-        res.status(400).json({ error: error.message }); // Manejo de errores
+        res.status(400).json({error: error.message})
     }
-});
+})
 
-// Eliminar una categoría por ID
-categoriaRouters.delete("/:categoriaId", async (req, res) => {
-    const { categoriaId } = req.params;
-
+categoriaRouters.delete("/:ID_Categoria", async(req, res)=>{
+    const {ID_Categoria} = req.params
     try {
-        const deletedCategoria = await deleteCategoriaByIdController(categoriaId);
-        if (!deletedCategoria) {
-            return res.status(404).json({ error: "Categoría no encontrada" }); // Si no se encuentra la categoría
-        }
-        res.status(200).json({ message: "Categoría eliminada exitosamente" }); // Devuelve mensaje de éxito
+       const deletedCategoria = await deletedCategoriaByIdController(ID_Categoria)
+       if(!deletedCategoria){
+        return res.status.apply(404).json({error:"Categoria no encontrado"})
+       }
+       res. status(200).json({message: "Categoria eliminado exitosamente"})
     } catch (error) {
-        res.status(500).json({ error: error.message }); // Manejo de errores
+        res.status(500).json({error: error.message})
     }
-});
+})
 
-module.exports = {
+module.exports={
     categoriaRouters
-};
+}

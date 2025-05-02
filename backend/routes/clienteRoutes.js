@@ -1,81 +1,54 @@
-const { Router } = require("express");
-const {
-  createClienteController,
-  getAllClienteController,
-  updateClienteByIdController,
-  deleteClienteByIdController,
-  loginClienteController
-} = require("../controllers/clienteControllers");
+const {Router} = require('express')
+const {createClienteController,getAllClienteController,updateClienteByIdController,deletedClienteByIdController}= require('../controllers/clienteControllers')
+const {Cliente} = require ('../models')
+const clienteRouters = Router()
 
-const clienteRouters = Router();
-
-clienteRouters.post("/", async (req, res) => {
-  const { nombre, apellidos, correo, telefono, direccion, contraseña } = req.body;
-  try {
-    const newCliente = await createClienteController({
-      nombre,
-      apellidos,
-      correo,
-      telefono,
-      direccion,
-      contraseña
-    });
-    res.status(201).json(newCliente);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-clienteRouters.get("/", async (req, res) => {
-  try {
-    const clientes = await getAllClienteController();
-    res.status(200).json(clientes);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-clienteRouters.put("/:clienteId", async (req, res) => {
-  const { clienteId } = req.params;
-  const clienteData = req.body;
-  try {
-    const updateCliente = await updateClienteByIdController(clienteId, clienteData);
-    if (!updateCliente) {
-      return res.status(404).json({ error: "Cliente no encontrado" });
+clienteRouters.post("/",async(req, res)=>{
+    const {ID_Cliente, Nombre, Apellido, NumCelular} = req.body
+    try {
+        const newCliente = await createClienteController({ID_Cliente, Nombre, Apellido, NumCelular})
+        res.status(201).json(newCliente)
+    } catch (error) {
+        res.status(400).json({error: error.  message})
     }
-    res.status(200).json(updateCliente);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
+})
 
-clienteRouters.delete("/:clienteId", async (req, res) => {
-  const { clienteId } = req.params;
-  try {
-    const deletedCliente = await deleteClienteByIdController(clienteId);
-    if (!deletedCliente) {
-      return res.status(404).json({ error: "Cliente no encontrado" });
+clienteRouters.get("/",async(req,res)=>{
+    try {
+        const clientes = await getAllClienteController()
+        res.status(200).json(clientes)
+    } catch (error) {
+        res.status(400).json({error: error.message})
     }
-    res.status(200).json({ message: "Cliente eliminado exitosamente" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+})
 
-// Iniciar sesión
-clienteRouters.post("/login", async (req, res) => {
-  const { correo, contraseña } = req.body;
+clienteRouters.put("/:ID_Cliente", async(req,res)=>{
+    const {ID_Cliente}= req.params
+    const clienteData = req.body
+    try {
+        const updateCliente = await updateClienteByIdController(ID_Cliente, clienteData)
+        if(!updateCliente){
+            return res.status(404).json({error: "cliente no encontrado"})
+        }
+        res.status(200).json(updateCliente)
+    } catch (error) {
+        res.status(400).json({error: error.message})
+    }
+})
 
-  if (!correo || !contraseña) {
-      return res.status(400).json({ error: "Correo y contraseña son obligatorios" });
-  }
+clienteRouters.delete("/:ID_Cliente", async(req, res)=>{
+    const {ID_Cliente} = req.params
+    try {
+       const deletedCliente = await deletedClienteByIdController(ID_Cliente)
+       if(!deletedCliente){
+        return res.status.apply(404).json({error:"cliente no encontrado"})
+       }
+       res. status(200).json({message: "Cliente eliminado exitosamente"})
+    } catch (error) {
+        res.status(500).json({error: error.message})
+    }
+})
 
-  try {
-    const loginResponse = await loginClienteController({ correo, contraseña });
-    res.status(200).json(loginResponse);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-module.exports = clienteRouters;
+module.exports={
+    clienteRouters
+}
