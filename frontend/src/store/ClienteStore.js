@@ -5,7 +5,7 @@ const useClienteStore = create((set)=>({
     clientes: [],
     addCliente: async(cliente)=>{
         try {
-            const response = await axios.post('http://localhost:3001/cliente',cliente)
+            const response = await axios.post('http://localhost:3001/clientes',cliente)
             set((state)=>({clientes: [...state.clientes, response.data]}))// crea una copia el "..."
         } catch (error) {
             console.log("Error adding cliente", error.message)
@@ -13,7 +13,7 @@ const useClienteStore = create((set)=>({
     },
     fetchCliente: async()=>{
         try {
-            const response = await axios.get('http://localhost:3001/cliente')
+            const response = await axios.get('http://localhost:3001/clientes')
             set({clientes: response.data})
         } catch (error) {
             console.log("Error fecthing clientes", error.message)
@@ -21,7 +21,7 @@ const useClienteStore = create((set)=>({
     },
     deleteCliente: async(ID_Cliente)=>{
         try {
-            const response = await axios.delete(`http://localhost:3001/cliente/${ID_Cliente}`)
+            const response = await axios.delete(`http://localhost:3001/clientes/${ID_Cliente}`)
             console.log("cliente delete:",response.data)
             set((state)=>({clientes: state.clientes.filter(cliente=>cliente.ID_Cliente !== ID_Cliente)})) // filtra todos lo estudiantes actualizados o
         } catch (error) {                                                               // diferentes del id eliminado
@@ -31,7 +31,7 @@ const useClienteStore = create((set)=>({
     //____----------Agregado---------------________
     updateCliente: async (ID_Cliente, updatedData) => {
         try {  // Realiza una solicitud PUT para actualizar el estudiante en el servidor.
-            const response = await axios.put(`http://localhost:3001/cliente/${ID_Cliente}`, updatedData)
+            const response = await axios.put(`http://localhost:3001/clientes/${ID_Cliente}`, updatedData)
             console.log("cliente updated:", response.data)
             // Actualiza el estado localmente, modificando solo el estudiante con el id coincidente.
             set((state) => ({clientes: state.clientes.map((cliente)=> cliente.ID_Cliente === ID_Cliente ? {...cliente, ...response.data} : cliente)})) // actualiza el estudiante en el estado
