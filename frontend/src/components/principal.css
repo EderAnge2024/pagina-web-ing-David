@@ -1,0 +1,120 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* distribuye logo, botones, lupa */
+    border-bottom: solid 3px blue;
+    padding: 0 2vw;
+    flex-wrap: wrap; /* para que el contenido se acomode en pantallas pequeñas */
+    height: auto;
+  }
+  
+  header div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 10vh;
+    width: 10vw;
+    min-width: 60px;
+    margin: 1vh 2vw;
+  }
+  
+  header nav {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap; /* permite que los botones bajen en pantallas pequeñas */
+    gap: 10px;
+    margin: 1vh 2vw;
+  }
+  
+  header nav button {
+    display: flex;
+    align-items: center;
+    border: none;
+    background-color: white;
+    font-size: 1.2rem;
+    font-family: 'Times New Roman', Times, serif;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  header nav button:hover {
+    background-color: #f0f0f0;
+  }
+  
+  header nav button img {
+    width: 25px;
+    height: 25px;
+    margin-right: 5px;
+  }
+  
+  header .lupa {
+    width: 30px;
+    height: auto;
+    margin: 1vh 2vw;
+  }
+  
+  /* MEDIA QUERIES PARA HACERLO MÁS RESPONSIVO */
+  @media screen and (max-width: 768px) {
+    header {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    header nav {
+      justify-content: center;
+    }
+  
+    header div {
+      width: 20vw;
+      height: 8vh;
+    }
+  
+    header nav button {
+      font-size: 1rem;
+      padding: 0.4rem 0.8rem;
+    }
+  
+    header .lupa {
+      width: 25px;
+    }
+  }
+  
+  @media screen and (max-width: 480px) {
+    header div {
+      width: 30vw;
+      height: 8vh;
+    }
+  
+    header nav button {
+      font-size: 0.9rem;
+    }
+  
+    header .lupa {
+      width: 20px;
+    }
+  }
+  header div img{
+    width: 100%;
+    height: 100%;
+  }
+
+  header .lupa img{
+    width: 20px;
+    height: 20px;
+    padding-left: 3px;
+  }
+  header .lupa{
+    width: auto; 
+    height: auto;
+  }
+  header .lupa input{
+    border-radius: 10px;
+    width: 20vw;
+    height: auto;
+  }
