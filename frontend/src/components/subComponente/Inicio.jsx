@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import './inicio.css';
 
-const Inicio = ({ setActivateComponent }) => {
+const Inicio = () => {
     const [productos, setProductos] = useState([]);
+    const [imagenes, setImagenes] = useState([]);
     const [mensaje, setMensaje] = useState("");
+    const [indiceImagen, setIndiceImagen] = useState(0); // Estado para controlar qué imagen mostrar
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProductos = async () => {
@@ -16,8 +20,30 @@ const Inicio = ({ setActivateComponent }) => {
             }
         };
 
+        const fetchImagenes = async () => {
+            try {
+                const response = await fetch("http://localhost:3001/imagen");
+                const data = await response.json();
+                setImagenes(data);
+            } catch (error) {
+                console.error("Error al obtener imágenes:", error);
+            }
+        };
+
         fetchProductos();
+        fetchImagenes();
     }, []);
+
+    // Cambiar imagen cada minuto
+    useEffect(() => {
+        if (imagenes.length > 0) {
+            const interval = setInterval(() => {
+                setIndiceImagen((prev) => (prev + 1) % imagenes.length);
+            }, 60000); // 60,000 ms = 1 minuto
+
+            return () => clearInterval(interval); // limpiar cuando el componente se desmonte
+        }
+    }, [imagenes]);
 
     const manejarCompra = (producto) => {
         const carritoActual = JSON.parse(localStorage.getItem("carrito")) || [];
@@ -35,17 +61,26 @@ const Inicio = ({ setActivateComponent }) => {
 
         setTimeout(() => {
             setMensaje("");
-            setActivateComponent("carrito"); // redirige al carrito
+            navigate(""); // Puedes cambiar esto a "/carrito" si deseas redirigir ahí
         }, 1500);
     };
 
     return (
-        <div className="inicio">
+        <div className="home">
             {mensaje && <div className="toast">{mensaje}</div>}
-            <header>
-                <h1>Bienvenido a TuTienda</h1>
-                <p>Los mejores productos, al mejor precio</p>
-            </header>
+
+            <section className="hero">
+                <div className="imagenes-hero">
+                    {imagenes.length > 0 && (
+                        <img
+                            key={imagenes[indiceImagen].ID_Imagen}
+                            src={imagenes[indiceImagen].URL}
+                            alt={`Imagen promocional ${imagenes[indiceImagen].ID_Imagen}`}
+                            className="imagen-hero"
+                        />
+                    )}
+                </div>
+            </section>
 
             <section>
                 <h2>Productos destacados</h2>

@@ -1,69 +1,43 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './LoginForm.css';
+import { login } from '../../components/utils/auth';
+import './LoginForm.css'; // Asegúrate que esta ruta es correcta
 
-const LoginForm = () => {
-    const [Usuario, setUsuario] = useState('');
-    const [Contrasena, setContrasena] = useState('');
-    const [mensaje, setMensaje] = useState('');
-    const [error, setError] = useState(null);
-    const navigate = useNavigate();
+function LoginForm() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
-    // Datos estáticos del administrador
-    const adminUsuario = 'admin123';
-    const adminContrasena = 'admin123';
-    const adminNombre = 'Administrador Principal';
+  const handleLogin = (e) => {
+    e.preventDefault();
+    const success = login(username, password);
+    if (success) {
+      navigate('/panel');
+    } else {
+      alert('Usuario o contraseña incorrectos');
+    }
+  };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        // Validar datos estáticos
-        if (Usuario === adminUsuario && Contrasena === adminContrasena) {
-            setMensaje(`Bienvenido, ${adminNombre}`);
-            setError(null);
-            localStorage.setItem('authToken', 'token_estatico'); // Simula token
-            navigate('/panel');
-        } else {
-            setError('Usuario o contraseña incorrectos');
-            setMensaje('');
-        }
-    };
-
-    const handleCreateAccount = () => {
-        navigate('/userform');
-    };
-
-    return (
-        <div className="login-container">
-            <div className="login-header">
-                <h1>Bienvenido</h1>
-                
-            </div>
-
-            <form onSubmit={handleSubmit} className="login-form">
-                <input
-                    type="text"
-                    placeholder="Usuario"
-                    value={Usuario}
-                    onChange={(e) => setUsuario(e.target.value)}
-                    className="input"
-                />
-                <input
-                    type="password"
-                    placeholder="Contraseña"
-                    value={Contrasena}
-                    onChange={(e) => setContrasena(e.target.value)}
-                    className="input"
-                />
-                <button type="submit" className="submit-button">
-                    Iniciar sesión
-                </button>
-            </form>
-
-            {mensaje && <div className="message success">{mensaje}</div>}
-            {error && <div className="message error">{error}</div>}
-        </div>
-    );
-};
+  return (
+    <div className="login-form-container">
+      <form className="login-form" onSubmit={handleLogin}>
+        <h2>Iniciar sesión</h2>
+        <input
+          type="text"
+          placeholder="Usuario"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit">Ingresar</button>
+      </form>
+    </div>
+  );
+}
 
 export default LoginForm;

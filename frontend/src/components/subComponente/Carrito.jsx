@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";import "./Carrito.css";
+import "./Carrito.css";
 
-const Carrito = ({ setActivateComponent }) => {
+const Carrito = () => {
     const [carrito, setCarrito] = useState([]);
     const [cliente, setCliente] = useState({ Nombre: '', Apellido: '', NumCelular: '' });
     const [errores, setErrores] = useState({});
+    const navigate = useNavigate();
 
     useEffect(() => {
         const productosGuardados = JSON.parse(localStorage.getItem("carrito")) || [];
@@ -25,6 +28,7 @@ const Carrito = ({ setActivateComponent }) => {
     const vaciarCarrito = () => {
         setCarrito([]);
         localStorage.removeItem("carrito");
+        navigate("/"); // Redirige a /inicio después de vaciar
     };
 
     const cambiarCantidad = (index, nuevaCantidad) => {
@@ -54,10 +58,8 @@ const Carrito = ({ setActivateComponent }) => {
         if (!validarFormulario()) return;
 
         try {
-            // Guardar cliente en backend
             await axios.post("http://localhost:3001/clientes", cliente);
 
-            // WhatsApp
             const mensajeCliente = `🛒 *Nueva Compra Realizada* %0A
 👤 *Cliente:* ${cliente.Nombre} ${cliente.Apellido}%0A
 📱 *Celular:* ${cliente.NumCelular}%0A%0A
@@ -72,7 +74,7 @@ const Carrito = ({ setActivateComponent }) => {
             if (ventanaWhatsapp) setTimeout(() => ventanaWhatsapp.focus(), 1000);
 
             vaciarCarrito();
-            setActivateComponent("inicio");
+            navigate("/inicio"); // Redirige a la ruta /inicio
         } catch (error) {
             console.error("Error al guardar cliente:", error);
             alert("Error al guardar datos del cliente.");
