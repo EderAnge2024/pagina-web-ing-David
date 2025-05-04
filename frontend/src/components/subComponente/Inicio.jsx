@@ -96,7 +96,24 @@ const Inicio = () => {
                     ))}
                 </div>
             </section>
+
+        <footer>
+            <div className="gg">
+                <p>Teléfonos : 973836976</p>
+                <p>Email : bradatecsrlgmail.com</p>
+            </div>
+            <div className="hh">
+                <p>Dirección : JR. ZAVALA 501</p>
+                <p>Servicios : 57525-8625</p>
+            </div>
+            
+            
+        </footer>
+
         </div>
+        
+
+
     );
 };
 

@@ -32,7 +32,7 @@
 .productos {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
+    gap: 10px;
     ;
 }
 
@@ -42,7 +42,9 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     padding: 20px;
     transition: box-shadow 0.3s ease;
-    border: solid 1px #4a90e2
+    border: solid 1px #4a90e2;
+    
+    
 }
 
 .producto:hover {
@@ -94,6 +96,43 @@
     z-index: 1000;
     font-weight: bold;
     animation: fadeInOut 1.5s ease-in-out;
+}
+footer {
+    background-color: #111827;
+    color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding: 30px 20px;
+    margin-top: 40px;
+    border-top: 4px solid #2563eb;
+}
+
+footer .gg,
+footer .hh {
+    flex: 1 1 300px;
+    margin: 10px;
+}
+
+footer p {
+    margin: 8px 0;
+    color: #d1d5db;
+}
+
+/* Estilos responsivos para pantallas pequeñas */
+@media (max-width: 768px) {
+    footer {
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+    }
+
+    footer .gg,
+    footer .hh {
+        flex: 1 1 100%;
+        margin: 10px 0;
+    }
 }
 
 @keyframes fadeInOut {
