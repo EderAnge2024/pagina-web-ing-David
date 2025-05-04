@@ -1,0 +1,104 @@
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.ImagenFrom{
+    display: flex;
+    justify-content: space-evenly;
+    padding-top: 10px;
+}
+.AgregarImg{
+    background-color: rgb(251, 195, 195);
+    border-radius: 5px;
+    padding: 10px;
+    width: 45%;
+    height: auto;
+}
+.lista{
+    background-color: rgb(195, 236, 245);
+    height: auto;
+    padding: 20px;
+    width: 45%;
+}
+form{
+    display: flex;
+    flex-direction: column;
+}
+
+form input{
+    margin: 5px;
+}
+.tablita{
+    background-color: rgb(210, 245, 245);
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0px 0px 20px  rgb(0, 0, 0, 0.3);
+}
+.tablita div{
+    background-color: rgb(255, 255, 255);
+    padding: 2%;
+    overflow: auto;
+    margin-bottom: 1%;
+    border-radius: 12px;
+}
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.3); /* oscurece fondo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* asegúrate de que esté encima */
+  }
+  
+  .modal-window {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    padding: 20px 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0px 0px 15px rgba(0,0,0,0.4);
+    position: relative;
+    animation: aparecer 0.3s ease-out;
+  }
+
+  .modal-window input, button{
+    margin-top: 5px;
+  }
+  .modal-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+  }
+  .botones{
+    display: flex;
+    justify-content:space-evenly;
+  }
+  .botones button{
+    width: 20%;
+  }
+  .modal-close:hover {
+    color: black;
+  }
+  
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  

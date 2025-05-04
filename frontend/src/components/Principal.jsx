@@ -19,13 +19,9 @@ const Principal=()=>{
     const handleNavClick = (component) =>{
         setActivateComponent(component)
     }
-    const handleNavClickPasword = (component) => {
-        setActivateComponent(component);
-      };
-    
-      const goToLogin = () => {
+    const goToLogin = () => {
         navigate('/loginFrom');
-      };
+    };
 
       // Cargar la lista de imagens al montar el componente
       useEffect(() => {
@@ -67,7 +63,15 @@ const Principal=()=>{
                             {activateComponent === 'carrito' && <Carrito/>}
                     </main>
                     <footer>
-                        <button onClick={goToLogin}>Administrador</button>
+                        <div className="secPadre">
+                            <div className="seccion1">
+                                <p>Contactenos: 999999999</p>
+                                <button onClick={goToLogin}>Administrador Click 👈🤛</button>  
+                            </div>
+                            <div className="seccion2">
+                                <p>ubiquenos: en un lugar</p>
+                            </div>
+                        </div>   
                     </footer>
                 </div>
     )

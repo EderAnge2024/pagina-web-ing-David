@@ -118,3 +118,26 @@
     width: 20vw;
     height: auto;
   }
+
+  /*   Cuerpo o contenido    */
+  
+
+  /*    footer    */
+  footer{
+    height: 10vh;
+    background-color: rgb(232, 231, 196);
+  }
+  footer .secPadre{
+    display: flex;
+    justify-content: space-around;
+  }
+
+  footer .secPadre .seccion1 button{
+      border: solid 0;
+      background-color: transparent ;
+      font-family: Georgia, 'Times New Roman', Times, serif;
+  }
+
+  footer .secPadre .seccion1 p, .seccion2 p{
+    font-family: Georgia, 'Times New Roman', Times, serif;
+  }
