@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import useImagenStore from '../../store/ImagenStore'
-import './imgFrom.css'
+import styles from './imgFrom.module.css'
 
 const ImagenFrom= ()=>{
     const {addImagen,fetchImagen,imagens,deleteImagen,updateImagen} = useImagenStore() 
@@ -62,8 +62,8 @@ const ImagenFrom= ()=>{
         setEditingImagen(null);
       }
     return (
-        <div className='ImagenFrom'>
-        <div className='AgregarImg'>
+        <div className={styles.ImagenFrom}>
+        <div className={styles.AgregarImg}>
             <h1>Agregar Imgens para el logo y banner</h1>
             <form onSubmit={handelSubmit}>
                 <input
@@ -85,10 +85,10 @@ const ImagenFrom= ()=>{
                 <button>Guardar Datos</button>
             </form>
         </div>
-        <div className="lista">
+        <div className={styles.lista}>
             
-            <div className="tabla">
-                <div className="tablita">
+            <div className={styles.tabla}>
+                <div className={styles.tablita}>
                 <h1>Lista de la imagenes</h1>
                 {
                     imagens.map((user) =>(
@@ -102,9 +102,9 @@ const ImagenFrom= ()=>{
                 }
                 </div>
                 {editingImagen && (
-                  <div className="modal-overlay">
-                    <div className="modal-window">
-                      <span className="modal-close" onClick={handleCancelEdit}>&times;</span>
+                  <div className={styles.modal-overlay}>
+                    <div className={styles.modal-window}>
+                      <span className={styles.modal-close} onClick={handleCancelEdit}>&times;</span>
                       <h3>Editar imagen</h3>
                       <input 
                         type="text"
@@ -120,7 +120,7 @@ const ImagenFrom= ()=>{
                         onChange={handleInputChangeUpdate}
                         placeholder="URL o ruta"
                       />
-                      <div className="botones">
+                      <div className={styles.botones}>
                         <button onClick={handleUpdate}>Guardar</button>
                         <button onClick={handleCancelEdit}>Cancelar</button>
                     

@@ -1,0 +1,8 @@
+*{
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+div header .nav button{
+    border-bottom: solid 2px rgb(91, 91, 239);
+}

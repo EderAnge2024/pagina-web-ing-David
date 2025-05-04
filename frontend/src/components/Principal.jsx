@@ -9,7 +9,7 @@ import casa from '../img/casa.png'
 import menu from '../img/menu.png'
 import lupa from '../img/lupa.png'
 import servicio from '../img/servicio.png'
-import './principal.css'
+import stiloPrin from './principal.module.css'
 import useImagenStore from "../store/ImagenStore";
 
 const Principal=()=>{
@@ -31,7 +31,7 @@ const Principal=()=>{
     console.log("Imágenes cargadas:", imagens) 
 
     return(
-                <div className="Principal">
+                <div className={stiloPrin.Principal}>
                     <header>
                         <div>
                                   {imagens
@@ -45,9 +45,9 @@ const Principal=()=>{
                                       ))
                                   }
                         </div>
-                        <div className="lupa">
-                            <input type="lupa" ></input>
-                            <img src={lupa} />
+                        <div className={stiloPrin.lupa}>
+                            <input type="lupa" placeholder="  ...buscar algo"></input>
+                            <button><img src={lupa} /></button>
                         </div>
                         <nav>
                             <button onClick={() => handleNavClick('inicio')}><img src={casa} />Inicio</button>
@@ -63,12 +63,12 @@ const Principal=()=>{
                             {activateComponent === 'carrito' && <Carrito/>}
                     </main>
                     <footer>
-                        <div className="secPadre">
-                            <div className="seccion1">
+                        <div className={stiloPrin.secPadre}>
+                            <div className={stiloPrin.seccion1}>
                                 <p>Contactenos: 999999999</p>
                                 <button onClick={goToLogin}>Administrador Click 👈🤛</button>  
                             </div>
-                            <div className="seccion2">
+                            <div className={stiloPrin.seccion2}>
                                 <p>ubiquenos: en un lugar</p>
                             </div>
                         </div>   

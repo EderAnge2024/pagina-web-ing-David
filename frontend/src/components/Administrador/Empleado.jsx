@@ -1,22 +1,22 @@
 import { useEffect, useState } from 'react'
-import useClienteStore from '../../store/ClienteStore'
+import useEmpleadoStore from '../../store/EmpleadoStore'
 
-const ClienteFrom= ()=>{
-    const {addCliente,fetchCliente,clientes,deleteCliente,updateCliente} = useClienteStore() 
-    const [editingCliente, setEditingCliente]= useState(null)
-    const [clienteData, setClienteData] = useState ({Nombre:"",Apellido:"",NumCelular:""})
-    const [fromData, setFormData] = useState ({Nombre:"",Apellido:"",NumCelular:""})
+const Empleado= ()=>{
+    const {addEmpleado,fetchEmpleado,empleados,deleteEmpleado,updateEmpleado} = useEmpleadoStore() 
+    const [editingEmpleado, setEditingEmpleado]= useState(null)
+    const [empleadoData, setEmpleadoData] = useState ({Nombre_Empleado:"",NumCelular:"",URL:""})
+    const [fromData, setFormData] = useState ({Nombre_Empleado:"",NumCelular:"",URL:""})
 
-    console.log(clienteData)
+    console.log(empleadoData)
     useEffect(()=>{
-        fetchCliente()
+        fetchEmpleado()
     },[])
 
     // escucha lo que se ecribe en los input de la interfaz creada.
     const handleInputChange = (e)=>{
        const {name, value} = e. target 
-       setClienteData({
-        ...clienteData,
+       setEmpleadoData({
+        ...empleadoData,
         [name]:value
        })
     }
@@ -24,21 +24,21 @@ const ClienteFrom= ()=>{
     // creamos la funcion que graba los datos de los input
     const handelSubmit = async(e)=>{
         e.preventDefault()      // previene algo por defecto nose
-        addCliente(clienteData)
-        setClienteData({Nombre:"",Apellido:"",NumCelular:""})
+        addEmpleado(empleadoData)
+        setEmpleadoData({Nombre_Empleado:"",NumCelular:"",URL:""})
         alert("se agrego al profe")
     }
-    // elimina a la cliente
-    const handleDelete = (ID_Cliente)=>{
+    // elimina a la empleado
+    const handleDelete = (ID_Empleado)=>{
         if(window.confirm("Are you sure")){
-            deleteCliente(ID_Cliente)
-            fetchCliente()
+            deleteEmpleado(ID_Empleado)
+            fetchEmpleado()
         }
     }
     //configura al estudinate para su edicion
-    const handleEditClick = (cliente) => {
-        setEditingCliente(cliente)
-        setFormData({Nombre:cliente.Nombre, Apellido:cliente.Apellido, NumCelular:cliente.NumCelular})
+    const handleEditClick = (empleado) => {
+        setEditingEmpleado(empleado)
+        setFormData({Nombre_Empleado:empleado.Nombre_Empleado, NumCelular:empleado.NumCelular, URL:empleado.URL})
     }
     // manejar can¿bios de la formulaion edicion
     const handleInputChangeUpdate = (e)=>{
@@ -50,32 +50,24 @@ const ClienteFrom= ()=>{
 
     // actualiza a la imgen
     const handleUpdate = async()=>{
-        updateCliente(editingCliente.ID_Cliente, fromData)
-        fetchCliente()
-        setEditingCliente(null)
+        updateEmpleado(editingEmpleado.ID_Empleado, fromData)
+        fetchEmpleado()
+        setEditingEmpleado(null)
     }
     const handleCancelEdit = () => {
-        setEditingCliente(null);
+        setEditingEmpleado(null);
       }
     return (
         <div>
         <div>
-            <h1>Agregar clientes</h1>
+            <h1>Agregar empleados</h1>
             <form onSubmit={handelSubmit}>
                 <input
                 type="text"
-                placeholder="enter Nombre"
+                placeholder="enter Nombre_Empleado"
                 required
-                name="Nombre"
-                value={clienteData.Nombre}
-                onChange={handleInputChange}
-                />
-                <input
-                type="text"
-                placeholder="enter Apellido"
-                required
-                name="Apellido"
-                value={clienteData.Apellido}
+                name="Nombre_Empleado"
+                value={empleadoData.Nombre_Empleado}
                 onChange={handleInputChange}
                 />
                 <input
@@ -83,7 +75,15 @@ const ClienteFrom= ()=>{
                 placeholder="enter NumCelular"
                 required
                 name="NumCelular"
-                value={clienteData.NumCelular}
+                value={empleadoData.NumCelular}
+                onChange={handleInputChange}
+                />
+                <input
+                type="text"
+                placeholder="enter URL"
+                required
+                name="URL"
+                value={empleadoData.URL}
                 onChange={handleInputChange}
                 />
                 <button>Guardar Datos</button>
@@ -93,44 +93,44 @@ const ClienteFrom= ()=>{
             
             <div>
                 <div>
-                <h1>Lista de la clientees</h1>
+                <h1>Lista de la empleadoes</h1>
                 {
-                    clientes.map((user) =>(
-                        <div key={user.ID_Cliente}>
-                            <p>Nombre: {user.Nombre} </p>
-                            <p>Apellido: {user.Apellido}</p>
-                            <p>Numero Celular: {user.NumCelular}</p>
-                            <button onClick={()=> handleDelete(user.ID_Cliente)}>❌👍</button>
+                    empleados.map((user) =>(
+                        <div key={user.ID_Empleado}>
+                            <p>Nombre_Empleado: {user.Nombre_Empleado} </p>
+                            <p>NumCelular: {user.NumCelular}</p>
+                            <p>Numero Celular: {user.URL}</p>
+                            <button onClick={()=> handleDelete(user.ID_Empleado)}>❌👍</button>
                             <button onClick={()=> handleEditClick(user)}>👌✍️🗃️</button>
                         </div>
                     ))
                 }
                 </div>
-                {editingCliente && (
+                {editingEmpleado && (
                   <div className="modal-overlay">
                     <div className="modal-window">
                       <span className="modal-close" onClick={handleCancelEdit}>&times;</span>
-                      <h3>Editar cliente</h3>
+                      <h3>Editar empleado</h3>
                       <input 
                         type="text"
-                        name="Nombre"
-                        value={fromData.Nombre}
+                        name="Nombre_Empleado"
+                        value={fromData.Nombre_Empleado}
                         onChange={handleInputChangeUpdate}
-                        placeholder="Tipo de cliente"
-                      />
-                      <input 
-                        type="text"
-                        name="Apellido"
-                        value={fromData.Apellido}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Apellido o ruta"
+                        placeholder="Tipo de empleado"
                       />
                       <input 
                         type="text"
                         name="NumCelular"
                         value={fromData.NumCelular}
                         onChange={handleInputChangeUpdate}
-                        placeholder="NumCelular"
+                        placeholder="NumCelular o ruta"
+                      />
+                      <input 
+                        type="text"
+                        name="URL"
+                        value={fromData.URL}
+                        onChange={handleInputChangeUpdate}
+                        placeholder="URL"
                       />
                       <div className="botones">
                         <button onClick={handleUpdate}>Guardar</button>
@@ -147,4 +147,4 @@ const ClienteFrom= ()=>{
     )
 }
 
-export default ClienteFrom
+export default Empleado

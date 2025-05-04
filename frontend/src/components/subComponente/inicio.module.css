@@ -34,3 +34,8 @@
     border: solid 2px;
     height: 80vh;
 }
+.contenidoPro h5{
+  margin-top: 1%;
+  width: 15vw;
+  border-bottom: solid 2px black;
+}

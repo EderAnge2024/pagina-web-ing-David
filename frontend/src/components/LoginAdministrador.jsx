@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './LoginAdministrador.css'
+import stiloLogin from './LoginAdministrador.module.css'
 
 const LoginForm = () => {
     const [Usuario, setUsuario] = useState('');
@@ -34,13 +34,13 @@ const LoginForm = () => {
     };
 
     return (
-        <div className="login-container">
-            <div className="login-header">
+        <div className={stiloLogin.login_container}>
+            <div className={stiloLogin.login_header}>
                 <h1>Bienvenido</h1>
                 
             </div>
 
-            <form onSubmit={handleSubmit} className="login-form">
+            <form onSubmit={handleSubmit} className={stiloLogin.login_form}>
                 <input
                     type="text"
                     placeholder="Usuario"
@@ -55,13 +55,13 @@ const LoginForm = () => {
                     onChange={(e) => setContrasena(e.target.value)}
                     className="input"
                 />
-                <button type="submit" className="submit-button">
+                <button type="submit" className={stiloLogin.submit_button}>
                     Iniciar sesión
                 </button>
             </form>
 
-            {mensaje && <div className="message success">{mensaje}</div>}
-            {error && <div className="message error">{error}</div>}
+            {mensaje && <div className={stiloLogin.message_success}>{mensaje}</div>}
+            {error && <div className={stiloLogin.messag_error}>{error}</div>}
         </div>
     );
 };

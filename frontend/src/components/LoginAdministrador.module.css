@@ -9,7 +9,7 @@ body {
 }
 
 /* Contenedor del formulario */
-.login-container {
+.login_container {
     background-color: white; /* Fondo blanco para el formulario */
     padding: 40px;
     border: solid 2px blue;
@@ -27,13 +27,13 @@ h1 {
 }
 
 /* Estilos de las etiquetas y mensajes de error */
-.error-message {
+.error_message {
     color: red; /* Color rojo para mensajes de error */
     text-align: center; /* Centrar el mensaje de error */
 }
 
 /* Estilos de los campos de entrada */
-.login-input {
+.login_input {
     width: 100%; /* Ancho completo del contenedor */
     padding: 10px; /* Relleno interno */
     margin-bottom: 20px; /* Espaciado inferior entre campos */
@@ -42,7 +42,7 @@ h1 {
 }
 
 /* Estilo para el botón de enviar */
-.login-button {
+.login_button {
     width: 100%; /* Ancho completo del contenedor */
     padding: 10px; /* Relleno interno */
     background-color: #1877f2; /* Color azul Facebook */
@@ -54,19 +54,19 @@ h1 {
 }
 
 /* Efecto hover para el botón */
-.login-button:hover {
+.login_button:hover {
     background-color: #165eab; /* Color más oscuro al pasar el mouse sobre el botón */
 }
 
 /* Enlace para recuperar contraseña o registrarse */
-.create-account {
+.create_account {
     text-align: center; /* Centrar el texto del enlace */
 }
 
-.create-account-link {
+.create_account-link {
     color: #1877f2; /* Color azul para los enlaces (como Facebook) */
 }
 
-.create-account-link:hover {
+.create_account_link:hover {
     text-decoration: underline; /* Subrayar al pasar el mouse sobre el enlace */
 }
