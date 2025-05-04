@@ -1,0 +1,61 @@
+.register {
+    background-color: #f8f9fa; /* Fondo claro */
+    padding: 40px;
+    border-radius: 12px ;
+    color: aqua;
+    width: 500px;
+    margin: 60px auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    border: solid 2 px aqua;
+    
+}
+
+.register h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #212529;
+    font-size: 28px;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 10px;
+    border: solid 2 px aqua;
+}
+
+.register form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: solid 2 px aqua;
+}
+
+.register input {
+    height: 50px;
+    font-size: 16px;
+    padding: 0 15px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background-color: #fff;
+    transition: border-color 0.3s ease;
+}
+
+.register input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.register button {
+    height: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.register button:hover {
+    background-color: #0056b3;
+}

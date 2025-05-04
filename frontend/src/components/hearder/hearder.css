@@ -16,7 +16,8 @@
   
   /*-------------------- Logo ----------------------------------------------------*/
   .logo {
-    height: 60px;
+    height: 80px;
+    width: 90px;
   }
   
   /*-------------------- Caja de búsqueda ---------------------------------------*/
@@ -27,13 +28,15 @@
     border-radius: 20px;
     padding: 5px 10px;
     background-color: #fff;
+    width: 30%;
+    height: 5%;
   }
   
   .search-box input {
     border: none;
     outline: none;
     padding: 5px;
-    width: 150px;
+    width: 100%;
   }
   
   .search-box button {
