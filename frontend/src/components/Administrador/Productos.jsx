@@ -5,7 +5,7 @@ const ProductosFrom= ()=>{
     const {addProducto,fetchProducto,productos,deleteProducto,updateProducto} = useProductoStore() 
     const [editingProducto, setEditingProducto]= useState(null)
     const [productoData, setProductoData] = useState ({ID_Categoria:"",Codigo:"",Nombre_Producto:"",Descripcion:"",Descuento:"",Precio_Producto:"",Marca:"",Cantidad:"",cantidad_Disponible:"",Url:"",Precio_Final:""})
-    const [fromData, setFormData] = useState ({ID_Categoria:"",Codigo:"",Nombre_Producto:"",Descripcion:"",Descuento:"",Precio_Producto:"",Marca:"",Cantidad:"",cantidad_Disponible:"",Url:"",Precio_Final:""})
+    const [formData, setFormData] = useState ({ID_Categoria:"",Codigo:"",Nombre_Producto:"",Descripcion:"",Descuento:"",Precio_Producto:"",Marca:"",Cantidad:"",cantidad_Disponible:"",Url:"",Precio_Final:""})
 
     console.log(productoData)
     useEffect(()=>{
@@ -43,16 +43,16 @@ const ProductosFrom= ()=>{
     // manejar can¿bios de la formulaion edicion
     const handleInputChangeUpdate = (e)=>{
         setFormData({
-            ...fromData,
+            ...formData,
             [e.target.name]: e.target.value
         })
     }
 
     // actualiza a la imgen
     const handleUpdate = async()=>{
-        updateProducto(editingProducto.ID_Producto, fromData)
-        fetchProducto()
+        updateProducto(editingProducto.ID_Producto, formData)
         setEditingProducto(null)
+        fetchProducto()
     }
     const handleCancelEdit = () => {
         setEditingProducto(null);
@@ -165,8 +165,13 @@ const ProductosFrom= ()=>{
                             <p>Codigo: {user.Codigo}</p>
                             <p>Numero Celular: {user.Nombre_Producto}</p>
                             <p>Descripcion: {user.Descripcion}</p>
+                            <p>Marca: {user.Marca}</p>
+                            <p>Cantidad: {user.Cantidad}</p>
+                            <p>Cantidad disponible: {user.cantidad_Disponible}</p>
                             <p>Numero Descuento: {user.Descuento}</p>
                             <p>Numero Precio_Producto: {user.Precio_Producto}</p>
+                            <p>Numero Precio_Final: {user.Precio_Final}</p>
+                            <p>ruta: {user.Url}</p>
                             <button onClick={()=> handleDelete(user.ID_Producto)}>❌👍</button>
                             <button onClick={()=> handleEditClick(user)}>👌✍️🗃️</button>
                         </div>
@@ -181,77 +186,77 @@ const ProductosFrom= ()=>{
                       <input 
                         type="text"
                         name="ID_Categoria"
-                        value={fromData.ID_Categoria}
+                        value={formData.ID_Categoria}
                         onChange={handleInputChangeUpdate}
                         placeholder="Tipo de producto"
                       />
                       <input 
                         type="text"
                         name="Codigo"
-                        value={fromData.Codigo}
+                        value={formData.Codigo}
                         onChange={handleInputChangeUpdate}
                         placeholder="Codigo o ruta"
                       />
                       <input 
                         type="text"
                         name="Nombre_Producto"
-                        value={fromData.Nombre_Producto}
+                        value={formData.Nombre_Producto}
                         onChange={handleInputChangeUpdate}
                         placeholder="Nombre_Producto"
                       />
                       <input 
                         type="text"
                         name="Descripcion"
-                        value={fromData.Descripcion}
+                        value={formData.Descripcion}
                         onChange={handleInputChangeUpdate}
                         placeholder="Descripcion"
                       />
                       <input 
                         type="text"
                         name="Descuento"
-                        value={fromData.Descuento}
+                        value={formData.Descuento}
                         onChange={handleInputChangeUpdate}
                         placeholder="Descuento"
                       />
                       <input 
                         type="text"
                         name="Precio_Producto"
-                        value={fromData.Precio_Producto}
+                        value={formData.Precio_Producto}
                         onChange={handleInputChangeUpdate}
                         placeholder="Precio_Producto"
                       />
                       <input 
                         type="text"
                         name="Marca"
-                        value={fromData.Marca}
+                        value={formData.Marca}
                         onChange={handleInputChangeUpdate}
                         placeholder="Marca"
                       />
                       <input 
                         type="text"
                         name="Cantidad"
-                        value={fromData.Cantidad}
+                        value={formData.Cantidad}
                         onChange={handleInputChangeUpdate}
                         placeholder="Cantidad"
                       />
                       <input 
                         type="text"
                         name="cantidad_Disponible"
-                        value={fromData.cantidad_Disponible}
+                        value={formData.cantidad_Disponible}
                         onChange={handleInputChangeUpdate}
                         placeholder="cantidad_Disponible"
                       />
                       <input 
                         type="text"
                         name="Url"
-                        value={fromData.Url}
+                        value={formData.Url}
                         onChange={handleInputChangeUpdate}
                         placeholder="Url"
                       />
                       <input 
                         type="text"
                         name="Precio_Final"
-                        value={fromData.Precio_Final}
+                        value={formData.Precio_Final}
                         onChange={handleInputChangeUpdate}
                         placeholder="Precio_Final"
                       />

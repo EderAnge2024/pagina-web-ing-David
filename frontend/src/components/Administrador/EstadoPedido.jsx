@@ -85,7 +85,7 @@ const EstadoPedidoFrom= ()=>{
                             <button onClick={()=> handleDelete(user.ID_EstadoPedido)}>❌👍</button>
                             <button onClick={()=> handleEditClick(user)}>👌✍️🗃️</button>
                         </div>
-                    ))
+                    ))   
                 }
                 </div>
                 {editingEstadoPedido && (

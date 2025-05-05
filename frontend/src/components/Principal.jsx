@@ -65,11 +65,13 @@ const Principal=()=>{
                     <footer>
                         <div className={stiloPrin.secPadre}>
                             <div className={stiloPrin.seccion1}>
-                                <p>Contactenos: 999999999</p>
+                                <p>Teléfonos : 973836976</p>
+                                <p>Email : bradatecsrlgmail.com</p>
                                 <button onClick={goToLogin}>Administrador Click 👈🤛</button>  
                             </div>
                             <div className={stiloPrin.seccion2}>
-                                <p>ubiquenos: en un lugar</p>
+                                <p>Dirección : JR. ZAVALA 501</p>
+                                <p>Servicios : 57525-8625</p>
                             </div>
                         </div>   
                     </footer>

@@ -30,7 +30,7 @@ const ImagenFrom= ()=>{
             Tipo_Imagen:"",
             URL:""
         })
-        alert("se agrego al profe")
+        alert("se agrego a la imgen")
     }
     // elimina a la imagen
     const handleDelete = (ID_Imagen)=>{
@@ -102,9 +102,9 @@ const ImagenFrom= ()=>{
                 }
                 </div>
                 {editingImagen && (
-                  <div className={styles.modal-overlay}>
-                    <div className={styles.modal-window}>
-                      <span className={styles.modal-close} onClick={handleCancelEdit}>&times;</span>
+                  <div className={styles.modal_overlay}>
+                    <div className={styles.modal_window}>
+                      <span className={styles.modal_close} onClick={handleCancelEdit}>&times;</span>
                       <h3>Editar imagen</h3>
                       <input 
                         type="text"

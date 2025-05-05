@@ -43,7 +43,7 @@ form input{
     margin-bottom: 1%;
     border-radius: 12px;
 }
-.modal-overlay {
+.modal_overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -56,7 +56,7 @@ form input{
     z-index: 9999; /* asegúrate de que esté encima */
   }
   
-  .modal-window {
+  .modal_window {
     display: flex;
     flex-direction: column;
     background: white;
@@ -69,10 +69,10 @@ form input{
     animation: aparecer 0.3s ease-out;
   }
 
-  .modal-window input, button{
+  .modal_window input, button{
     margin-top: 5px;
   }
-  .modal-close {
+  .modal_close {
     position: absolute;
     top: 10px;
     right: 15px;
@@ -87,7 +87,7 @@ form input{
   .botones button{
     width: 20%;
   }
-  .modal-close:hover {
+  .modal_close:hover {
     color: black;
   }
   
