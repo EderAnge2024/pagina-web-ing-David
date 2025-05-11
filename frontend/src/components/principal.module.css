@@ -127,6 +127,7 @@
   footer{
     height: 15vh;
     background-color: rgb(232, 231, 196);
+    margin-top: 15px;
   }
   footer .secPadre{
     display: flex;

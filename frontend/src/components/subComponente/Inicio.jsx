@@ -72,7 +72,7 @@ const Inicio = () => {
                         {productos
                             .filter(producto => producto.cantidad_Disponible < 99) // Filtra productos con menos de 99 disponibles
                             .map((producto) => (
-                                <div key={producto.ID_Producto}>
+                                <div key={producto.ID_Producto} className={sitloInicio.catalogoProc}>
                                     <img src={producto.Url} alt={producto.Nombre_Producto} width="150" height="150" />
                                     <p>Producto: {producto.Nombre_Producto}</p>
                                     <p>Precio: {producto.Precio_Final}</p>

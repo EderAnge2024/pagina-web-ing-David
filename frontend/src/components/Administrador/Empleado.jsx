@@ -98,8 +98,8 @@ const Empleado= ()=>{
                     empleados.map((user) =>(
                         <div key={user.ID_Empleado}>
                             <p>Nombre_Empleado: {user.Nombre_Empleado} </p>
-                            <p>NumCelular: {user.NumCelular}</p>
-                            <p>Numero Celular: {user.URL}</p>
+                            <p>NumeroCelular: {user.NumCelular}</p>
+                            <p>Ruta img: {user.URL}</p>
                             <button onClick={()=> handleDelete(user.ID_Empleado)}>❌👍</button>
                             <button onClick={()=> handleEditClick(user)}>👌✍️🗃️</button>
                         </div>
