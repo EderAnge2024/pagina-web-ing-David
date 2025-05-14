@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import useProyectoStore from '../../store/proyectostore'
+import useEmpleadoStore from '../../store/EmpleadoStore'
 
 const Proyecto= ()=>{
     const {addProyecto,fetchProyecto,proyectos,deleteProyecto,updateProyecto} = useProyectoStore() 
+    const {empleados, fetchEmpleado} = useEmpleadoStore()
     const [editingProyecto, setEditingProyecto]= useState(null)
     const [proyectoData, setProyectoData] = useState ({ID_Empleados:"",Lugar:"",URL:""})
     const [fromData, setFormData] = useState ({ID_Empleados:"",Lugar:"",URL:""})
@@ -10,6 +12,7 @@ const Proyecto= ()=>{
     console.log(proyectoData)
     useEffect(()=>{
         fetchProyecto()
+        fetchEmpleado()
     },[])
 
     // escucha lo que se ecribe en los input de la interfaz creada.
@@ -62,14 +65,19 @@ const Proyecto= ()=>{
         <div>
             <h1>Agregar proyectos</h1>
             <form onSubmit={handelSubmit}>
-                <input
-                type="text"
-                placeholder="enter ID_Empleados"
-                required
-                name="ID_Empleados"
-                value={proyectoData.ID_Empleados}
-                onChange={handleInputChange}
-                />
+                <select
+                  name="ID_Empleados"
+                  value={proyectoData.ID_Empleados}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">-- Seleccionar categoría --</option>
+                  {empleados.map((empleado) => (
+                    <option key={empleado.ID_Empleados} value={empleado.ID_Empleados}>
+                      {empleado.Nombre_Empleado}
+                    </option>
+                  ))}
+                </select>
                 <input
                 type="text"
                 placeholder="enter Lugar"

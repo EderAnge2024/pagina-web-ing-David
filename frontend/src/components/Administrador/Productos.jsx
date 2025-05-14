@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import useProductoStore from '../../store/ProductoStore'
+import useCategoriaStore from '../../store/CategoriaStore'
 
 const ProductosFrom= ()=>{
     const {addProducto,fetchProducto,productos,deleteProducto,updateProducto} = useProductoStore() 
+    const {categorias, fetchCategoria} = useCategoriaStore()
     const [editingProducto, setEditingProducto]= useState(null)
     const [productoData, setProductoData] = useState ({ID_Categoria:"",Codigo:"",Nombre_Producto:"",Descripcion:"",Descuento:"",Precio_Producto:"",Marca:"",Cantidad:"",cantidad_Disponible:"",Url:"",Precio_Final:""})
     const [formData, setFormData] = useState ({ID_Categoria:"",Codigo:"",Nombre_Producto:"",Descripcion:"",Descuento:"",Precio_Producto:"",Marca:"",Cantidad:"",cantidad_Disponible:"",Url:"",Precio_Final:""})
@@ -10,6 +12,7 @@ const ProductosFrom= ()=>{
     console.log(productoData)
     useEffect(()=>{
         fetchProducto()
+        fetchCategoria()
     },[])
 
     // escucha lo que se ecribe en los input de la interfaz creada.
@@ -62,14 +65,20 @@ const ProductosFrom= ()=>{
         <div>
             <h1>Agregar productos</h1>
             <form onSubmit={handelSubmit}>
-                <input
-                type="text"
-                placeholder="enter ID_Categoria"
-                required
-                name="ID_Categoria"
-                value={productoData.ID_Categoria}
-                onChange={handleInputChange}
-                />
+                <select
+                  name="ID_Categoria"
+  value={productoData.ID_Categoria}
+  onChange={handleInputChange}
+  required
+                >
+                  <option value="">-- Seleccionar categoría --</option>
+                  {categorias.map((cat) => (
+                    <option key={cat.ID_Categoria} value={cat.ID_Categoria}>
+                      {cat.Tipo_Producto}
+                    </option>
+                  ))}
+                </select>
+
                 <input
                 type="text"
                 placeholder="enter Codigo"
@@ -183,13 +192,20 @@ const ProductosFrom= ()=>{
                     <div className="modal-window">
                       <span className="modal-close" onClick={handleCancelEdit}>&times;</span>
                       <h3>Editar producto</h3>
-                      <input 
-                        type="text"
+                      <select
                         name="ID_Categoria"
                         value={formData.ID_Categoria}
                         onChange={handleInputChangeUpdate}
-                        placeholder="Tipo de producto"
-                      />
+                        required
+                      >
+                        <option value="">-- Seleccionar categoría --</option>
+                        {categorias.map((cat) => (
+                          <option key={cat.ID_Categoria} value={cat.ID_Categoria}>
+                            {cat.Tipo_Producto}
+                          </option>
+                        ))}
+                      </select>
+
                       <input 
                         type="text"
                         name="Codigo"

@@ -25,22 +25,30 @@
     gap: 10px;
     margin: 1vh 2vw;
   }
-  
+
   header nav button {
     display: flex;
     align-items: center;
     border: none;
+    border-radius: 10px;
     background-color: white;
     font-size: 1.2rem;
     font-family: 'Times New Roman', Times, serif;
     padding: 0.5rem 1rem;
-    transition: background-color 0.3s ease;
+    transition: 0.3s ease, transform 0.3s ease;
   }
   
   header nav button:hover {
-    background-color: #f0f0f0;
+    background-color: #8ad9f8;
+    transform: scale(1.1) ;
   }
-  
+  button img{
+    transition:background-color 0.3 ease, transform 0.3s ease;
+  }
+  button:hover{
+    background-color: rgb(133, 133, 234);
+    transform: scale(1.2);
+  }
   header nav button img {
     width: 25px;
     height: 25px;
