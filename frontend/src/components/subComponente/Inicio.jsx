@@ -354,7 +354,7 @@ const Inicio = ({ searchQuery = "" }) => {
                     </div>
                 )}
             </div>
-        </div>  
+        </div>
     );
 };
 

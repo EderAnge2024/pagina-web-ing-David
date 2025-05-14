@@ -1,104 +1,240 @@
-*{
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.ImagenFrom{
-    display: flex;
-    justify-content: space-evenly;
-    padding-top: 10px;
+.sectionTitle {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #3498db;
 }
-.AgregarImg{
-    background-color: rgb(251, 195, 195);
-    border-radius: 5px;
-    padding: 10px;
-    width: 45%;
-    height: auto;
+
+.formSection {
+    background-color: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
-.lista{
-    background-color: rgb(195, 236, 245);
-    height: auto;
-    padding: 20px;
-    width: 45%;
-}
-form{
+
+.form {
     display: flex;
     flex-direction: column;
+    gap: 20px;
 }
 
-form input{
-    margin: 5px;
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
-.tablita{
-    background-color: rgb(210, 245, 245);
-    border-radius: 10px;
-    padding: 10px;
-    box-shadow: 0px 0px 20px  rgb(0, 0, 0, 0.3);
+
+.formGroup label {
+    font-weight: 500;
+    color: #2c3e50;
 }
-.tablita div{
-    background-color: rgb(255, 255, 255);
-    padding: 2%;
-    overflow: auto;
-    margin-bottom: 1%;
-    border-radius: 12px;
+
+.formInput {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.3s;
 }
-.modal_overlay {
+
+.formInput:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.primaryButton {
+    padding: 12px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    align-self: flex-start;
+}
+
+.primaryButton:hover {
+    background-color: #2980b9;
+}
+
+.listSection {
+    background-color: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.imageGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.imageCard {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+
+.imageCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.imageInfo {
+    margin-bottom: 15px;
+}
+
+.imageInfo h3 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+}
+
+.urlText {
+    color: #7f8c8d;
+    font-size: 14px;
+    word-break: break-all;
+    margin-bottom: 10px;
+}
+
+.imagePreview {
+    margin-top: 10px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.imagePreview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.editButton {
+    padding: 8px 15px;
+    background-color: #f39c12;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.editButton:hover {
+    background-color: #d35400;
+}
+
+.deleteButton {
+    padding: 8px 15px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.deleteButton:hover {
+    background-color: #c0392b;
+}
+
+.modalOverlay {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.3); /* oscurece fondo */
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999; /* asegúrate de que esté encima */
-  }
-  
-  .modal_window {
-    display: flex;
-    flex-direction: column;
-    background: white;
-    padding: 20px 30px;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: white;
+    padding: 25px;
     border-radius: 8px;
     width: 90%;
-    max-width: 400px;
-    box-shadow: 0px 0px 15px rgba(0,0,0,0.4);
+    max-width: 500px;
     position: relative;
-    animation: aparecer 0.3s ease-out;
-  }
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
 
-  .modal_window input, button{
-    margin-top: 5px;
-  }
-  .modal_close {
+.closeButton {
     position: absolute;
-    top: 10px;
+    top: 15px;
     right: 15px;
+    background: none;
+    border: none;
     font-size: 24px;
     cursor: pointer;
-    color: #666;
-  }
-  .botones{
+    color: #7f8c8d;
+    padding: 5px;
+}
+
+.closeButton:hover {
+    color: #e74c3c;
+}
+
+.modalActions {
     display: flex;
-    justify-content:space-evenly;
-  }
-  .botones button{
-    width: 20%;
-  }
-  .modal_close:hover {
-    color: black;
-  }
-  
-  @keyframes aparecer {
-    from {
-      opacity: 0;
-      transform: scale(0.8);
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.secondaryButton {
+    padding: 12px 20px;
+    background-color: #95a5a6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.secondaryButton:hover {
+    background-color: #7f8c8d;
+}
+
+@media (max-width: 768px) {
+    .imageGrid {
+        grid-template-columns: 1fr;
     }
-    to {
-      opacity: 1;
-      transform: scale(1);
+    
+    .actions {
+        flex-direction: column;
     }
-  }
-  
+    
+    .modalActions {
+        flex-direction: column;
+    }
+    
+    .primaryButton, .secondaryButton {
+        width: 100%;
+    }
+}
