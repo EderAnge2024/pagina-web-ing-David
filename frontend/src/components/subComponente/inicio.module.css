@@ -1,52 +1,675 @@
-.inicio {
-    background-size:100% 100%;
-    background-position: center; /* Centra la imagen */
-    background-repeat: no-repeat; /* No repite la imagen */
-    width: 100%; 
-    height: 50vh;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    flex-direction: column;
-    padding: 10vh 5vw;
-}  
-.baner h1, .baner h5, .baner h4 {
-    font-size: 3vw;
-    color: white;
-    text-shadow: 5px 6px 4px rgba(0, 0, 0, 0.7);
-    margin: 0.5 em 0;
-  }
-
-.baner h5, .baner h4 {
-  font-size: 2.5vw;
+/* ============ VARIABLES Y ESTILOS BASE ============ */
+:root {
+  /* Colores principales */
+  --primary-color: #ff6b6b;
+  --primary-dark: #ff5252;
+  --primary-light: #ff8e8e;
+  --secondary-color: #4ecdc4;
+  --secondary-dark: #3dbeb6;
+  --accent-color: #fdcb6e;
+  
+  /* Escala de grises */
+  --dark-color: #2d3436;
+  --dark-gray: #636e72;
+  --medium-gray: #b2bec3;
+  --light-gray: #dfe6e9;
+  --light-color: #f5f6fa;
+  --white: #ffffff;
+  
+  /* Estados */
+  --success-color: #00b894;
+  --error-color: #d63031;
+  --warning-color: #fdcb6e;
+  --info-color: #0984e3;
+  
+  /* Efectos */
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --box-shadow-hover: 0 10px 20px rgba(0, 0, 0, 0.15);
+  --transition: all 0.3s ease;
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
 }
 
-/*     contenido   */
+/* Reset y estilos base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-.cuerpoBanner .contenidoPro{
-    height: 80vh;
-    padding: 2vw;
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--dark-color);
+  background-color: var(--light-color);
 }
-.contenidoPro h5{
-  margin-top: 1%;
-  width: 15vw;
-  padding-left: 1vw;
-  border-bottom: solid 2px black;
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
 }
-.datosProd{
+
+/* ============ COMPONENTES PRINCIPALES ============ */
+
+/* ----- Hero Banner ----- */
+.heroBanner {
+  height: 500px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
-  justify-content: space-between;
-  padding: 2vw;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  text-align: center;
+  margin: 2rem 0 4rem;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  position: relative;
 }
-.catalogoProc{
+
+.heroBanner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+}
+
+.bannerContent {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  padding: 2rem;
+}
+
+.bannerTitle {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.bannerSubtitle {
+  font-size: 1.4rem;
+  margin-bottom: 2.5rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  font-weight: 400;
+}
+
+.bannerCta {
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 600;
+  box-shadow: var(--box-shadow);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.bannerCta:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-3px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+/* ----- Sección de Productos ----- */
+.section {
+  margin: 4rem 0;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.sectionTitle {
+  font-size: 2.2rem;
+  color: var(--dark-color);
+  margin-bottom: 1rem;
+  position: relative;
+  display: inline-block;
+}
+
+.sectionTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: var(--primary-color);
+  border-radius: 2px;
+}
+
+.highlight {
+  color: var(--primary-color);
+}
+
+.searchInfo {
+  color: var(--dark-gray);
+  font-size: 1.1rem;
+  margin-top: 1rem;
+}
+
+/* ----- Grid de Productos ----- */
+.productsGrid {
+  margin: 3rem 0;
+}
+
+.productsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+/* ----- Tarjeta de Producto ----- */
+.productCard {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+
+.productCard:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--box-shadow-hover);
+}
+
+.productImageContainer {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.productImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition);
+}
+
+.productCard:hover .productImage {
+  transform: scale(1.1);
+}
+
+/* Badges */
+.stockBadge {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  background-color: var(--warning-color);
+  color: var(--dark-color);
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.outOfStockBadge {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  background-color: var(--error-color);
+  color: var(--white);
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.productInfo {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.productName {
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+  color: var(--dark-color);
+  font-weight: 600;
+}
+
+.productPrice {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.75rem;
+}
+
+.productStock {
+  font-size: 0.95rem;
+  color: var(--dark-gray);
+  margin-bottom: 1.5rem;
+}
+
+.addToCartBtn {
+  width: 100%;
+  padding: 0.9rem;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.addToCartBtn:hover {
+  background-color: var(--primary-dark);
+}
+
+.addToCartBtn.disabled {
+  background-color: var(--light-gray);
+  color: var(--medium-gray);
+  cursor: not-allowed;
+}
+
+/* ============ COMPONENTES DE INTERFAZ ============ */
+
+/* ----- Toast de mensajes ----- */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1rem 2rem;
+  border-radius: var(--border-radius);
+  color: var(--white);
+  font-weight: 600;
+  z-index: 1000;
+  animation: slideUp 0.4s ease, fadeOut 0.6s ease 1.8s forwards;
+  box-shadow: var(--box-shadow-hover);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.toast.success {
+  background-color: var(--success-color);
+}
+
+.toast.error {
+  background-color: var(--error-color);
+}
+
+.toast.info {
+  background-color: var(--info-color);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+
+/* ----- Estados de carga ----- */
+.loadingContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-right: solid 2px;
-  border-bottom: solid 2px;
-  padding: 5px;
-  border-radius: 10px;
+  justify-content: center;
+  padding: 4rem;
+  min-height: 300px;
+}
+
+.loadingSpinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid var(--light-gray);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+.loadingText {
+  color: var(--dark-gray);
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ----- Estado vacío ----- */
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.emptyText {
+  color: var(--dark-gray);
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.refreshButton {
+  padding: 0.9rem 2rem;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.refreshButton:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+/* ----- Información destacada ----- */
+.featuredInfo {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  text-align: center;
+  box-shadow: var(--box-shadow);
+  border-left: 4px solid var(--primary-color);
+}
+
+.infoText {
+  color: var(--dark-color);
+  font-size: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ============ COMPONENTES ADICIONALES ============ */
+
+/* ----- Carrusel ----- */
+.carouselContainer {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  overflow: hidden;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  margin: 3rem 0;
+}
+
+.carouselWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.carouselSlide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carouselSlide.active {
+  opacity: 1;
+}
+
+.carouselContent {
+  position: relative;
+  z-index: 2;
+  color: white;
+  text-align: center;
+  max-width: 800px;
+  padding: 2rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.carouselBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--dark-color);
+  cursor: pointer;
+  z-index: 10;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.carouselBtn:hover {
+  background: var(--white);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.prevBtn {
+  left: 30px;
+}
+
+.nextBtn {
+  right: 30px;
+}
+
+.carouselDots {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--white);
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.activeDot {
+  background: var(--white);
+  transform: scale(1.2);
+}
+
+.progressBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  z-index: 10;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  transition: width 0.5s ease;
+}
+
+/* ============ DISEÑO RESPONSIVO ============ */
+
+@media (max-width: 1024px) {
+  .heroBanner {
+    height: 450px;
+  }
+  
+  .bannerTitle {
+    font-size: 2.6rem;
+  }
+  
+  .carouselContainer {
+    height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1.2rem;
+  }
+  
+  .heroBanner {
+    height: 380px;
+    margin: 1.5rem 0 3rem;
+  }
+  
+  .bannerTitle {
+    font-size: 2.2rem;
+  }
+  
+  .bannerSubtitle {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1.8rem;
+  }
+  
+  .productsContainer {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .carouselContainer {
+    height: 400px;
+  }
+  
+  .carouselBtn {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .heroBanner {
+    height: 320px;
+    border-radius: var(--border-radius);
+  }
+  
+  .bannerTitle {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+  
+  .bannerSubtitle {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .bannerCta {
+    padding: 0.8rem 1.8rem;
+    font-size: 1rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1.6rem;
+  }
+  
+  .productsContainer {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+  
+  .productImageContainer {
+    height: 180px;
+  }
+  
+  .carouselContainer {
+    height: 300px;
+    border-radius: var(--border-radius);
+  }
+  
+  .carouselBtn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .prevBtn {
+    left: 15px;
+  }
+  
+  .nextBtn {
+    right: 15px;
+  }
+  
+  .carouselDots {
+    bottom: 20px;
+  }
+  
+  .dot {
+    width: 10px;
+    height: 10px;
+  }
 }

@@ -3,7 +3,7 @@ import useImagenStore from '../../store/ImagenStore'
 import styles from './imgFrom.module.css'
 
 const ImagenFrom= ()=>{
-    const {addImagen,fetchImagen,imagens,deleteImagen,updateImagen} = useImagenStore() 
+    const {addImagen,fetchImagen,imagenes,deleteImagen,updateImagen} = useImagenStore() 
     const [editingImagen, setEditingImagen]= useState(null)
     const [imagenData, setImagenData] = useState ({Tipo_Imagen:"",URL:""})
     const [fromData, setFormData] = useState ({Tipo_Imagen:"",URL:""})
@@ -93,7 +93,7 @@ const ImagenFrom= ()=>{
                 <div className={styles.tablita}>
                 <h1>Lista de la imagenes</h1>
                 {
-                    imagens.map((user) =>(
+                    imagenes.map((user) =>(
                         <div key={user.ID_Imagen}>
                             <p>Tipo de imgen: {user.Tipo_Imagen} </p>
                             <p>Ruta de la imgen: {user.URL}</p>

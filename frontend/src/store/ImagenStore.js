@@ -2,11 +2,11 @@ import {create} from 'zustand'
 import axios from 'axios'  
 
 const useImagenStore = create((set)=>({
-    imagens: [],
+    imagenes: [], // Cambiado de 'imagens' a 'imagenes'
     addImagen: async(imagen)=>{
         try {
             const response = await axios.post('http://localhost:3001/imagen',imagen)
-            set((state)=>({imagens: [...state.imagens, response.data]}))
+            set((state)=>({imagenes: [...state.imagenes, response.data]})) // Cambiado aquí también
         } catch (error) {
             console.log("Error adding imagen", error.message)
         }
@@ -14,7 +14,7 @@ const useImagenStore = create((set)=>({
     fetchImagen: async()=>{
         try {
             const response = await axios.get('http://localhost:3001/imagen')
-            set({imagens: response.data})
+            set({imagenes: response.data}) // Cambiado aquí también
         } catch (error) {
             console.log("Error fecthing imagens", error.message)
         }
@@ -23,7 +23,7 @@ const useImagenStore = create((set)=>({
         try {
             const response = await axios.delete(`http://localhost:3001/imagen/${ID_Imagen}`)
             console.log("imagen delete:",response.data)
-            set((state)=>({imagens: state.imagens.filter(imagen=>imagen.ID_Imagen !== ID_Imagen)})) 
+            set((state)=>({imagenes: state.imagenes.filter(imagen=>imagen.ID_Imagen !== ID_Imagen)})) // Cambiado aquí también
         } catch (error) {                                                             
             console.log("Error deleting imagen:", error.message)
         }
@@ -32,7 +32,7 @@ const useImagenStore = create((set)=>({
         try {  
             const response = await axios.put(`http://localhost:3001/imagen/${ID_Imagen}`, updatedData)
             console.log("imagen updated:", response.data)
-            set((state) => ({imagens: state.imagens.map((imagen)=> imagen.ID_Imagen === ID_Imagen ? {...imagen, ...response.data} : imagen)})) // actualiza el estudiante en el estado
+            set((state) => ({imagenes: state.imagenes.map((imagen)=> imagen.ID_Imagen === ID_Imagen ? {...imagen, ...response.data} : imagen)})) // Cambiado aquí también
         } catch (error) {
             console.log("Error updating imagen:", error.message)
         }
