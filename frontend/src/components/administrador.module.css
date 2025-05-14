@@ -1,3 +1,99 @@
-div header .nav button{
-    border-bottom: solid 2px rgb(91, 91, 239);
+/* administrador.module.css */
+
+/* Estilos generales */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #2c3e50, #1a2a3a);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navLeft {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Estilos para los botones */
+.nav button {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #3498db;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav button:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.nav button::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #91d5ff;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.nav button:hover::after {
+  transform: scaleX(1);
+}
+
+/* Botón de Cerrar Sesión */
+.navRight button {
+  background-color: #e74c3c;
+}
+
+.navRight button:hover {
+  background-color: #c0392b;
+}
+
+/* Mensaje de bienvenida */
+.navRight span {
+  font-weight: 500;
+  color: #ecf0f1;
+  margin-right: 0.5rem;
+}
+
+/* Estilos para el contenido principal */
+.mainContent { 
+  padding: 2rem;
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 70px);
+}
+
+/* Efecto activo para el botón seleccionado */
+.nav button.active {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.nav button.active::after {
+  transform: scaleX(1);
+  background-color: #ffffff;
 }
