@@ -97,6 +97,7 @@ const Pedido= ()=>{
                 {
                     pedidos.map((user) =>(
                         <div key={user.ID_Pedido}>
+                            <p>id: {user.ID_Pedido}</p>
                             <p>ID_Cliente: {user.ID_Cliente} </p>
                             <p>Fecha_Pedido: {user.Fecha_Pedido}</p>
                             <p>Fecha_Entrega: {user.Fecha_Entrega}</p>

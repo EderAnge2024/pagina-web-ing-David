@@ -73,7 +73,7 @@ const Proyecto= ()=>{
                 >
                   <option value="">-- Seleccionar categoría --</option>
                   {empleados.map((empleado) => (
-                    <option key={empleado.ID_Empleados} value={empleado.ID_Empleados}>
+                    <option key={empleado.ID_Empleado} value={empleado.ID_Empleado}>
                       {empleado.Nombre_Empleado}
                     </option>
                   ))}
@@ -107,7 +107,7 @@ const Proyecto= ()=>{
                         <div key={user.ID_Proyectos}>
                             <p>ID_Empleados: {user.ID_Empleados} </p>
                             <p>Lugar: {user.Lugar}</p>
-                            <p>Numero Celular: {user.URL}</p>
+                            <p>Ruta: {user.URL}</p>
                             <button onClick={()=> handleDelete(user.ID_Proyectos)}>❌👍</button>
                             <button onClick={()=> handleEditClick(user)}>👌✍️🗃️</button>
                         </div>

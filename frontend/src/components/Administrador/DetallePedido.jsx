@@ -123,7 +123,7 @@ const DetallePedidoFrom= ()=>{
                         <div key={user.ID_Detalle}>
                             <p>ID_Pedido: {user.ID_Pedido} </p>
                             <p>ID_Producto: {user.ID_Producto}</p>
-                            <p>Numero Celular: {user.Cantidad}</p>
+                            <p>Cantidad: {user.Cantidad}</p>
                             <p>Precio_Unitario: {user.Precio_Unitario}</p>
                             <p>Numero Descuento: {user.Descuento}</p>
                             <p>Numero Subtotal: {user.Subtotal}</p>

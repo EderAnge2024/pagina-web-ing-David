@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import SitloServicio from './Servicio.module.css'
 import useEmpleadoStore from "../../store/EmpleadoStore";
-import useProyectoStore from "../../store/ProyectoStore";
+import useProyectoStore from "../../store/proyectostore";
 
 const Servicio = () =>{
     const { empleados, fetchEmpleado } = useEmpleadoStore();
@@ -45,7 +45,7 @@ const Servicio = () =>{
                                 <div key={proyecto.ID_Proyecto} className={SitloServicio.contenidoServicoCaja}>
                                     <img src={proyecto.URL} alt={proyecto.Lugar} width="150" height="150" />
                                     <p>Lugar: {proyecto.Lugar}</p>
-                                    <p>Numero Cel: {proyecto.NumCelular}</p>
+                                    <p>Numero Cel: {obtenerNombreEmpleado(proyecto.NumCelular)}</p>
                                     <p>Empleado: {obtenerNombreEmpleado(proyecto.ID_Empleados)}</p>
                                     </div>
                             ))

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import stiloLogin from './LoginAdministrador.module.css'
+import useAuthStore from '../store/AuthStore';
 
 const LoginForm = () => {
     const [Usuario, setUsuario] = useState('');
@@ -8,6 +9,7 @@ const LoginForm = () => {
     const [mensaje, setMensaje] = useState('');
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const { login } = useAuthStore();
 
     // Datos estáticos del administrador
     const adminUsuario = 'admin123';
@@ -15,19 +17,22 @@ const LoginForm = () => {
     const adminNombre = 'Administrador Principal';
 
     const handleSubmit = (e) => {
-        e.preventDefault();
+    e.preventDefault();
 
-        // Validar datos estáticos
-        if (Usuario === adminUsuario && Contrasena === adminContrasena) {
-            setMensaje(`Bienvenido, ${adminNombre}`);
-            setError(null);
-            localStorage.setItem('authToken', 'token_estatico'); // Simula token
-            navigate('/administrador');
-        } else {
-            setError('Usuario o contraseña incorrectos');
-            setMensaje('');
-        }
-    };
+    if (Usuario === adminUsuario && Contrasena === adminContrasena) {
+        const userData = { nombre: adminNombre };
+        const token = 'token_estatico';
+
+        login(userData, token); // <-- aquí actualizas el estado global también
+
+        setMensaje(`Bienvenido, ${adminNombre}`);
+        setError(null);
+        navigate('/administrador');
+    } else {
+        setError('Usuario o contraseña incorrectos');
+        setMensaje('');
+    }
+};
 
     const handleCreateAccount = () => {
         navigate('/userform');

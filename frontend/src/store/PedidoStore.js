@@ -7,8 +7,10 @@ const usePedidoStore = create((set)=>({
         try {
             const response = await axios.post('http://localhost:3001/pedidos',pedido)
             set((state)=>({pedidos: [...state.pedidos, response.data]}))// crea una copia el "..."
+            return response.data
         } catch (error) {
             console.log("Error adding pedido", error.message)
+            throw error
         }
     },
     fetchPedido: async()=>{

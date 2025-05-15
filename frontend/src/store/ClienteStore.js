@@ -3,14 +3,17 @@ import axios from 'axios'
 
 const useClienteStore = create((set)=>({
     clientes: [],
-    addCliente: async(cliente)=>{
-        try {
-            const response = await axios.post('http://localhost:3001/clientes',cliente)
-            set((state)=>({clientes: [...state.clientes, response.data]}))// crea una copia el "..."
-        } catch (error) {
-            console.log("Error adding cliente", error.message)
-        }
+    addCliente: async (cliente) => {
+      try {
+        const response = await axios.post('http://localhost:3001/clientes', cliente);
+        set((state) => ({ clientes: [...state.clientes, response.data] }));
+        return response.data; // <--- Aquí retornamos el cliente creado
+      } catch (error) {
+        console.log("Error adding cliente", error.message);
+        throw error; // para que el error se propague al componente
+      }
     },
+
     fetchCliente: async()=>{
         try {
             const response = await axios.get('http://localhost:3001/clientes')

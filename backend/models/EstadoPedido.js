@@ -9,7 +9,7 @@ const EstadoPedido = sequelize.define('EstadoPedido', {
   },
   Estado: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: true
   }
 });
 

@@ -12,13 +12,12 @@ h3{
 .datosServ{
     display: flex;
     overflow: auto;
-    padding: 6x;
+    padding: 6px;
     margin-top: 10px;
     margin-left: 15px;
 }
 .datosProyec{
     display: flex;
-    justify-content: space-between;
     padding: 6x;
     margin-top: 10px;
     margin-left: 15px;
@@ -30,6 +29,7 @@ h3{
     border-right:solid 2px;
     border-bottom:solid 2px;
     border-radius: 5px;
+    margin-left: 10px;
     padding: 4px;
     font-family: Georgia, 'Times New Roman', Times, serif;
 }
@@ -41,5 +41,6 @@ h3{
     border-bottom:solid 2px;
     border-radius: 5px;
     padding: 4px;
+    margin-left: 5px;
     font-family: Georgia, 'Times New Roman', Times, serif;
 }

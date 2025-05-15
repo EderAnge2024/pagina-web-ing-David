@@ -13,10 +13,19 @@ import Factura from "./Administrador/Factura"
 import HistorialEstado from "./Administrador/HistorialEstado"
 import Pedido from "./Administrador/Pedido"
 import Proyecto from "./Administrador/Proyecto"
+import useAuthStore from "../store/AuthStore"
+
 
 const Administrador=()=>{
     const [activateComponent, setActivateComponent] = useState('AdministradorFrom')
     const navigate = useNavigate()
+    const { logout } = useAuthStore();
+
+    const handleLogout = () => {
+       logout();
+       navigate('/');
+    };
+
     const handleNavClick = (component) =>{
         setActivateComponent(component)
     }
@@ -24,7 +33,7 @@ const Administrador=()=>{
     const goToLogin = () =>{
         navigate('/')
     }
-
+    
     return(
                 <div>
                     <header>
