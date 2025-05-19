@@ -26,7 +26,7 @@ const DetallePedidoFrom= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addDetallePedido(detallePedidoData)
         setDetallePedidoData({ID_Pedido:"",ID_Producto:"",Cantidad:"",Precio_Unitario:"",Descuento:"",Subtotal:""})
-        alert("se agrego al profe")
+        alert("se agrego detalles del pedido")
     }
     // elimina a la detallePedido
     const handleDelete = (ID_Detalle)=>{

@@ -29,7 +29,7 @@ const ProductosFrom= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addProducto(productoData)
         setProductoData({ID_Categoria:"",Codigo:"",Nombre_Producto:"",Descripcion:"",Descuento:"",Precio_Producto:"",Marca:"",Cantidad:"",cantidad_Disponible:"",Url:"",Precio_Final:""})
-        alert("se agrego al profe")
+        alert("se agrego el producto nuevo")
     }
     // elimina a la producto
     const handleDelete = (Codigo)=>{

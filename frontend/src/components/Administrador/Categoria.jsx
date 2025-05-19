@@ -26,7 +26,7 @@ const CategoriaFrom= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addCategoria(categoriaData)
         setCategoriaData({Tipo_Producto:"",Descripcion:""})
-        alert("se agrego al profe")
+        alert("se agrego la categoria")
     }
     // elimina a la categoria
     const handleDelete = (ID_Categoria)=>{

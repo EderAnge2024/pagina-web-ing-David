@@ -26,7 +26,7 @@ const Empleado= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addEmpleado(empleadoData)
         setEmpleadoData({Nombre_Empleado:"",NumCelular:"",URL:""})
-        alert("se agrego al profe")
+        alert("se agrego al empleado")
     }
     // elimina a la empleado
     const handleDelete = (ID_Empleado)=>{

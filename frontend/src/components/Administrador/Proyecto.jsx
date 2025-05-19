@@ -29,7 +29,7 @@ const Proyecto= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addProyecto(proyectoData)
         setProyectoData({ID_Empleados:"",Lugar:"",URL:""})
-        alert("se agrego al profe")
+        alert("se agrego al proyecto")
     }
     // elimina a la empleado
     const handleDelete = (ID_Proyectos)=>{

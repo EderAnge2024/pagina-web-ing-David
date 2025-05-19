@@ -26,7 +26,7 @@ const Administrador= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addAdministrador(administradorData)
         setAdministradorData({Nombre_Administrador:"",Usuario:"",Contrasena: ""})
-        alert("se agrego al profe")
+        alert("se agrego al administrador")
     }
     // elimina a la administrador
     const handleDelete = (ID_Administrador)=>{

@@ -26,7 +26,7 @@ const EstadoPedidoFrom= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addEstadoPedido(estadoPedidoData)
         setEstadoPedidoData({Estado:""})
-        alert("se agrego al profe")
+        alert("se agrego al estado del pedido")
     }
     // elimina a la imagen
     const handleDelete = (ID_EstadoPedido)=>{

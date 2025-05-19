@@ -26,7 +26,7 @@ const Pedido= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addPedido(pedidoData)
         setPedidoData({ID_Cliente:"",Fecha_Pedido:"",Fecha_Entrega:""})
-        alert("se agrego al profe")
+        alert("se agrego pedido")
     }
     // elimina a la pedido
     const handleDelete = (ID_Pedido)=>{

@@ -26,7 +26,7 @@ const ClienteFrom= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addCliente(clienteData)
         setClienteData({Nombre:"",Apellido:"",NumCelular:""})
-        alert("se agrego al profe")
+        alert("se agrego cliente nuevo")
     }
     // elimina a la cliente
     const handleDelete = (ID_Cliente)=>{
