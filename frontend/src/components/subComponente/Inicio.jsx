@@ -3,7 +3,7 @@ import useImagenStore from "../../store/ImagenStore";
 import useProductoStore from "../../store/ProductoStore";
 import sitloInicio from './inicio.module.css';
 
-const Inicio = () => {
+const Inicio = ({searchQuery }) => {
     const { imagens, fetchImagen } = useImagenStore();
     const { productos, fetchProducto } = useProductoStore();
     const [mensaje, setMensaje] = useState("");  // Para mostrar mensajes como "Producto agregado"
@@ -44,11 +44,14 @@ const Inicio = () => {
             setMensaje("");
         }, 1500);
     };
+    const productosFiltrados = productos.filter(producto =>
+        producto.Nombre_Producto.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
         <div className={sitloInicio.cuerpoBanner}>
-            {mensaje && <div className="toast">{mensaje}</div>} {/* Mostrar el mensaje de éxito */}
-
+            {mensaje && <div className="toast">{mensaje}</div>}
+    
             <div
                 className={sitloInicio.inicio}
                 style={{
@@ -64,13 +67,13 @@ const Inicio = () => {
                     <h4>"¡Compre ya!"</h4>
                 </div>
             </div>  
-
+    
             <div className={sitloInicio.contenidoPro}>
                 <h5>Productos destacados ✨</h5>
                 <div className={sitloInicio.productosDes}>
                     <div className={sitloInicio.datosProd}>
-                        {productos
-                            .filter(producto => producto.cantidad_Disponible < 99) // Filtra productos con menos de 99 disponibles
+                        {productosFiltrados
+                            .filter(producto => producto.cantidad_Disponible < 99)
                             .map((producto) => (
                                 <div key={producto.ID_Producto} className={sitloInicio.catalogoProc}>
                                     <img src={producto.Url} alt={producto.Nombre_Producto} width="150" height="150" />

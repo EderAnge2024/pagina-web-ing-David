@@ -26,19 +26,20 @@
 /*     contenido   */
 
 .cuerpoBanner .contenidoPro{
-    border: solid 2px;
     height: 80vh;
+    padding: 2vw;
 }
 .contenidoPro h5{
   margin-top: 1%;
   width: 15vw;
+  padding-left: 1vw;
   border-bottom: solid 2px black;
 }
 .datosProd{
   display: flex;
-  justify-content:space-around;
+  justify-content: space-between;
+  padding: 2vw;
   flex-wrap: wrap;
-  padding-top: 2vw;
 }
 .catalogoProc{
   display: flex;

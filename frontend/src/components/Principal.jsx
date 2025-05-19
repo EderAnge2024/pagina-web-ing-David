@@ -11,11 +11,14 @@ import lupa from '../img/lupa.png'
 import servicio from '../img/servicio.png'
 import stiloPrin from './principal.module.css'
 import useImagenStore from "../store/ImagenStore";
+import useBusquedaStore from "../store/BusquedaStore";
 
 const Principal=()=>{
     const { fetchImagen, imagens } = useImagenStore()
+    const { searchQuery, setSearchQuery } = useBusquedaStore();
     const [activateComponent, setActivateComponent] = useState('inicio')
     const navigate = useNavigate();
+    
     const handleNavClick = (component) =>{
         setActivateComponent(component)
     }
@@ -29,6 +32,15 @@ const Principal=()=>{
         fetchImagen()
     }, [])
     console.log("Imágenes cargadas:", imagens) 
+    
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            window.scrollTo(0, 0); // Solo hacer scroll arriba
+            // No cambiar de componente
+        }
+    };
+
 
     return(
                 <div className={stiloPrin.Principal}>
@@ -45,10 +57,18 @@ const Principal=()=>{
                                       ))
                                   }
                         </div>
-                        <div className={stiloPrin.lupa}>
-                            <input type="lupa" placeholder="  ...buscar algo"></input>
-                            <button><img src={lupa} /></button>
-                        </div>
+                        <form className={stiloPrin.lupa} onSubmit={handleSearch}>
+                            <input
+                                type="text"
+                                placeholder="  ...buscar algo"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            <button type="submit">
+                                <img src={lupa} alt="Buscar"/>
+                            </button>
+                        </form>
+
                         <nav>
                             <button onClick={() => handleNavClick('inicio')}><img src={casa} />Inicio</button>
                             <button onClick={() => handleNavClick('menu')}><img src={menu} />menu</button>
@@ -57,8 +77,8 @@ const Principal=()=>{
                         </nav>
                     </header>
                     <main>
-                            {activateComponent === 'inicio' && <Inicio/>}
-                            {activateComponent === 'menu' && <Menu/>}
+                            {activateComponent === 'inicio' && <Inicio searchQuery={searchQuery} />}
+                            {activateComponent === 'menu' && <Menu searchQuery={searchQuery} />}
                             {activateComponent === 'servicio' && <Servicio/>}
                             {activateComponent === 'carrito' && <Carrito/>}
                     </main>

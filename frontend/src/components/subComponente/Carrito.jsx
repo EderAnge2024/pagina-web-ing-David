@@ -227,7 +227,7 @@ const Carrito = () => {
                         <input
                             type="text"
                             name="ID_Cliente"
-                              value={`${clienteGuardado?.Nombre || ""} ${clienteGuardado?.Apellido || ""}`}
+                            value={`${clienteGuardado?.Nombre || ""} ${clienteGuardado?.Apellido || ""}`}
                             readOnly
                         />
                         <input
@@ -236,7 +236,7 @@ const Carrito = () => {
                             value={pedidoData.Fecha_Pedido}
                             readOnly
                         />
-                        <input
+                        <label htmlFor="Fecha entrega">Fecha de Entrega: </label><input
                           type="date"
                           name="Fecha_Entrega"
                           value={pedidoData.Fecha_Entrega || ""}

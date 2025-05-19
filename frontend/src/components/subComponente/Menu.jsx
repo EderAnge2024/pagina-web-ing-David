@@ -4,7 +4,7 @@ import useProductoStore from "../../store/ProductoStore";
 import useCategoriaStore from "../../store/CategoriaStore";
 import stiloMenu from './Menu.module.css'
 
-const Menu = () =>{
+const Menu = ({searchQuery}) =>{
     const { productos, fetchProducto } = useProductoStore();
     const { categorias, fetchCategoria } = useCategoriaStore();
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
@@ -43,6 +43,12 @@ const Menu = () =>{
             setMensaje("");
         }, 1500);
     };
+    const productosFiltrados = productos.filter(producto => {
+        const coincideCategoria = categoriaSeleccionada === null || producto.ID_Categoria === categoriaSeleccionada;
+        const coincideBusqueda = producto.Nombre_Producto.toLowerCase().includes(searchQuery.toLowerCase());
+        return coincideCategoria && coincideBusqueda;
+    });
+
 
     return (
         <div >
@@ -68,13 +74,13 @@ const Menu = () =>{
                 </div>
                 
                 <div>
-                    <div>
-                        {productos 
+                    <div className={stiloMenu.productosCat}>
+                        {productosFiltrados 
                             .filter((producto) =>
                               categoriaSeleccionada === null || producto.ID_Categoria === categoriaSeleccionada
                             )
                             .map((producto) => (
-                                <div key={producto.ID_Producto}>
+                                <div key={producto.ID_Producto} className={stiloMenu. contrenidoProductcat}>
                                     <img src={producto.Url} alt={producto.Nombre_Producto} width="150" height="150" />
                                     <p>Producto: {producto.Nombre_Producto}</p>
                                     <p>Precio: {producto.Precio_Final}</p>
