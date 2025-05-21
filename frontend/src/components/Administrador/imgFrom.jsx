@@ -66,14 +66,16 @@ const ImagenFrom= ()=>{
         <div className={styles.AgregarImg}>
             <h1>Agregar Imgens para el logo y banner</h1>
             <form onSubmit={handelSubmit}>
-                <input
-                type="text"
-                placeholder="enter Tipo_Imagen"
-                required
-                name="Tipo_Imagen"
-                value={imagenData.Tipo_Imagen}
-                onChange={handleInputChange}
-                />
+                <select
+                  required
+                  name="Tipo_Imagen"
+                  value={imagenData.Tipo_Imagen}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Seleccione tipo de imagen</option>
+                  <option value="Logo">Logo</option>
+                  <option value="Banner">Banner</option>
+                </select>
                 <input
                 type="text"
                 placeholder="enter URL"

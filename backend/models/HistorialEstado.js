@@ -9,7 +9,7 @@ const HistorialEstado = sequelize.define('HistorialEstado', {
   },
   ID_EstadoPedido: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     references:{
       model: 'EstadoPedidos',
       key:'ID_EstadoPedido'

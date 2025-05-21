@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import AdministradorFrom from "./Administrador/Administrador"
 import ClienteFrom from "./Administrador/Clientes"
@@ -14,8 +14,18 @@ import Pedido from "./Administrador/Pedido"
 import Proyecto from "./Administrador/Proyecto"
 import useAuthStore from "../store/AuthStore"
 import stiloAdmin from './administrador.module.css'
+import useClienteStore from "../store/ClienteStore"
+import usePedidoStore from "../store/PedidoStore"
+import useEstadoPedidoStore from "../store/EstadoPedidoStore"
+import useHistorialEstadoStore from "../store/HistorialEstadoStore"
 
 const Administrador = () => {
+
+    const { clientes, fetchCliente } = useClienteStore();
+    const { pedidos, fetchPedido } = usePedidoStore();
+    const { estadoPedidos, fetchEstadoPedido } = useEstadoPedidoStore();
+    const { historialEstados, fetchHistorialEstado } = useHistorialEstadoStore();
+
     const [activateComponent, setActivateComponent] = useState(null)
     const [showSubmenu, setShowSubmenu] = useState(false)
     const navigate = useNavigate()
@@ -24,9 +34,30 @@ const Administrador = () => {
     const handleNavClick = (component) => setActivateComponent(component)
     const goToTienda = () => {
     window.open('/', '_blank') // abre en una nueva pestaña
-}
+    }
+    useEffect(() => {
+    fetchCliente();
+    fetchPedido();
+    fetchEstadoPedido();
+    fetchHistorialEstado();
+    const interval = setInterval(() => {
+        fetchCliente();
+        fetchPedido();
+        fetchEstadoPedido();
+        fetchHistorialEstado();
+    }, 5000);
+    return () => clearInterval(interval);
+    }, [fetchCliente,fetchPedido, fetchEstadoPedido,fetchHistorialEstado]);
 
+    const estadoEnProceso = estadoPedidos.find(
+       (estado) => estado.Estado === 'En Proceso'
+    );
 
+    const tareasPendientes = estadoEnProceso 
+        ? historialEstados.filter(
+            (historial) => historial.ID_EstadoPedido === estadoEnProceso.ID_EstadoPedido
+          )
+        : [];
     return (
         <div className={stiloAdmin.admin_panel}>
             <aside className={stiloAdmin.sidebar}>
@@ -66,15 +97,15 @@ const Administrador = () => {
                         <p>Bienvenido a tu panel de control.</p>
                         <div className={stiloAdmin.cards}>
                             <div className={stiloAdmin.card}> 
-                                <p className={stiloAdmin.count}>0</p>
+                                <p className={stiloAdmin.count}>{clientes?.length ?? 0}</p>
                                 <p>Usuarios Registrados</p>
                             </div>
                             <div className={stiloAdmin.card}> 
-                                <p className={stiloAdmin.count}>0</p>
+                                <p className={stiloAdmin.count}>{pedidos?.length ?? 0}</p>
                                 <p>Ventas Realizadas</p>
                             </div>
                             <div className={stiloAdmin.card}> 
-                                <p className={stiloAdmin.count}>0</p>
+                                <p className={stiloAdmin.count}>{tareasPendientes.length}</p>
                                 <p>Tareas Pendientes</p>
                             </div>
                         </div>

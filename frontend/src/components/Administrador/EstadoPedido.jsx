@@ -62,14 +62,18 @@ const EstadoPedidoFrom= ()=>{
         <div >
             <h1>Agregar al Estado</h1>
             <form onSubmit={handelSubmit}>
-                <input
-                type="text"
-                placeholder="enter Estado"
-                required
-                name="Estado"
-                value={estadoPedidoData.Estado}
-                onChange={handleInputChange}
-                />
+                <select
+                  required
+                  name="Estado"
+                  value={estadoPedidoData.Estado}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Seleccione un estado</option>
+                  <option value="En Proceso">En Proceso</option>
+                  <option value="Completado">Completado</option>
+                  <option value="Cancelado">Cancelado</option>
+                  <option value="Enviado">Enviado</option>
+                </select>
                 <button>Guardar Datos</button>
             </form>
         </div>
