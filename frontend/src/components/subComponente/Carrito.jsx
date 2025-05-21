@@ -10,7 +10,6 @@ const Carrito = () => {
     const { addPedido } = usePedidoStore();
     const { addDetallePedido } = useDetallePedidoStore();
 
-
     const [clienteData, setClienteData] = useState({ Nombre: "", Apellido: "", NumCelular: "" });
     const [pedidoData, setPedidoData] = useState({ ID_Cliente: "", Fecha_Pedido: "", Fecha_Entrega: "" });
 
@@ -43,89 +42,98 @@ const Carrito = () => {
     };
 
     const verificarClienteExiste = async (numCelular) => {
-        // Este método usa localStorage para buscar cliente por celular
-        // Mejor ideal sería consultarlo a backend o usar estado global
         const clientesGuardados = JSON.parse(localStorage.getItem("clientes")) || [];
         return clientesGuardados.find(cliente => cliente.NumCelular === Number(numCelular));
     };
 
-    // Corrección: handleSubmit (no "handel")
+    const generarMensajeWhatsApp = () => {
+        const productos = carrito.map(producto => 
+            `- ${producto.Nombre_Producto} (Cantidad: ${producto.cantidad}, Precio: $${producto.Precio_Final})`
+        ).join('\n');
+        
+        const total = carrito.reduce((sum, producto) => sum + (producto.Precio_Final * producto.cantidad), 0);
+        
+        return `¡Hola! Quiero realizar este pedido:\n\n${productos}\n\nTotal: $${total.toFixed(2)}\n\nFecha de entrega: ${pedidoData.Fecha_Entrega || 'Por definir'}`;
+    };
+
     const handleSubmitCliente = async (e) => {
-      e.preventDefault();
+        e.preventDefault();
     
-      try {
-        const clienteParaGuardar = {
-          Nombre: clienteData.Nombre,
-          Apellido: clienteData.Apellido,
-          NumCelular: Number(clienteData.NumCelular),
-        };
-    
-        const clienteCreado = await addCliente(clienteParaGuardar);
-    
-        setClienteData({ Nombre: "", Apellido: "", NumCelular: "" });
-        alert("Se agregó el cliente");
-    
-        setClienteGuardado(clienteCreado); // <-- Aquí actualizas el cliente guardado
-        setMostrarFormulario(false);
-        setMostrarFormulario2(true);
-    
-      } catch (error) {
-        console.error("Error al agregar cliente:", error);
-        alert("Error al agregar cliente. Intente nuevamente.");
-      }
+        try {
+            const clienteParaGuardar = {
+                Nombre: clienteData.Nombre,
+                Apellido: clienteData.Apellido,
+                NumCelular: Number(clienteData.NumCelular),
+            };
+        
+            const clienteCreado = await addCliente(clienteParaGuardar);
+        
+            setClienteData({ Nombre: "", Apellido: "", NumCelular: "" });
+            alert("Se agregó el cliente");
+        
+            setClienteGuardado(clienteCreado);
+            setMostrarFormulario(false);
+            setMostrarFormulario2(true);
+        
+        } catch (error) {
+            console.error("Error al agregar cliente:", error);
+            alert("Error al agregar cliente. Intente nuevamente.");
+        }
     };
     
     const handleSubmitPedido = async (e) => {
-      e.preventDefault();
+        e.preventDefault();
     
-      if (!clienteGuardado) {
-        alert("No hay cliente registrado.");
-        return;
-      }
-    
-      const nuevoPedido = {
-        ...pedidoData,
-        ID_Cliente: clienteGuardado.ID_Cliente
-      };
-    
-      try {
-        // Guardar pedido
-        const idPedidoCreado = await addPedido(nuevoPedido); // Asegúrate que esta función retorne el ID del pedido creado
-    
-        // Obtener productos del carrito
-        const carritoGuardado = JSON.parse(localStorage.getItem("carrito")) || [];
-    
-        // Guardar cada producto como detalle
-        for (const producto of carritoGuardado) {
-          const detalle = {
-            ID_Pedido: idPedidoCreado.ID_Pedido || idPedidoCreado,
-            ID_Producto: producto.ID_Producto,
-            Cantidad: producto.cantidad,
-            Precio_Unitario: producto.Precio_Final,
-            Descuento: 0,
-            Subtotal: producto.cantidad * producto.Precio_Final
-          };
-          console.log("Detalle pedido a enviar:", detalle);
-          await addDetallePedido(detalle);
+        if (!clienteGuardado) {
+            alert("No hay cliente registrado.");
+            return;
         }
     
-        // Limpiar estado y carrito
-        setPedidoData({
-          ID_Cliente: "",
-          Fecha_Pedido: new Date().toISOString().slice(0, 10),
-          Fecha_Entrega: ""
-        });
-        setMostrarFormulario2(false);
-        setClienteGuardado(null);
-        localStorage.removeItem("carrito");
-        setCarrito([]);
+        const nuevoPedido = {
+            ...pedidoData,
+            ID_Cliente: clienteGuardado.ID_Cliente
+        };
     
-        alert("Pedido y productos agregados correctamente");
+        try {
+            // Guardar pedido
+            const idPedidoCreado = await addPedido(nuevoPedido);
     
-      } catch (error) {
-        console.error("Error al guardar pedido o productos:", error);
-        alert("Ocurrió un error al guardar el pedido o los detalles.");
-      }
+            // Guardar detalles del pedido
+            const carritoGuardado = JSON.parse(localStorage.getItem("carrito")) || [];
+            for (const producto of carritoGuardado) {
+                const detalle = {
+                    ID_Pedido: idPedidoCreado.ID_Pedido || idPedidoCreado,
+                    ID_Producto: producto.ID_Producto,
+                    Cantidad: producto.cantidad,
+                    Precio_Unitario: producto.Precio_Final,
+                    Descuento: 0,
+                    Subtotal: producto.cantidad * producto.Precio_Final
+                };
+                await addDetallePedido(detalle);
+            }
+    
+            // Limpiar estado
+            setPedidoData({
+                ID_Cliente: "",
+                Fecha_Pedido: new Date().toISOString().slice(0, 10),
+                Fecha_Entrega: ""
+            });
+            setMostrarFormulario2(false);
+            setClienteGuardado(null);
+            localStorage.removeItem("carrito");
+            setCarrito([]);
+    
+            // Opción para enviar a WhatsApp
+            if (window.confirm("Pedido guardado correctamente. ¿Desea enviarlo por WhatsApp?")) {
+                const mensaje = generarMensajeWhatsApp();
+                const telefono = '51987654321'; // Reemplaza con tu número
+                window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, '_blank');
+            }
+    
+        } catch (error) {
+            console.error("Error al guardar pedido:", error);
+            alert("Error al guardar el pedido.");
+        }
     };
 
     const manejarCompra = async () => {
@@ -144,7 +152,6 @@ const Carrito = () => {
             return;
         }
 
-        // Cliente existe
         setClienteGuardado(clienteExistente);
         setPedidoData(prev => ({
             ...prev,
@@ -152,6 +159,17 @@ const Carrito = () => {
         }));
         setMostrarFormulario2(true);
         setMostrarFormulario(false);
+    };
+
+    const enviarSoloWhatsApp = () => {
+        if (carrito.length === 0) {
+            alert("El carrito está vacío");
+            return;
+        }
+        
+        const mensaje = generarMensajeWhatsApp();
+        const telefono = '51987654321'; // Reemplaza con tu número
+        window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, '_blank');
     };
 
     return (
@@ -182,13 +200,23 @@ const Carrito = () => {
                             value={clienteData.NumCelular}
                             onChange={handleInputChangeCliente}
                         />
-                        <button className={styloCar.botonCompra} onClick={manejarCompra}>Realizar Compra</button>
+                        <div className={styloCar.botonesContainer}>
+                            <button className={styloCar.botonCompra} onClick={manejarCompra}>
+                                Realizar Compra
+                            </button>
+                            <button 
+                                className={styloCar.botonWhatsApp} 
+                                onClick={enviarSoloWhatsApp}
+                            >
+                                Enviar por WhatsApp
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
 
             {mostrarFormulario && (
-                <div>
+                <div className={styloCar.formulario}>
                     <h1>Agregar cliente</h1>
                     <form onSubmit={handleSubmitCliente}>
                         <input
@@ -221,7 +249,7 @@ const Carrito = () => {
             )}
 
             {mostrarFormulario2 && (
-                <div>
+                <div className={styloCar.formulario}>
                     <h1>Agregar pedido</h1>
                     <form onSubmit={handleSubmitPedido}>
                         <input
@@ -236,15 +264,13 @@ const Carrito = () => {
                             value={pedidoData.Fecha_Pedido}
                             readOnly
                         />
-                        <label htmlFor="Fecha entrega">Fecha de Entrega: </label><input
-                          type="date"
-                          name="Fecha_Entrega"
-                          value={pedidoData.Fecha_Entrega || ""}
-                          onChange={(e) => {
-                            console.log("Nueva fecha:", e.target.value);
-                            handleInputChangePedido(e);
-                          }}
-                          required
+                        <label htmlFor="Fecha entrega">Fecha de Entrega: </label>
+                        <input
+                            type="date"
+                            name="Fecha_Entrega"
+                            value={pedidoData.Fecha_Entrega || ""}
+                            onChange={handleInputChangePedido}
+                            required
                         />
                         <button type="submit">Guardar Pedido</button>
                     </form>

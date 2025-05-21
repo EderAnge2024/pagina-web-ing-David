@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import useProductoStore from '../../store/ProductoStore'
 import useCategoriaStore from '../../store/CategoriaStore'
+import stiloProducto from './productoStilo.module.css'
 
 const ProductosFrom= ()=>{
     const {addProducto,fetchProducto,productos,deleteProducto,updateProducto} = useProductoStore() 

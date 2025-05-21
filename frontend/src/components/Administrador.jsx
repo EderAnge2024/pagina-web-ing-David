@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import stiloAdmin from './administrador.module.css'
 import AdministradorFrom from "./Administrador/Administrador"
 import ClienteFrom from "./Administrador/Clientes"
 import ImagenFrom from "./Administrador/imgFrom"
@@ -14,60 +13,89 @@ import HistorialEstado from "./Administrador/HistorialEstado"
 import Pedido from "./Administrador/Pedido"
 import Proyecto from "./Administrador/Proyecto"
 import useAuthStore from "../store/AuthStore"
+import stiloAdmin from './administrador.module.css'
 
-
-const Administrador=()=>{
-    const [activateComponent, setActivateComponent] = useState('AdministradorFrom')
+const Administrador = () => {
+    const [activateComponent, setActivateComponent] = useState(null)
+    const [showSubmenu, setShowSubmenu] = useState(false)
     const navigate = useNavigate()
     const { logout } = useAuthStore();
 
-    const handleLogout = () => {
-       logout();
-       navigate('/');
-    };
+    const handleNavClick = (component) => setActivateComponent(component)
+    const goToTienda = () => {
+    window.open('/', '_blank') // abre en una nueva pestaña
+}
 
-    const handleNavClick = (component) =>{
-        setActivateComponent(component)
-    }
-    
-    const goToLogin = () =>{
-        navigate('/')
-    }
-    
-    return(
-                <div>
-                    <header>
-                        <nav className={stiloAdmin.nav}>
-                            <button onClick={goToLogin}>Menu</button>
-                            <button onClick={() => handleNavClick('AdministradorFrom')}>Administradores</button>
-                            <button onClick={() => handleNavClick('ClienteFrom')}>Clientes</button>
-                            <button onClick={() => handleNavClick('ImagenFrom')}>Imagenes B,L</button>
-                            <button onClick={() => handleNavClick('ProductosFrom')}>Productos</button>
-                            <button onClick={() => handleNavClick('CategoriaFrom')}>Categoria</button>
-                            <button onClick={() => handleNavClick('Empleado')}>Empleados</button>
-                            <button onClick={() => handleNavClick('EstadoPedidoFrom')}>Estado del Pedidos</button>
-                            <button onClick={() => handleNavClick('Proyecto')}>Proyectos</button>
-                            <button onClick={() => handleNavClick('Pedido')}>Pedidos</button>
-                            <button onClick={() => handleNavClick('Factura')}>Facturas</button>
-                            <button onClick={() => handleNavClick('HistorialEstado')}>Historial de Estados</button>
-                            <button onClick={() => handleNavClick('DetallePedidoFrom')}>Detalle del Pedido</button>
-                        </nav>
-                        </header>
-                        <main>
-                            {activateComponent === 'AdministradorFrom' && <AdministradorFrom/>}
-                            {activateComponent === 'ClienteFrom' && <ClienteFrom/>}
-                            {activateComponent === 'ImagenFrom' && <ImagenFrom/>}
-                            {activateComponent === 'ProductosFrom' && <ProductosFrom/>}
-                            {activateComponent === 'CategoriaFrom' && <CategoriaFrom/>}
-                            {activateComponent === 'Empleado' && <Empleado/>}
-                            {activateComponent === 'EstadoPedidoFrom' && <EstadoPedidoFrom/>}
-                            {activateComponent === 'Proyecto' && <Proyecto/>}
-                            {activateComponent === 'Pedido' && <Pedido/>}
-                            {activateComponent === 'Factura' && <Factura/>}
-                            {activateComponent === 'HistorialEstado' && <HistorialEstado/>}
-                            {activateComponent === 'DetallePedidoFrom' && <DetallePedidoFrom/>}
-                        </main>
-                </div>
+
+    return (
+        <div className={stiloAdmin.admin_panel}>
+            <aside className={stiloAdmin.sidebar}>
+                <h2 className={stiloAdmin.logo}>BRADATEC</h2>
+                <ul className={stiloAdmin.nav_links}>
+                    <li onClick={() => setActivateComponent(null)}>Inicio</li>
+
+                    {/* Sección de productos con submenú */}
+                    <li onClick={() => setShowSubmenu(!showSubmenu)}>
+                        Productos ▾
+                    </li>
+                    {showSubmenu && (
+                        <ul className={stiloAdmin.submenu}>
+                            <li onClick={() => handleNavClick('ProductosFrom')}>Lista de Productos</li>
+                            <li onClick={() => handleNavClick('CategoriaFrom')}>Categorías</li>
+                        </ul>
+                    )}
+
+                    <li onClick={() => handleNavClick('Empleado')}>Empleados</li>
+                    <li onClick={() => handleNavClick('Proyecto')}>Proyectos</li>
+                    <li onClick={() => handleNavClick('ClienteFrom')}>Clientes</li>
+                    <li onClick={() => handleNavClick('AdministradorFrom')}>Administradores</li>
+                    <li onClick={() => handleNavClick('ImagenFrom')}>Imagenes</li>
+                    <li onClick={() => handleNavClick('EstadoPedidoFrom')}>Estado Pedido</li>
+                    <li onClick={() => handleNavClick('Pedido')}>Pedidos</li>
+                    <li onClick={() => handleNavClick('Factura')}>Facturas</li>
+                    <li onClick={() => handleNavClick('HistorialEstado')}>Historial Estado</li>
+                    <li onClick={() => handleNavClick('DetallePedidoFrom')}>Detalle Pedido</li>
+                    <li class={stiloAdmin.logout} onClick={logout}>Cerrar Sesión</li>
+                </ul>
+            </aside>
+
+            <main className={stiloAdmin.dashboard}>
+                {!activateComponent && (
+                    <>
+                        <h1>Panel de Control</h1>
+                        <p>Bienvenido a tu panel de control.</p>
+                        <div className={stiloAdmin.cards}>
+                            <div className={stiloAdmin.card}> 
+                                <p className={stiloAdmin.count}>0</p>
+                                <p>Usuarios Registrados</p>
+                            </div>
+                            <div className={stiloAdmin.card}> 
+                                <p className={stiloAdmin.count}>0</p>
+                                <p>Ventas Realizadas</p>
+                            </div>
+                            <div className={stiloAdmin.card}> 
+                                <p className={stiloAdmin.count}>0</p>
+                                <p>Tareas Pendientes</p>
+                            </div>
+                        </div>
+                        <button className={stiloAdmin.btn_tienda} onClick={goToTienda}>Ver tu tienda</button>
+                    </>
+                )}
+
+                {activateComponent === 'AdministradorFrom' && <AdministradorFrom />}
+                {activateComponent === 'ClienteFrom' && <ClienteFrom />}
+                {activateComponent === 'ImagenFrom' && <ImagenFrom />}
+                {activateComponent === 'ProductosFrom' && <ProductosFrom />}
+                {activateComponent === 'CategoriaFrom' && <CategoriaFrom />}
+                {activateComponent === 'Empleado' && <Empleado />}
+                {activateComponent === 'EstadoPedidoFrom' && <EstadoPedidoFrom />}
+                {activateComponent === 'Proyecto' && <Proyecto />}
+                {activateComponent === 'Pedido' && <Pedido />}
+                {activateComponent === 'Factura' && <Factura />}
+                {activateComponent === 'HistorialEstado' && <HistorialEstado />}
+                {activateComponent === 'DetallePedidoFrom' && <DetallePedidoFrom />}
+            </main>
+        </div>
     )
 }
 

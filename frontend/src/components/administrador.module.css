@@ -1,3 +1,151 @@
-div header .nav button{
-    border-bottom: solid 2px rgb(91, 91, 239);
+.admin_panel {
+    display: flex;
+    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9fafb;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background-color: #1f2937;
+    color: #f9fafb;
+    padding: 30px 20px;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    height: 880px;
+}
+
+.sidebar .logo {
+    font-size: 26px;
+    font-weight: bold;
+    color: #38bdf8;
+    margin-bottom: 35px;
+    letter-spacing: 1px;
+}
+
+.nav_links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.logout {
+    color: #ef4444; /* rojo tailwind */
+    font-weight: bold;
+    transition: background 0.3s, color 0.3s;
+}
+
+.logout:hover {
+    background-color: #7f1d1d; /* rojo oscuro */
+    color: #fff;
+}
+
+.nav_links li {
+    margin: 18px 0;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.nav_links li:hover {
+    background-color: #334155;
+    color: #38bdf8;
+}
+
+/* Submenú */
+.submenu {
+    list-style: none;
+    padding-left: 20px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.submenu li {
+    margin: 6px 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: #d1d5db;
+    padding: 4px 0;
+    transition: color 0.3s;
+}
+
+.submenu li:hover {
+    color: #38bdf8;
+}
+
+/* Dashboard */
+.dashboard {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+/* Cards */
+.cards {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+
+.card {
+    background-color: #0ea5e9;
+    color: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    width: 220px;
+    text-align: center;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+}
+
+.card .count {
+    font-size: 26px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* Botón */
+.btn_tienda {
+    margin-top: 30px;
+    padding: 12px 24px;
+    background-color: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn_tienda:hover {
+    background-color: #16a34a;
+    transform: translateY(-2px);
+}
+
+/* Responsive Sidebar */
+@media (max-width: 768px) {
+    .admin_panel {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .dashboard {
+        padding: 20px;
+    }
+
+    .cards {
+        justify-content: center;
+    }
 }
