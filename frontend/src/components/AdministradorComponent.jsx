@@ -1,10 +1,10 @@
 // src/components/Administrador.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuthStore from "../store/authStore";
+import useAuthStore from "../store/AuthStore";
 import stiloAdmin from './administrador.module.css';
 import AdministradorFrom from "./Administrador/Administrador";
-import ClienteFrom from "./Administrador/Clientes";
+import ClienteForm from "./Administrador/Clientes";
 import ImagenFrom from "./Administrador/imgFrom";
 import ProductosFrom from "./Administrador/Productos";
 import CategoriaFrom from "./Administrador/Categoria";
@@ -35,108 +35,126 @@ const Administrador = () => {
     };
 
     return(
-        <div className={stiloAdmin.container}>
-            <header>
-                <nav className={stiloAdmin.nav}>
-                    <div className={stiloAdmin.navLeft}>
-                        <button 
-                            onClick={goToMenu}
-                            className={stiloAdmin.menuButton}
-                        >
-                            Menu Principal
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('AdministradorFrom')}
-                            className={activateComponent === 'AdministradorFrom' ? stiloAdmin.active : ''}
-                        >
-                            Administradores
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('ClienteFrom')}
-                            className={activateComponent === 'ClienteFrom' ? stiloAdmin.active : ''}
-                        >
-                            Clientes
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('ImagenFrom')}
-                            className={activateComponent=== 'ImagenFrom' ? stiloAdmin.active : ''}
-                        >
-                            Imagenes B,L
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('ProductosFrom')} 
-                            className={activateComponent=== 'ProductosFrom' ? stiloAdmin.active : ''}
-                        >
-                            Productos
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('CategoriaFrom')}
-                            className={activateComponent=== 'CategoriaFrom' ? stiloAdmin.active : ''}
-                        >
-                            Categoria
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('Empleado')}
-                            className={activateComponent=== 'Empleado' ? stiloAdmin.active : ''}
-                        >
-                            Empleados
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('EstadoPedidoFrom')}
-                            className={activateComponent=== 'EsatodoPedidoFrom' ? stiloAdmin.active : ''}
-                        >
-                            Estado del Pedidos
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('Proyecto')}
-                            className={activateComponent=== 'Proyecto' ? stiloAdmin.active : ''}
-                        >
-                            Proyectos
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('Pedido')}
-                            className={activateComponent=== 'Pedido' ? stiloAdmin.active : ''}
-                        >
-                            Pedidos
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('Factura')}
-                            className={activateComponent=== 'Factura' ? stiloAdmin.active : ''}
-                        >
-                            Facturas
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('HistorialEstado')}
-                            className={activateComponent=== 'HistorialEstado' ? stiloAdmin.active : ''}
-                        >
-                            Historial de Estados
-                        </button>
-                        <button 
-                            onClick={() => handleNavClick('DetallePedidoFrom')}
-                            className={activateComponent=== 'DetallePedidoFrom' ? stiloAdmin.active : ''}
-                        >
-                            Detalle del Pedido
-                        </button>
+        <div className={stiloAdmin.admin_panel}>
+            {/* Sidebar */}
+            <aside className={stiloAdmin.sidebar}>
+                <div className={stiloAdmin.logo}>
+                    Panel Admin
+                </div>
+                
+                <ul className={stiloAdmin.nav_links}>
+                    <li 
+                        onClick={goToMenu}
+                        className={stiloAdmin.menu_button}
+                    >
+                        🏠 Menu Principal
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('AdministradorFrom')}
+                        className={activateComponent === 'AdministradorFrom' ? stiloAdmin.active : ''}
+                    >
+                        👤 Administradores
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('ClienteFrom')}
+                        className={activateComponent === 'ClienteFrom' ? stiloAdmin.active : ''}
+                    >
+                        👥 Clientes
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('ImagenFrom')}
+                        className={activateComponent === 'ImagenFrom' ? stiloAdmin.active : ''}
+                    >
+                        🖼️ Imágenes B,L
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('ProductosFrom')} 
+                        className={activateComponent === 'ProductosFrom' ? stiloAdmin.active : ''}
+                    >
+                        📦 Productos
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('CategoriaFrom')}
+                        className={activateComponent === 'CategoriaFrom' ? stiloAdmin.active : ''}
+                    >
+                        📂 Categorías
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('Empleado')}
+                        className={activateComponent === 'Empleado' ? stiloAdmin.active : ''}
+                    >
+                        👷 Empleados
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('EstadoPedidoFrom')}
+                        className={activateComponent === 'EstadoPedidoFrom' ? stiloAdmin.active : ''}
+                    >
+                        📊 Estado Pedidos
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('Proyecto')}
+                        className={activateComponent === 'Proyecto' ? stiloAdmin.active : ''}
+                    >
+                        🚧 Proyectos
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('Pedido')}
+                        className={activateComponent === 'Pedido' ? stiloAdmin.active : ''}
+                    >
+                        📋 Pedidos
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('Factura')}
+                        className={activateComponent === 'Factura' ? stiloAdmin.active : ''}
+                    >
+                        🧾 Facturas
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('HistorialEstado')}
+                        className={activateComponent === 'HistorialEstado' ? stiloAdmin.active : ''}
+                    >
+                        📈 Historial Estados
+                    </li>
+                    
+                    <li 
+                        onClick={() => handleNavClick('DetallePedidoFrom')}
+                        className={activateComponent === 'DetallePedidoFrom' ? stiloAdmin.active : ''}
+                    >
+                        📝 Detalle Pedidos
+                    </li>
+                </ul>
 
-                    </div>
-                    <div className={stiloAdmin.navRight}>
-                        {user && (
-                            <span className={stiloAdmin.welcomeMessage}>
-                                Bienvenido, <strong>{user.nombre}</strong>
-                            </span> 
-                        )}
-                        <button 
-                            onClick={handleLogout}
-                            className={stiloAdmin.logoutButton}
-                        >
-                            Cerrar Sesión
-                        </button>
-                    </div>
-                </nav>
-            </header>
-            <main className={stiloAdmin.mainContent}>
+                {/* Usuario y logout en la parte inferior del sidebar */}
+                <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid #374151' }}>
+                    {user && (
+                        <div style={{ marginBottom: '15px', fontSize: '14px', color: '#d1d5db' }}>
+                            👋 Bienvenido, <strong>{user.nombre}</strong>
+                        </div>
+                    )}
+                    <li 
+                        onClick={handleLogout}
+                        className={stiloAdmin.logout}
+                    >
+                        🚪 Cerrar Sesión
+                    </li>
+                </div>
+            </aside>
+
+            {/* Contenido principal */}
+            <main className={stiloAdmin.dashboard}>
                 {activateComponent === 'AdministradorFrom' && <AdministradorFrom/>}
-                {activateComponent === 'ClienteFrom' && <ClienteFrom/>}
+                {activateComponent === 'ClienteFrom' && <ClienteForm/>}
                 {activateComponent === 'ImagenFrom' && <ImagenFrom/>}
                 {activateComponent === 'ProductosFrom' && <ProductosFrom/>}
                 {activateComponent === 'CategoriaFrom' && <CategoriaFrom/>}

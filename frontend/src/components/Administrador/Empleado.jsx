@@ -1,150 +1,199 @@
-import { useEffect, useState } from 'react'
-import useEmpleadoStore from '../../store/EmpleadoStore'
+import { useEffect, useState } from 'react';
+import useEmpleadoStore from '../../store/EmpleadoStore';
+import styles from './Empleado.module.css';
 
-const Empleado= ()=>{
-    const {addEmpleado,fetchEmpleado,empleados,deleteEmpleado,updateEmpleado} = useEmpleadoStore() 
-    const [editingEmpleado, setEditingEmpleado]= useState(null)
-    const [empleadoData, setEmpleadoData] = useState ({Nombre_Empleado:"",NumCelular:"",URL:""})
-    const [fromData, setFormData] = useState ({Nombre_Empleado:"",NumCelular:"",URL:""})
+const Empleado = () => {
+  const { addEmpleado, fetchEmpleado, empleados, deleteEmpleado, updateEmpleado } = useEmpleadoStore();
+  const [editingEmpleado, setEditingEmpleado] = useState(null);
+  const [empleadoData, setEmpleadoData] = useState({ 
+    Nombre_Empleado: "", 
+    NumCelular: "", 
+    URL: "" 
+  });
+  const [formData, setFormData] = useState({ 
+    Nombre_Empleado: "", 
+    NumCelular: "", 
+    URL: "" 
+  });
 
-    console.log(empleadoData)
-    useEffect(()=>{
-        fetchEmpleado()
-    },[])
+  useEffect(() => {
+    fetchEmpleado();
+  }, [fetchEmpleado]);
 
-    // escucha lo que se ecribe en los input de la interfaz creada.
-    const handleInputChange = (e)=>{
-       const {name, value} = e. target 
-       setEmpleadoData({
-        ...empleadoData,
-        [name]:value
-       })
-    }
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEmpleadoData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-    // creamos la funcion que graba los datos de los input
-    const handelSubmit = async(e)=>{
-        e.preventDefault()      // previene algo por defecto nose
-        addEmpleado(empleadoData)
-        setEmpleadoData({Nombre_Empleado:"",NumCelular:"",URL:""})
-        alert("se agrego al profe")
-    }
-    // elimina a la empleado
-    const handleDelete = (ID_Empleado)=>{
-        if(window.confirm("Are you sure")){
-            deleteEmpleado(ID_Empleado)
-            fetchEmpleado()
-        }
-    }
-    //configura al estudinate para su edicion
-    const handleEditClick = (empleado) => {
-        setEditingEmpleado(empleado)
-        setFormData({Nombre_Empleado:empleado.Nombre_Empleado, NumCelular:empleado.NumCelular, URL:empleado.URL})
-    }
-    // manejar can¿bios de la formulaion edicion
-    const handleInputChangeUpdate = (e)=>{
-        setFormData({
-            ...fromData,
-            [e.target.name]: e.target.value
-        })
-    }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await addEmpleado(empleadoData);
+    setEmpleadoData({ 
+      Nombre_Empleado: "", 
+      NumCelular: "", 
+      URL: "" 
+    });
+  };
 
-    // actualiza a la imgen
-    const handleUpdate = async()=>{
-        updateEmpleado(editingEmpleado.ID_Empleado, fromData)
-        fetchEmpleado()
-        setEditingEmpleado(null)
+  const handleDelete = async (ID_Empleado) => {
+    if (window.confirm("¿Estás seguro de eliminar este empleado?")) {
+      await deleteEmpleado(ID_Empleado);
+      fetchEmpleado();
     }
-    const handleCancelEdit = () => {
-        setEditingEmpleado(null);
-      }
-    return (
-        <div>
-        <div>
-            <h1>Agregar empleados</h1>
-            <form onSubmit={handelSubmit}>
-                <input
-                type="text"
-                placeholder="enter Nombre_Empleado"
-                required
-                name="Nombre_Empleado"
-                value={empleadoData.Nombre_Empleado}
-                onChange={handleInputChange}
-                />
-                <input
-                type="text"
-                placeholder="enter NumCelular"
-                required
-                name="NumCelular"
-                value={empleadoData.NumCelular}
-                onChange={handleInputChange}
-                />
-                <input
-                type="text"
-                placeholder="enter URL"
-                required
-                name="URL"
-                value={empleadoData.URL}
-                onChange={handleInputChange}
-                />
-                <button>Guardar Datos</button>
-            </form>
-        </div>
-        <div>
-            
-            <div>
-                <div>
-                <h1>Lista de la empleadoes</h1>
-                {
-                    empleados.map((user) =>(
-                        <div key={user.ID_Empleado}>
-                            <p>Nombre_Empleado: {user.Nombre_Empleado} </p>
-                            <p>NumCelular: {user.NumCelular}</p>
-                            <p>Numero Celular: {user.URL}</p>
-                            <button onClick={()=> handleDelete(user.ID_Empleado)}>❌👍</button>
-                            <button onClick={()=> handleEditClick(user)}>👌✍️🗃️</button>
-                        </div>
-                    ))
-                }
-                </div>
-                {editingEmpleado && (
-                  <div className="modal-overlay">
-                    <div className="modal-window">
-                      <span className="modal-close" onClick={handleCancelEdit}>&times;</span>
-                      <h3>Editar empleado</h3>
-                      <input 
-                        type="text"
-                        name="Nombre_Empleado"
-                        value={fromData.Nombre_Empleado}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Tipo de empleado"
-                      />
-                      <input 
-                        type="text"
-                        name="NumCelular"
-                        value={fromData.NumCelular}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="NumCelular o ruta"
-                      />
-                      <input 
-                        type="text"
-                        name="URL"
-                        value={fromData.URL}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="URL"
-                      />
-                      <div className="botones">
-                        <button onClick={handleUpdate}>Guardar</button>
-                        <button onClick={handleCancelEdit}>Cancelar</button>
-                    
-                      </div>
-                     </div>
-                  </div>
+  };
+
+  const handleEditClick = (empleado) => {
+    setEditingEmpleado(empleado);
+    setFormData({ 
+      Nombre_Empleado: empleado.Nombre_Empleado, 
+      NumCelular: empleado.NumCelular, 
+      URL: empleado.URL 
+    });
+  };
+
+  const handleInputChangeUpdate = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleUpdate = async () => {
+    await updateEmpleado(editingEmpleado.ID_Empleado, formData);
+    fetchEmpleado();
+    setEditingEmpleado(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEmpleado(null);
+  };
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.formSection}>
+        <h1 className={styles.title}>Agregar empleados</h1>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <input
+            type="text"
+            placeholder="Nombre del empleado"
+            required
+            name="Nombre_Empleado"
+            value={empleadoData.Nombre_Empleado}
+            onChange={handleInputChange}
+            className={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="Número de celular"
+            required
+            name="NumCelular"
+            value={empleadoData.NumCelular}
+            onChange={handleInputChange}
+            className={styles.input}
+          />
+          <input
+            type="text"
+            placeholder="URL de imagen"
+            required
+            name="URL"
+            value={empleadoData.URL}
+            onChange={handleInputChange}
+            className={styles.input}
+          />
+          <button type="submit" className={styles.button}>
+            Guardar Datos
+          </button>
+        </form>
+      </div>
+
+      <div className={styles.listSection}>
+        <h1 className={styles.title}>Lista de empleados</h1>
+        <div className={styles.empleadoList}>
+          {empleados.map((empleado) => (
+            <div key={empleado.ID_Empleado} className={styles.empleadoItem}>
+              <p className={styles.empleadoText}>
+                <strong>Nombre:</strong> {empleado.Nombre_Empleado}
+              </p>
+              <p className={styles.empleadoText}>
+                <strong>Teléfono:</strong> {empleado.NumCelular}
+              </p>
+              <p className={styles.empleadoText}>
+                <strong>Imagen:</strong> 
+                {empleado.URL && (
+                  <a href={empleado.URL} target="_blank" rel="noopener noreferrer" className={styles.link}>
+                    Ver imagen
+                  </a>
                 )}
-
+              </p>
+              <div className={styles.actions}>
+                <button
+                  onClick={() => handleDelete(empleado.ID_Empleado)}
+                  className={`${styles.button} ${styles.buttonDanger}`}
+                >
+                  Eliminar
+                </button>
+                <button
+                  onClick={() => handleEditClick(empleado)}
+                  className={`${styles.button} ${styles.buttonEdit}`}
+                >
+                  Editar
+                </button>
+              </div>
             </div>
+          ))}
         </div>
-        </div>
-    )
-}
 
-export default Empleado
+        {editingEmpleado && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalWindow}>
+              <span className={styles.modalClose} onClick={handleCancelEdit}>
+                &times;
+              </span>
+              <h3 className={styles.modalTitle}>Editar empleado</h3>
+              <input
+                type="text"
+                name="Nombre_Empleado"
+                value={formData.Nombre_Empleado}
+                onChange={handleInputChangeUpdate}
+                placeholder="Nombre del empleado"
+                className={styles.input}
+              />
+              <input
+                type="text"
+                name="NumCelular"
+                value={formData.NumCelular}
+                onChange={handleInputChangeUpdate}
+                placeholder="Número de celular"
+                className={styles.input}
+              />
+              <input
+                type="text"
+                name="URL"
+                value={formData.URL}
+                onChange={handleInputChangeUpdate}
+                placeholder="URL de imagen"
+                className={styles.input}
+              />
+              <div className={styles.modalActions}>
+                <button onClick={handleUpdate} className={styles.button}>
+                  Guardar
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className={`${styles.button} ${styles.buttonSecondary}`}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Empleado;

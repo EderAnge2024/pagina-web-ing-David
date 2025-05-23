@@ -26,7 +26,7 @@ const Factura= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addFactura(facturaData)
         setFacturaData({ID_Pedido:"",ID_Cliente:"",Fecha:"",Monto_Total:""})
-        alert("se agrego al profe")
+        alert("se agrego nueva factura")
     }
     // elimina a la factura
     const handleDelete = (ID_Factura)=>{

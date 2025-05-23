@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useAuthStore from '../store/authStore';
+import useAuthStore from '../store/AuthStore';
 import styles from './LoginAdministrador.module.css';
 
 const LoginForm = () => {
@@ -65,7 +65,7 @@ const LoginForm = () => {
     }, [error]);
 
     return (
-        <div className={styles.contenedor_general}>
+        <div className={styles.contenedor_general_login}>
             <div className={styles.login_container}>
                 <div className={styles.login_header}>
                     <h1>Bienvenido</h1>

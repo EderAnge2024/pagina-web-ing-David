@@ -26,7 +26,7 @@ const DetallePedidoFrom= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addDetallePedido(detallePedidoData)
         setDetallePedidoData({ID_Pedido:"",ID_Producto:"",Cantidad:"",Precio_Unitario:"",Descuento:"",Subtotal:""})
-        alert("se agrego al profe")
+        alert("se agrego detalles del pedido")
     }
     // elimina a la detallePedido
     const handleDelete = (ID_Detalle)=>{
@@ -123,7 +123,7 @@ const DetallePedidoFrom= ()=>{
                         <div key={user.ID_Detalle}>
                             <p>ID_Pedido: {user.ID_Pedido} </p>
                             <p>ID_Producto: {user.ID_Producto}</p>
-                            <p>Numero Celular: {user.Cantidad}</p>
+                            <p>Cantidad: {user.Cantidad}</p>
                             <p>Precio_Unitario: {user.Precio_Unitario}</p>
                             <p>Numero Descuento: {user.Descuento}</p>
                             <p>Numero Subtotal: {user.Subtotal}</p>

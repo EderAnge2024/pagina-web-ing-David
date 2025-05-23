@@ -1,0 +1,91 @@
+/* Bloque principal */
+.servicio {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Elementos del bloque servicio */
+.servicio__seccion {
+    margin-bottom: 2rem;
+}
+
+.servicio__titulo {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    margin-top: 7px;
+    margin-left: 20px;
+    border-bottom: solid 2px rgb(8, 8, 85);
+    width: 30%;
+}
+
+.servicio__contenedor {
+    margin-top: 10px;
+    margin-left: 15px;
+}
+
+.servicio__lista {
+    display: flex;
+    overflow: auto;
+    padding: 6px;
+    gap: 10px;
+}
+
+/* Bloque empleado */
+.empleado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-right: solid 2px;
+    border-bottom: solid 2px;
+    border-radius: 5px;
+    padding: 4px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    min-width: 170px;
+}
+
+/* Elementos del bloque empleado */
+.empleado__imagen {
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.empleado__texto {
+    margin: 4px 0;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* Bloque proyecto */
+.proyecto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-right: solid 2px;
+    border-bottom: solid 2px;
+    border-radius: 5px;
+    padding: 4px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    min-width: 170px;
+}
+
+/* Elementos del bloque proyecto */
+.proyecto__imagen {
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.proyecto__texto {
+    margin: 4px 0;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* Modificadores (si necesitas variaciones) */
+.empleado--destacado {
+    border-color: rgb(8, 8, 85);
+    box-shadow: 0 2px 8px rgba(8, 8, 85, 0.1);
+}
+
+.proyecto--activo {
+    border-color: rgb(8, 8, 85);
+    box-shadow: 0 2px 8px rgba(8, 8, 85, 0.1);
+}

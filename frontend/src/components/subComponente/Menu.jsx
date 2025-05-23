@@ -118,7 +118,7 @@ const Menu = () => {
             
             {searchQuery && (
                 <p className={styles.resultadosBusqueda}>
-                    Resultados para: "{searchQuery}"
+                    Resultados para: {searchQuery}
                 </p>
             )}
             

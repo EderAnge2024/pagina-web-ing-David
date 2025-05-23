@@ -1,99 +1,307 @@
 /* administrador.module.css */
 
-/* Estilos generales */
-.nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, #2c3e50, #1a2a3a);
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+.admin_panel {
+    display: flex;
+    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9fafb;
 }
 
-.navLeft {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background-color: #1f2937;
+    color: #f9fafb;
+    padding: 30px 20px;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
 }
 
-.navRight {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
+.sidebar .logo {
+    font-size: 26px;
+    font-weight: bold;
+    color: #38bdf8;
+    margin-bottom: 35px;
+    letter-spacing: 1px;
+    text-align: center;
 }
 
-/* Estilos para los botones */
-.nav button {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 6px;
-  background-color: #3498db;
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  position: relative;
-  overflow: hidden;
+.nav_links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
 }
 
-.nav button:hover {
-  background-color: #2980b9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+.nav_links li {
+    margin: 18px 0;
+    cursor: pointer;
+    padding: 12px 16px;
+    border-radius: 8px;
+    transition: background 0.3s, color 0.3s, transform 0.2s;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    background: none;
+    color: #f9fafb;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.nav button::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background-color: #91d5ff;
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
+.nav_links li:hover {
+    background-color: #374155;
+    color: #38bdf8;
+    transform: translateX(4px);
 }
 
-.nav button:hover::after {
-  transform: scaleX(1);
+.nav_links li.active {
+    background-color: #38bdf8;
+    color: #ffffff;
+    font-weight: 600;
 }
 
-/* Botón de Cerrar Sesión */
-.navRight button {
-  background-color: #e74c3c;
+.nav_links li.active:hover {
+    background-color: #0ea5e9;
+    transform: translateX(4px);
 }
 
-.navRight button:hover {
-  background-color: #c0392b;
+.menu_button {
+    background-color: #059669 !important;
+    color: white !important;
+    font-weight: 600;
 }
 
-/* Mensaje de bienvenida */
-.navRight span {
-  font-weight: 500;
-  color: #ecf0f1;
-  margin-right: 0.5rem;
+.menu_button:hover {
+    background-color: #047857 !important;
+    color: white !important;
 }
 
-/* Estilos para el contenido principal */
-.mainContent { 
-  padding: 2rem;
-  background-color: #f5f7fa;
-  min-height: calc(100vh - 70px);
+.logout {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+    font-weight: 600;
+    margin-top: 10px;
 }
 
-/* Efecto activo para el botón seleccionado */
-.nav button.active {
-  background-color: #2980b9;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.logout:hover {
+    background-color: #b91c1c !important;
+    color: #ffffff !important;
 }
 
-.nav button.active::after {
-  transform: scaleX(1);
-  background-color: #ffffff;
+/* Dashboard - Contenido principal */
+.dashboard {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    background-color: #f9fafb;
+}
+
+/* Header del dashboard */
+.dashboard h1 {
+    color: #1f2937;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    border-bottom: 3px solid #38bdf8;
+    padding-bottom: 10px;
+}
+
+/* Cards para estadísticas */
+.cards {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+
+.card {
+    background-color: #0ea5e9;
+    color: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    width: 220px;
+    text-align: center;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.card .count {
+    font-size: 26px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.card .label {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 5px;
+}
+
+/* Botones generales */
+.btn_tienda {
+    margin-top: 30px;
+    padding: 12px 24px;
+    background-color: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn_tienda:hover {
+    background-color: #16a34a;
+    transform: translateY(-2px);
+}
+
+/* Estilos para formularios dentro del dashboard */
+.dashboard .form-container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.dashboard .form-title {
+    color: #1f2937;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Tablas dentro del dashboard */
+.dashboard table {
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.dashboard table th {
+    background-color: #1f2937;
+    color: white;
+    padding: 15px;
+    font-weight: 600;
+    text-align: left;
+}
+
+.dashboard table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.dashboard table tr:hover {
+    background-color: #f3f4f6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin_panel {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 20px;
+        order: 2;
+    }
+
+    .sidebar .logo {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    .nav_links li {
+        padding: 10px 12px;
+        font-size: 14px;
+        margin: 8px 0;
+    }
+
+    .dashboard {
+        padding: 20px;
+        order: 1;
+        height: 70vh;
+    }
+
+    .cards {
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .card {
+        width: 100%;
+        max-width: 280px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar {
+        padding: 15px;
+    }
+
+    .dashboard {
+        padding: 15px;
+    }
+
+    .dashboard h1 {
+        font-size: 22px;
+    }
+
+    .nav_links li {
+        font-size: 13px;
+        padding: 8px 10px;
+    }
+}
+
+/* Animaciones de entrada */
+.dashboard > * {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Scrollbar personalizada para el sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #374155;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
 }

@@ -1,10 +1,10 @@
-// src/store/authStore.js
+// src/store/AuthStore.js
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 const useAuthStore = create(
   persist(
-    (set) => ({
+    (set) => ({ 
       isAuthenticated: false,
       user: null,
       loading: true,

@@ -2,8 +2,8 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import useAuthStore from '../../../store/AuthStore';
-
-const ProtectedRoute = () => {
+ 
+const ProtectedRoute = () => { 
   const { isAuthenticated, loading, initAuth } = useAuthStore();
   
   useEffect(() => {

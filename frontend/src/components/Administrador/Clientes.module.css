@@ -1,7 +1,7 @@
-/* Administrador.module.css */
+/* ClienteForm.module.css */
 
 /* Bloque principal */
-.administrador {
+.cliente {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
@@ -9,7 +9,7 @@
 }
 
 /* Elementos del bloque */
-.administrador__title {
+.cliente__title {
   color: var(--color-primary);
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
@@ -17,7 +17,7 @@
   padding-bottom: 0.5rem;
 }
 
-.administrador__form {
+.cliente__form {
   background-color: var(--color-bg-light);
   padding: 1.5rem;
   border-radius: 0.5rem;
@@ -25,7 +25,7 @@
   margin-bottom: 2rem;
 }
 
-.administrador__list {
+.cliente__list {
   background-color: white;
   padding: 1.5rem;
   border-radius: 0.5rem;
@@ -56,13 +56,13 @@
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
-/* Lista de administradores */
+/* Lista de clientes */
 .list {
   display: grid;
   gap: 1rem;
 }
 
-/* Tarjeta de administrador */
+/* Tarjeta de cliente */
 .card {
   background-color: var(--color-bg-light);
   border-left: 4px solid var(--color-accent);

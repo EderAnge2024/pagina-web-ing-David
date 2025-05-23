@@ -26,7 +26,7 @@ const HistorialEstado= ()=>{
         e.preventDefault()      // previene algo por defecto nose
         addHistorialEstado(historialEstadoData)
         setHistorialEstadoData({ID_EstadoPedido:"",ID_Pedido:"",Fecha:""})
-        alert("se agrego al profe")
+        alert("se agrego un nuevo historial de pedidos")
     }
     // elimina a la historial
     const handleDelete = (ID_Historial)=>{

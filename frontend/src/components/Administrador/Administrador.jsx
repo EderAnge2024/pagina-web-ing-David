@@ -1,118 +1,161 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import useAdministradorStore from '../../store/AdministradorStore'
 import style from './Administrador.module.css'
 
 const Administrador = () => {
-    const {addAdministrador, fetchAdministrador, administradors, deleteAdministrador, updateAdministrador} = useAdministradorStore() 
+    const { 
+        addAdministrador, 
+        fetchAdministrador, 
+        administradors, 
+        deleteAdministrador, 
+        updateAdministrador 
+    } = useAdministradorStore()
+    
     const [editingAdministrador, setEditingAdministrador] = useState(null)
-    const [administradorData, setAdministradorData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: ""})
-    const [fromData, setFormData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: ""})
+    const [formData, setFormData] = useState({
+        Nombre_Administrador: "",
+        Usuario: "",
+        Contrasena: ""
+    })
 
-    useEffect(()=>{
+    // Cargar administradores al montar el componente
+    useEffect(() => {
         fetchAdministrador()
-    },[])
+    }, [fetchAdministrador])
 
-    const handleInputChange = (e)=>{
-       const {name, value} = e.target 
-       setAdministradorData({
-        ...administradorData,
-        [name]:value
-       })
-    }
+    // Manejar cambios en el formulario principal
+    const handleInputChange = useCallback((e) => {
+        const { name, value } = e.target
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }))
+    }, [])
 
-    const handelSubmit = async(e)=>{
+    // Enviar nuevo administrador
+    const handleSubmit = useCallback(async (e) => {
         e.preventDefault()
-        await addAdministrador(administradorData)
-        setAdministradorData({Nombre_Administrador:"", Usuario:"", Contrasena: ""})
-        fetchAdministrador()
-    }
-
-    const handleDelete = (ID_Administrador)=>{
-        if(window.confirm("¿Estás seguro de eliminar este administrador?")){
-            deleteAdministrador(ID_Administrador)
-            fetchAdministrador()
+        try {
+            await addAdministrador(formData)
+            setFormData({
+                Nombre_Administrador: "",
+                Usuario: "",
+                Contrasena: ""
+            })
+            alert("Administrador agregado correctamente")
+        } catch (error) {
+            alert("Error al agregar administrador")
         }
-    }
+    }, [addAdministrador, formData])
 
-    const handleEditClick = (administrador) => {
+    // Eliminar administrador
+    const handleDelete = useCallback(async (ID_Administrador) => {
+        if (window.confirm("¿Estás seguro de eliminar este administrador?")) {
+            try {
+                await deleteAdministrador(ID_Administrador)
+            } catch (error) {
+                alert("Error al eliminar administrador")
+            }
+        }
+    }, [deleteAdministrador])
+
+    // Iniciar edición
+    const handleEditClick = useCallback((administrador) => {
         setEditingAdministrador(administrador)
         setFormData({
-            Nombre_Administrador: administrador.Nombre_Administrador, 
-            Usuario: administrador.Usuario, 
+            Nombre_Administrador: administrador.Nombre_Administrador,
+            Usuario: administrador.Usuario,
             Contrasena: administrador.Contrasena
         })
-    }
+    }, [])
 
-    const handleInputChangeUpdate = (e)=>{
+    // Actualizar administrador
+    const handleUpdate = useCallback(async () => {
+        try {
+            await updateAdministrador(editingAdministrador.ID_Administrador, formData)
+            setEditingAdministrador(null)
+        } catch (error) {
+            alert("Error al actualizar administrador")
+        }
+    }, [editingAdministrador, formData, updateAdministrador])
+
+    // Cancelar edición
+    const handleCancelEdit = useCallback(() => {
+        setEditingAdministrador(null)
         setFormData({
-            ...fromData,
-            [e.target.name]: e.target.value
+            Nombre_Administrador: "",
+            Usuario: "",
+            Contrasena: ""
         })
-    }
-
-    const handleUpdate = async()=>{
-        await updateAdministrador(editingAdministrador.ID_Administrador, fromData)
-        fetchAdministrador()
-        setEditingAdministrador(null)
-    }
-
-    const handleCancelEdit = () => {
-        setEditingAdministrador(null)
-    }
+    }, [])
 
     return (
-        <div className={style.container}>
-            <div className={style.formContainer}>
-                <h1>Agregar administradores</h1>
-                <form onSubmit={handelSubmit}>
+        <div className={style.administrador}>
+            <div className={style.administrador__form}>
+                <h1 className={style.administrador__title}>Agregar administradores</h1>
+                <form onSubmit={handleSubmit} className={style.form}>
                     <input
-                    type="text"
-                    placeholder="Nombre del administrador"
-                    required
-                    name="Nombre_Administrador"
-                    value={administradorData.Nombre_Administrador}
-                    onChange={handleInputChange}
+                        type="text"
+                        placeholder="Nombre del administrador"
+                        required
+                        name="Nombre_Administrador"
+                        value={formData.Nombre_Administrador}
+                        onChange={handleInputChange}
+                        className={style.form__input}
                     />
                     <input
-                    type="text"
-                    placeholder="Nombre de usuario"
-                    required
-                    name="Usuario"
-                    value={administradorData.Usuario}
-                    onChange={handleInputChange}
+                        type="text"
+                        placeholder="Nombre de usuario"
+                        required
+                        name="Usuario"
+                        value={formData.Usuario}
+                        onChange={handleInputChange}
+                        className={style.form__input}
                     />
                     <input
-                    type="password"
-                    placeholder="Contraseña"
-                    required
-                    name="Contrasena"
-                    value={administradorData.Contrasena}
-                    onChange={handleInputChange}
+                        type="password"
+                        placeholder="Contraseña"
+                        required
+                        name="Contrasena"
+                        value={formData.Contrasena}
+                        onChange={handleInputChange}
+                        className={style.form__input}
                     />
-                    <button className={style.saveBtn}>Guardar Datos</button>
+                    <button type="submit" className={`${style.button} ${style['button--primary']}`}>
+                        Guardar Datos
+                    </button>
                 </form>
             </div>
             
-            <div className={style.listContainer}>
-                <h1>Lista de administradores</h1>
-                <div>
-                    {administradors.map((user) =>(
-                        <div className={style.adminCard} key={user.ID_Administrador}>
-                            <div className={style.adminInfo}>
-                                <p>Nombre: {user.Nombre_Administrador}</p>
-                                <p>Usuario: {user.Usuario}</p>
-                                <p>Contraseña: {user.Contrasena.replace(/./g, '*')}</p>
+            <div className={style.administrador__list}>
+                <h1 className={style.administrador__title}>Lista de administradores</h1>
+                <div className={style.list}>
+                    {administradors.map((user) => (
+                        <div className={style.card} key={user.ID_Administrador}>
+                            <div className={style.card__content}>
+                                <p className={style.card__item}>
+                                    <span className={style.card__label}>Nombre:</span> 
+                                    {user.Nombre_Administrador}
+                                </p>
+                                <p className={style.card__item}>
+                                    <span className={style.card__label}>Usuario:</span> 
+                                    {user.Usuario}
+                                </p>
+                                <p className={style.card__item}>
+                                    <span className={style.card__label}>Contraseña:</span> 
+                                    {user.Contrasena.replace(/./g, '*')}
+                                </p>
                             </div>
-                            <div>
+                            <div className={style.card__actions}>
                                 <button 
-                                    className={style.deleteBtn} 
-                                    onClick={()=> handleDelete(user.ID_Administrador)}
+                                    className={`${style.button} ${style['button--danger']}`}
+                                    onClick={() => handleDelete(user.ID_Administrador)}
                                 >
                                     Eliminar
                                 </button>
                                 <button 
-                                    className={style.editBtn}
-                                    onClick={()=> handleEditClick(user)}
+                                    className={`${style.button} ${style['button--secondary']}`}
+                                    onClick={() => handleEditClick(user)}
                                 >
                                     Editar
                                 </button>
@@ -122,37 +165,55 @@ const Administrador = () => {
                 </div>
 
                 {editingAdministrador && (
-                  <div className={style.modalOverlay}>
-                    <div className={style.modalWindow}>
-                      <span className={style.modalClose} onClick={handleCancelEdit}>&times;</span>
-                      <h3>Editar administrador</h3>
-                      <input 
-                        type="text"
-                        name="Nombre_Administrador"
-                        value={fromData.Nombre_Administrador}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Nombre del administrador"
-                      />
-                      <input 
-                        type="text"
-                        name="Usuario"
-                        value={fromData.Usuario}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Nombre de usuario"
-                      />
-                      <input 
-                        type="password"
-                        name="Contrasena"
-                        value={fromData.Contrasena}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Contraseña"
-                      />
-                      <div className={style.botones}>
-                        <button className={style.saveBtn} onClick={handleUpdate}>Guardar</button>
-                        <button className={style.deleteBtn} onClick={handleCancelEdit}>Cancelar</button>
-                      </div>
-                     </div>
-                  </div>
+                    <div className={style.modal}>
+                        <div className={style.modal__content}>
+                            <span 
+                                className={style.modal__close} 
+                                onClick={handleCancelEdit}
+                            >
+                                &times;
+                            </span>
+                            <h3 className={style.modal__title}>Editar administrador</h3>
+                            <input 
+                                type="text"
+                                name="Nombre_Administrador"
+                                value={formData.Nombre_Administrador}
+                                onChange={handleInputChange}
+                                placeholder="Nombre del administrador"
+                                className={style.form__input}
+                            />
+                            <input 
+                                type="text"
+                                name="Usuario"
+                                value={formData.Usuario}
+                                onChange={handleInputChange}
+                                placeholder="Nombre de usuario"
+                                className={style.form__input}
+                            />
+                            <input 
+                                type="password"
+                                name="Contrasena"
+                                value={formData.Contrasena}
+                                onChange={handleInputChange}
+                                placeholder="Contraseña"
+                                className={style.form__input}
+                            />
+                            <div className={style.modal__actions}>
+                                <button 
+                                    className={`${style.button} ${style['button--primary']}`} 
+                                    onClick={handleUpdate}
+                                >
+                                    Guardar
+                                </button>
+                                <button 
+                                    className={`${style.button} ${style['button--danger']}`} 
+                                    onClick={handleCancelEdit}
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
         </div>

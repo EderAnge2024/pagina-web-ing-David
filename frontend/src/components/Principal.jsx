@@ -15,9 +15,9 @@ import useBusquedaStore from "../store/BusquedaStore";
 
 const Principal = () => { 
     const { fetchImagen, imagens } = useImagenStore()
+    const { searchQuery, setSearchQuery } = useBusquedaStore();
     const [activateComponent, setActivateComponent] = useState('inicio')
     const [isMenuOpen, setIsMenuOpen] = useState(false)
-    const { searchQuery, setSearchQuery } = useBusquedaStore();
     const navigate = useNavigate()
     
     const handleNavClick = (component) => {
