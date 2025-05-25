@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import useAdministradorStore from '../../store/AdministradorStore'
 import style from './Administrador.module.css'
 
@@ -6,11 +6,11 @@ const Administrador = () => {
     const {addAdministrador, fetchAdministrador, administradors, deleteAdministrador, updateAdministrador} = useAdministradorStore() 
     const [editingAdministrador, setEditingAdministrador] = useState(null)
     const [administradorData, setAdministradorData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: ""})
-    const [fromData, setFormData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: ""})
+    const [formData, setFormData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: ""})
 
     useEffect(()=>{
         fetchAdministrador()
-    },[])
+    }, [fetchAdministrador])
 
     const handleInputChange = (e)=>{
        const {name, value} = e.target 
@@ -43,15 +43,16 @@ const Administrador = () => {
         })
     }
 
-    const handleInputChangeUpdate = (e)=>{
+    const handleInputChangeUpdate = (e) => {
+        const {name, value} = e.target
         setFormData({
-            ...fromData,
-            [e.target.name]: e.target.value
+            ...formData,
+            [name]: value
         })
     }
 
     const handleUpdate = async()=>{
-        await updateAdministrador(editingAdministrador.ID_Administrador, fromData)
+        await updateAdministrador(editingAdministrador.ID_Administrador, formData)
         fetchAdministrador()
         setEditingAdministrador(null)
     }
@@ -129,21 +130,21 @@ const Administrador = () => {
                       <input 
                         type="text"
                         name="Nombre_Administrador"
-                        value={fromData.Nombre_Administrador}
+                        value={formData.Nombre_Administrador}
                         onChange={handleInputChangeUpdate}
                         placeholder="Nombre del administrador"
                       />
                       <input 
                         type="text"
                         name="Usuario"
-                        value={fromData.Usuario}
+                        value={formData.Usuario}
                         onChange={handleInputChangeUpdate}
                         placeholder="Nombre de usuario"
                       />
                       <input 
                         type="password"
                         name="Contrasena"
-                        value={fromData.Contrasena}
+                        value={formData.Contrasena}
                         onChange={handleInputChangeUpdate}
                         placeholder="Contraseña"
                       />

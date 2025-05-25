@@ -1,0 +1,233 @@
+/* ClienteForm.module.css */
+
+/* Bloque principal */
+.cliente {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Elementos del bloque */
+.cliente__title {
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--color-accent);
+  padding-bottom: 0.5rem;
+}
+
+.cliente__form {
+  background-color: var(--color-bg-light);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+}
+
+.cliente__list {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Formulario */
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.form__input {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  flex: 1;
+  min-width: 200px;
+  transition: all 0.2s ease;
+}
+
+.form__input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Lista de clientes */
+.list {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Tarjeta de cliente */
+.card {
+  background-color: var(--color-bg-light);
+  border-left: 4px solid var(--color-accent);
+  padding: 1rem;
+  border-radius: 0.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.card__content {
+  flex: 1;
+}
+
+.card__item {
+  margin: 0.25rem 0;
+  color: var(--color-text);
+}
+
+.card__item:first-child {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.card__label {
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.card__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+/* Botones */
+.button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.button--primary {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.button--primary:hover {
+  background-color: var(--color-success-dark);
+}
+
+.button--secondary {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+.button--secondary:hover {
+  background-color: var(--color-accent-dark);
+}
+
+.button--danger {
+  background-color: var(--color-error);
+  color: white;
+}
+
+.button--danger:hover {
+  background-color: var(--color-error-dark);
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal__content {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+.modal__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text-light);
+}
+
+.modal__close:hover {
+  color: var(--color-error);
+}
+
+.modal__title {
+  margin-top: 0;
+  color: var(--color-primary);
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Variables CSS */
+:root {
+  --color-primary: #2c3e50;
+  --color-accent: #3498db;
+  --color-accent-dark: #2980b9;
+  --color-success: #2ecc71;
+  --color-success-dark: #27ae60;
+  --color-error: #e74c3c;
+  --color-error-dark: #c0392b;
+  --color-text: #555;
+  --color-text-light: #7f8c8d;
+  --color-bg-light: #f8f9fa;
+  --color-border: #ddd;
+  
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .card__actions {
+    margin: 0.5rem 0 0;
+    width: 100%;
+  }
+  
+  .card__actions .button {
+    width: 100%;
+    margin: 0.25rem 0;
+  }
+}

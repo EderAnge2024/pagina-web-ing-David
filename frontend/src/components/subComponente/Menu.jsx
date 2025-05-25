@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import useProductoStore from "../../store/ProductoStore";
+import useBusquedaStore from "../../store/BusquedaStore";
 import useCategoriaStore from "../../store/CategoriaStore";
 import styles from './Menu.module.css';
 

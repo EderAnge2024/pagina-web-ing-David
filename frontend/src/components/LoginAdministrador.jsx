@@ -9,9 +9,11 @@ const LoginForm = () => {
     const [mostrarContrasena, setMostrarContrasena] = useState(false);
     const [mensaje, setMensaje] = useState('');
     const [error, setError] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // ✅ Agregado useState para isLoading
     const navigate = useNavigate();
-    const login = useAuthStore(state => state.login);
+    
+    // ✅ Obtener la función login del store
+    const { login } = useAuthStore();
     
     // Datos estáticos del administrador
     const adminUsuario = 'admin123';
