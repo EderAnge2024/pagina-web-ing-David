@@ -1,0 +1,193 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.ImagenFrom {
+  display: flex;
+  justify-content: space-evenly;
+  padding: 20px;
+  gap: 20px;
+  flex-wrap: wrap;
+  background-color: #f3f4f6;
+}
+
+/* Sección de formulario */
+.AgregarImg {
+  background-color: #ffe4e6;
+  border-radius: 10px;
+  padding: 20px;
+  width: 45%;
+  min-width: 320px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Sección de lista */
+.lista {
+  background-color: #e0f7fa;
+  border-radius: 10px;
+  padding: 20px;
+  width: 45%;
+  min-width: 320px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+form input,
+form select {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+form button {
+  padding: 10px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+form button:hover {
+  background-color: #2563eb;
+}
+
+/* Lista de imágenes */
+.tablita {
+  background-color: #d2f4f4;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.tablita div {
+  background-color: #ffffff;
+  padding: 15px;
+  overflow: auto;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tablita img {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.1);
+}
+
+/* Modal */
+.modal_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal_window {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  padding: 25px 30px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0px 0px 20px rgba(0,0,0,0.4);
+  position: relative;
+  animation: aparecer 0.3s ease-out;
+}
+
+.modal_window input,
+.modal_window select,
+.modal_window button {
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.modal_window button {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal_window button:hover {
+  background-color: #059669;
+}
+
+.modal_close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.3s ease;
+}
+
+.modal_close:hover {
+  color: black;
+}
+
+/* Botones del modal */
+.botones {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  gap: 10px;
+}
+
+.botones button {
+  width: 100%;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ImagenFrom {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .AgregarImg,
+  .lista {
+    width: 90%;
+  }
+}

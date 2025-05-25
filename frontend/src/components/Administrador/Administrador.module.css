@@ -1,0 +1,170 @@
+.container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+.title {
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+  color: #004d99;
+  text-align: center;
+}
+
+.formSection,
+.listSection {
+  background-color: #f9faff;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 0.1);
+  margin-bottom: 30px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  transition: border-color 0.3s ease;
+}
+
+.input:focus {
+  border-color: #0073e6;
+  outline: none;
+}
+
+.button {
+  background-color: #0073e6;
+  color: white;
+  padding: 12px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #005bb5;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.listItem {
+  background: white;
+  border-radius: 6px;
+  padding: 15px 20px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.buttonsGroup {
+  margin-top: 10px;
+}
+
+.buttonsGroup button {
+  cursor: pointer;
+  font-size: 1.2rem;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-right: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.deleteBtn {
+  background-color: #e60000;
+  color: white;
+}
+
+.deleteBtn:hover {
+  background-color: #b30000;
+}
+
+.editBtn {
+  background-color: #0073e6;
+  color: white;
+}
+
+.editBtn:hover {
+  background-color: #005bb5;
+}
+
+/* Modal styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalWindow {
+  background-color: white;
+  padding: 25px 30px;
+  border-radius: 10px;
+  width: 350px;
+  box-shadow: 0 8px 15px rgb(0 0 0 / 0.2);
+  position: relative;
+}
+
+.modalClose {
+  position: absolute;
+  top: 12px;
+  right: 15px;
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.3s ease;
+}
+
+.modalClose:hover {
+  color: #000;
+}
+
+.modalTitle {
+  margin-bottom: 15px;
+  color: #004d99;
+  text-align: center;
+}
+
+.modalButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.cancelBtn {
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.cancelBtn:hover {
+  background-color: #999;
+}

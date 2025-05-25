@@ -1,0 +1,158 @@
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* distribuye logo, botones, lupa */
+    border-bottom: solid 3px blue;
+    padding: 0 2vw;
+    flex-wrap: wrap; /* para que el contenido se acomode en pantallas pequeñas */
+    height: auto;
+  }
+  
+  header div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 10vh;
+    width: 10vw;
+    min-width: 60px;
+    margin: 1vh 2vw;
+  }
+  
+  header nav {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap; /* permite que los botones bajen en pantallas pequeñas */
+    gap: 10px;
+    margin: 1vh 2vw;
+  }
+
+  header nav button {
+    display: flex;
+    align-items: center;
+    border: none;
+    border-radius: 10px;
+    background-color: white;
+    font-size: 1.2rem;
+    font-family: 'Times New Roman', Times, serif;
+    padding: 0.5rem 1rem;
+    transition: 0.3s ease, transform 0.3s ease;
+  }
+  
+  header nav button:hover {
+    background-color: #8ad9f8;
+    transform: scale(1.1) ;
+  }
+  button img{
+    transition:background-color 0.3 ease, transform 0.3s ease;
+  }
+  button:hover{
+    background-color: rgb(133, 133, 234);
+    transform: scale(1.2);
+  }
+  header nav button img {
+    width: 25px;
+    height: 25px;
+    margin-right: 5px;
+  }
+  /*----------------buscador--------------*/
+
+.lupa {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 5px; /* un poco más espacio entre input y botón */
+  margin: 10px;
+  max-width: 400px; /* opcional para limitar tamaño máximo */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.lupa input {
+  padding: 12px 16px;      /* más grande */
+  font-size: 16px;         /* fuente más grande */
+  border: 1px solid #ccc;
+  border-radius: 4px 0 0 4px;
+  outline: none;
+  flex: 1;
+  min-width: 250px;        /* para que no se haga muy pequeño */
+}
+
+.lupa button {
+  padding: 12px 18px;      /* más grande */
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+}
+
+.lupa button img {
+  width: 20px;             /* ícono más grande */
+  height: 20px;
+}
+
+
+  /* MEDIA QUERIES PARA HACERLO MÁS RESPONSIVO */
+  @media screen and (max-width: 768px) {
+    header {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    header nav {
+      justify-content: center;
+    }
+  
+    header div {
+      width: 20vw;
+      height: 8vh;
+    }
+  
+    header nav button {
+      font-size: 1rem;
+      padding: 0.4rem 0.8rem;
+    }
+  
+  }
+  
+  @media screen and (max-width: 480px) {
+    header div {
+      width: 30vw;
+      height: 8vh;
+    }
+  
+    header nav button {
+      font-size: 0.9rem;
+    }
+  
+  }
+  header div img{
+    width: 100%;
+    height: 100%;
+  }
+  
+
+  /*   Cuerpo o contenido    */
+  
+
+  /*    footer    */
+  footer{
+    height: 15vh;
+    background-color: rgb(232, 231, 196);
+    margin-top: 15px;
+  }
+  footer .secPadre{
+    display: flex;
+    justify-content: space-around;
+  }
+
+  footer .secPadre .seccion1 button{
+      border: solid 0;
+      background-color: transparent ;
+      font-family: Georgia, 'Times New Roman', Times, serif;
+  }
+
+  footer .secPadre .seccion1 p, .seccion2 p{
+    font-family: Georgia, 'Times New Roman', Times, serif;
+  }
