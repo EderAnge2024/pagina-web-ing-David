@@ -1,67 +1,318 @@
-body {
-    font-family: 'Arial', sans-serif;
-    margin: 0;
+/* ==========================================================================
+   LOGIN COMPONENT - BEM Methodology
+   ========================================================================== */
+
+/* Block: login */
+.login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
-/* Contenedor del formulario */
-.login_container {
-    background-color: white; /* Fondo blanco para el formulario */
-    padding: 40px;
-    border: solid 2px blue;
-    border-radius: 10px; /* Bordes redondeados */
-    box-shadow: 0 2px 10px red; /* Sombra sutil */
-    width: 400px; /* Ancho fijo del formulario */
-    margin: auto; /* Centrar el contenedor */
-    margin-top: 100px; /* Espacio desde la parte superior */
+/* Element: login__container */
+.login__container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Título del formulario */
-h1 {
-    text-align: center; /* Centrar el título */
-    margin-bottom: 20px; /* Espaciado inferior */
+.login__container:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 25px 30px -5px rgba(0, 0, 0, 0.15),
+    0 15px 15px -5px rgba(0, 0, 0, 0.06);
 }
 
-/* Estilos de las etiquetas y mensajes de error */
-.error_message {
-    color: red; /* Color rojo para mensajes de error */
-    text-align: center; /* Centrar el mensaje de error */
+/* Element: login__header */
+.login__header {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
-/* Estilos de los campos de entrada */
-.login_input {
-    width: 100%; /* Ancho completo del contenedor */
-    padding: 10px; /* Relleno interno */
-    margin-bottom: 20px; /* Espaciado inferior entre campos */
-    border: 1px solid #ccc; /* Borde gris claro */
-    border-radius: 5px; /* Bordes redondeados */
+/* Element: login__icon */
+.login__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  color: white;
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
 }
 
-/* Estilo para el botón de enviar */
-.login_button {
-    width: 100%; /* Ancho completo del contenedor */
-    padding: 10px; /* Relleno interno */
-    background-color: #1877f2; /* Color azul Facebook */
-    color: white; /* Color del texto en blanco */
-    border: none; /* Sin borde */
-    border-radius: 5px; /* Bordes redondeados */
-    cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
-    transition: background-color 0.3s ease; /* Transición suave para el color de fondo */
+/* Element: login__title */
+.login__title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.025em;
 }
 
-/* Efecto hover para el botón */
-.login_button:hover {
-    background-color: #165eab; /* Color más oscuro al pasar el mouse sobre el botón */
+/* Element: login__subtitle */
+.login__subtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 400;
 }
 
-/* Enlace para recuperar contraseña o registrarse */
-.create_account {
-    text-align: center; /* Centrar el texto del enlace */
+/* Element: login__form */
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.create_account-link {
-    color: #1877f2; /* Color azul para los enlaces (como Facebook) */
+/* Element: login__field */
+.login__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.create_account_link:hover {
-    text-decoration: underline; /* Subrayar al pasar el mouse sobre el enlace */
+/* Element: login__label */
+.login__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  letter-spacing: 0.025em;
+}
+
+/* Element: login__input */
+.login__input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.login__input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+
+.login__input::placeholder {
+  color: #9ca3af;
+}
+
+/* Modifier: login__input--error */
+.login__input--error {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.login__input--error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Element: login__button */
+.login__button {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  letter-spacing: 0.025em;
+}
+
+.login__button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.login__button:active {
+  transform: translateY(0);
+}
+
+.login__button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Modifier: login__button--loading */
+.login__button--loading {
+  pointer-events: none;
+}
+
+/* Element: login__spinner */
+.login__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Element: login__message */
+.login__message {
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modifier: login__message--success */
+.login__message--success {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* Modifier: login__message--error */
+.login__message--error {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
+/* Mobile devices */
+@media (max-width: 480px) {
+  .login {
+    padding: 0.5rem;
+  }
+  
+  .login__container {
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .login__title {
+    font-size: 1.5rem;
+  }
+  
+  .login__icon {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .login__container {
+    background: rgba(31, 41, 55, 0.95);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+  }
+  
+  .login__title {
+    color: #f9fafb;
+  }
+  
+  .login__subtitle {
+    color: #d1d5db;
+  }
+  
+  .login__label {
+    color: #e5e7eb;
+  }
+  
+  .login__input {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+  
+  .login__input::placeholder {
+    color: #9ca3af;
+  }
+  
+  .login__input:focus {
+    background-color: #374151;
+  }
+}
+/* Element: login__password_wrapper */
+.login__password_wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Element: login__password_toggle */
+.login__password_toggle {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 0.5rem;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login__password_toggle:hover {
+  color: #667eea;
+}
+
+.login__password_toggle:focus {
+  outline: none;
+  color: #764ba2;
+}
+
+/* Ajuste para el input de contraseña */
+.login__field .login__input[type="password"],
+.login__field .login__input[type="text"] {
+  padding-right: 3rem;
 }
