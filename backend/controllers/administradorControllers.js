@@ -54,10 +54,20 @@ const deleteAdministradorByIdController = async (ID_Administrador) => {
         throw new Error(error.message);
     }
 };
+const getAdministradorByUsuarioController = async (usuario) => {
+    try {
+        const admin = await Administrador.findOne({ where: { Usuario: usuario } });
+        return admin;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
 
 module.exports = {
     createAdministradorController,
     getAllAdministradorsController,
     updateAdministradorByIdController,
-    deleteAdministradorByIdController
+    deleteAdministradorByIdController,
+    getAdministradorByUsuarioController
 };

@@ -14,48 +14,38 @@ const LoginForm = () => {
     
     // ✅ Obtener la función login del store
     const { login } = useAuthStore();
-    
-    // Datos estáticos del administrador
-    const adminUsuario = 'admin123';
-    const adminContrasena = 'admin123';
-    const adminNombre = 'Administrador Principal';
-    
-    const handleSubmit = (e) => {
+        
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        
-        // Simulamos una verificación con un retraso para mostrar el efecto de carga
-        setTimeout(() => {
-            // Validar datos estáticos
-            if (usuario === adminUsuario && contrasena === adminContrasena) {
-                // Crear un objeto con la información del usuario
-                const userData = {
-                    nombre: adminNombre,
-                    usuario: adminUsuario,
-                    rol: 'admin'
-                };
-                
-                // Generar un token simple (en producción usarías JWT u otro método seguro)
-                const token = btoa(usuario + ':' + Date.now());
-                
-                // Llamar a la función login del store
-                login(userData, token);
-                
-                setMensaje(`Bienvenido, ${adminNombre}`);
-                setError(null);
-                
-                // Retrasamos la redirección para mostrar el mensaje
-                setTimeout(() => {
-                    // Redirigir al panel de administración
-                    navigate('/administrador');
-                }, 1500);
-            } else {
-                setError('Usuario o contraseña incorrectos');
-                setMensaje('');
-            }
-            setIsLoading(false);
-        }, 800);
+    
+        try {
+            const response = await fetch('http://localhost:3001/administrador/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ Usuario: usuario, Contrasena: contrasena }),
+            });
+    
+            const data = await response.json();
+    
+            if (!response.ok) throw new Error(data.mensaje || 'Error desconocido');
+    
+            login(data.admin, data.token); // Guardar en store o contexto
+            setMensaje(`Bienvenido, ${data.admin.Nombre_Administrador}`);
+            setError(null);
+    
+            setTimeout(() => {
+                navigate('/administrador');
+            }, 1500);
+    
+        } catch (err) {
+            setError(err.message);
+            setMensaje('');
+        }
+    
+        setIsLoading(false);
     };
+
     
     // Efecto para limpiar mensajes después de un tiempo
     useEffect(() => {

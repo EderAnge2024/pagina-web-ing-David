@@ -37,7 +37,17 @@ const useAdministradorStore = create((set)=>({
         } catch (error) {
             console.log("Error updating administrador:", error.message)
         }
+    },
+    verificarAdmins: async () => {
+    // Solo para ver si hay administradores
+    try {
+      const response = await axios.get('http://localhost:3001/administrador');
+      return response.data.length > 0;
+    } catch (error) {
+      console.log('Error verificando admins', error.message);
+      return false;
     }
+  },
     
 }))
 
