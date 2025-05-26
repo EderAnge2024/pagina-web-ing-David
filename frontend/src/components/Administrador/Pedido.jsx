@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import usePedidoStore from '../../store/PedidoStore'
+import useClienteStore from '../../store/ClienteStore'
 
 const Pedido= ()=>{
     const {addPedido,fetchPedido,pedidos,deletePedido,updatePedido} = usePedidoStore() 
+    const {clientes,fetchCliente} = useClienteStore()
     const [editingPedido, setEditingPedido]= useState(null)
     const [pedidoData, setPedidoData] = useState ({ID_Cliente:"",Fecha_Pedido:"",Fecha_Entrega:""})
     const [fromData, setFormData] = useState ({ID_Cliente:"",Fecha_Pedido:"",Fecha_Entrega:""})
@@ -10,6 +12,7 @@ const Pedido= ()=>{
     console.log(pedidoData)
     useEffect(()=>{
         fetchPedido()
+        fetchCliente()
     },[])
 
     // escucha lo que se ecribe en los input de la interfaz creada.
@@ -62,14 +65,19 @@ const Pedido= ()=>{
         <div>
             <h1>Agregar pedidos</h1>
             <form onSubmit={handelSubmit}>
-                <input
-                type="text"
-                placeholder="enter ID_Cliente"
-                required
-                name="ID_Cliente"
-                value={pedidoData.ID_Cliente}
-                onChange={handleInputChange}
-                />
+                <select
+                  name="ID_Cliente"
+                  value={pedidoData.ID_Cliente}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">-- Seleccionar Cliente --</option>
+                  {clientes.map((cliente) => (
+                    <option key={cliente.ID_Cliente} value={cliente.ID_Cliente}>
+                      {cliente.Nombre}
+                    </option>
+                  ))}
+                </select>
                 <input
                 type="text"
                 placeholder="enter Fecha_Pedido"

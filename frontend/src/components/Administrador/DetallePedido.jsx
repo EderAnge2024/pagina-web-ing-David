@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import useDetallePedidoStore from '../../store/DetallePedidoStore'
+import useProductoStore from '../../store/ProductoStore'
 
 const DetallePedidoFrom= ()=>{
     const {addDetallePedido,fetchDetallePedido,detallePedidos,deleteDetallePedido,updateDetallePedido} = useDetallePedidoStore() 
+    const {productos, fetchProducto} = useProductoStore() 
     const [editingDetallePedido, setEditingDetallePedido]= useState(null)
     const [detallePedidoData, setDetallePedidoData] = useState ({ID_Pedido:"",ID_Producto:"",Cantidad:"",Precio_Unitario:"",Descuento:"",Subtotal:""})
     const [fromData, setFormData] = useState ({ID_Pedido:"",ID_Producto:"",Cantidad:"",Precio_Unitario:"",Descuento:"",Subtotal:""})
@@ -10,6 +12,7 @@ const DetallePedidoFrom= ()=>{
     console.log(detallePedidoData)
     useEffect(()=>{
         fetchDetallePedido()
+        fetchProducto()
     },[])
 
     // escucha lo que se ecribe en los input de la interfaz creada.
@@ -70,14 +73,19 @@ const DetallePedidoFrom= ()=>{
                 value={detallePedidoData.ID_Pedido}
                 onChange={handleInputChange}
                 />
-                <input
-                type="text"
-                placeholder="enter ID_Producto"
-                required
-                name="ID_Producto"
-                value={detallePedidoData.ID_Producto}
-                onChange={handleInputChange}
-                />
+                <select
+                  name="ID_Producto"
+                  value={detallePedidoData.ID_Producto}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">-- Seleccionar producto --</option>
+                  {productos.map((producto) => (
+                    <option key={producto.ID_Producto} value={producto.ID_Producto}>
+                      {producto.Nombre_Producto}
+                    </option>
+                  ))}
+                </select>
                 <input
                 type="text"
                 placeholder="enter Cantidad"

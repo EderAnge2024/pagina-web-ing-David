@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import useFacturaStore from '../../store/FacturaStore'
+import useClienteStore from '../../store/ClienteStore'
 
 const Factura= ()=>{
     const {addFactura,fetchFactura,facturas,deleteFactura,updateFactura} = useFacturaStore() 
+    const {clientes,fetchCliente} = useClienteStore()
     const [editingFactura, setEditingFactura]= useState(null)
     const [facturaData, setFacturaData] = useState ({ID_Pedido:"",ID_Cliente:"",Fecha:"",Monto_Total:""})
     const [fromData, setFormData] = useState ({ID_Pedido:"",ID_Cliente:"",Fecha:"",Monto_Total:""})
@@ -10,6 +12,7 @@ const Factura= ()=>{
     console.log(facturaData)
     useEffect(()=>{
         fetchFactura()
+        fetchCliente()
     },[])
 
     // escucha lo que se ecribe en los input de la interfaz creada.
@@ -70,14 +73,19 @@ const Factura= ()=>{
                 value={facturaData.ID_Pedido}
                 onChange={handleInputChange}
                 />
-                <input
-                type="text"
-                placeholder="enter ID_Cliente"
-                required
-                name="ID_Cliente"
-                value={facturaData.ID_Cliente}
-                onChange={handleInputChange}
-                />
+                <select
+                  name="ID_Cliente"
+                  value={facturaData.ID_Cliente}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="">-- Seleccionar Cliente --</option>
+                  {clientes.map((cliente) => (
+                    <option key={cliente.ID_Cliente} value={cliente.ID_Cliente}>
+                      {cliente.Nombre}
+                    </option>
+                  ))}
+                </select>
                 <input
                 type="text"
                 placeholder="enter Fecha"

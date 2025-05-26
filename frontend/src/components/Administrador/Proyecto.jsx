@@ -71,7 +71,7 @@ const Proyecto= ()=>{
                   onChange={handleInputChange}
                   required
                 >
-                  <option value="">-- Seleccionar categoría --</option>
+                  <option value="">-- Seleccionar empleado --</option>
                   {empleados.map((empleado) => (
                     <option key={empleado.ID_Empleado} value={empleado.ID_Empleado}>
                       {empleado.Nombre_Empleado}
