@@ -1,0 +1,184 @@
+/* AgregarAdministradorPrimer.module.css */
+
+.adminContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  padding: 2rem;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+.adminCard {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transform: translateY(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: slideUp 0.6s ease-out;
+}
+
+.adminCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.adminTitle {
+  color: #fff;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  background: linear-gradient(90deg, #64f4ac, #5fd3ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  position: relative;
+}
+
+.adminTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #64f4ac, #5fd3ff);
+  border-radius: 3px;
+}
+
+.adminSubtitle {
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.adminForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.adminFormGroup {
+  position: relative;
+}
+
+.adminLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.adminInput {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.adminInput:focus {
+  outline: none;
+  border-color: #5fd3ff;
+  box-shadow: 0 0 0 2px rgba(95, 211, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.adminInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.adminButton {
+  background: linear-gradient(90deg, #64f4ac, #5fd3ff);
+  color: #16213e;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.adminButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(100, 244, 172, 0.4);
+}
+
+.adminButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: 0.5s;
+}
+
+.adminButton:hover::before {
+  left: 100%;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Glow effect for inputs when valid */
+.adminInput:valid {
+  animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(100, 244, 172, 0);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(100, 244, 172, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(100, 244, 172, 0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .adminCard {
+    padding: 1.5rem;
+  }
+  
+  .adminTitle {
+    font-size: 1.5rem;
+  }
+}

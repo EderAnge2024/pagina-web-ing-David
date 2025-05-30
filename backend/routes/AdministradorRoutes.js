@@ -1,24 +1,59 @@
 const { Router } = require('express');
+const bcrypt = require('bcrypt');
 const {
     createAdministradorController,
     getAllAdministradorsController,
     updateAdministradorByIdController,
-    deleteAdministradorByIdController
+    deleteAdministradorByIdController,
 } = require('../controllers/administradorControllers');
 
 const administradorRouters = Router();
 
 
+// Login de administrador
 administradorRouters.post("/", async (req, res) => {
-    const {  ID_Administrador, Nombre_Administrador, Usuario, Contrasena } = req.body;
+    const administradorData = req.body;
+
     try {
-        const newAdministrador = await createAdministradorController({  ID_Administrador, Nombre_Administrador, Usuario, Contrasena });
-        res.status(201).json(newAdministrador);
+        const nuevoAdministrador = await createAdministradorController(administradorData);
+        res.status(201).json(nuevoAdministrador);
     } catch (error) {
-        res.status(400).json({ error: error.message }); 
+        res.status(400).json({ error: error.message });
     }
 });
 
+administradorRouters.post('/login', async (req, res) => {
+    const { Usuario, Contrasena } = req.body;
+
+    try {
+        const { getAdministradorByUsuarioController } = require('../controllers/administradorControllers');
+        const admin = await getAdministradorByUsuarioController(Usuario);
+
+        if (!admin) {
+            return res.status(404).json({ mensaje: "Administrador no encontrado" });
+        }
+
+        const isPasswordValid = await bcrypt.compare(Contrasena, admin.Contrasena);
+        if (!isPasswordValid) {
+            return res.status(401).json({ mensaje: "Contraseña incorrecta" });
+        }
+
+        const token = Buffer.from(`${Usuario}:${Date.now()}`).toString('base64');
+
+        return res.status(200).json({
+            mensaje: "Login exitoso",
+            admin: {
+                ID_Administrador: admin.ID_Administrador,
+                Nombre_Administrador: admin.Nombre_Administrador,
+                Usuario: admin.Usuario
+            },
+            token
+        });
+
+    } catch (error) {
+        return res.status(500).json({ mensaje: "Error del servidor", error: error.message });
+    }
+});
 
 administradorRouters.get("/", async (req, res) => {
     try {
@@ -28,7 +63,6 @@ administradorRouters.get("/", async (req, res) => {
         res.status(400).json({ error: error.message }); 
     }
 });
-
 
 administradorRouters.put("/:ID_Administrador", async (req, res) => {
     const { ID_Administrador } = req.params;

@@ -1,30 +1,76 @@
 // src/components/Administrador.jsx
-import { useState } from "react";
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuthStore from "../store/authStore";
+import useAuthStore from "../store/AuthStore";
 import stiloAdmin from './administrador.module.css';
-import AdministradorFrom from "./Administrador/Administrador";
-import ClienteFrom from "./Administrador/Clientes";
-import ImagenFrom from "./Administrador/imgFrom";
-import ProductosFrom from "./Administrador/Productos";
-import CategoriaFrom from "./Administrador/Categoria";
-import DetallePedidoFrom from "./Administrador/DetallePedido";
-import Empleado from "./Administrador/Empleado";
-import EstadoPedidoFrom from "./Administrador/EstadoPedido";
-import Factura from "./Administrador/Factura";
-import HistorialEstado from "./Administrador/HistorialEstado"; 
-import Pedido from "./Administrador/Pedido";
-import Proyecto from "./Administrador/Proyecto";
+import React from "react";
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.error('Error Boundary caught an error:', error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="error-fallback">
+                    <h2>Algo salió mal</h2>
+                    <p>Error: {this.state.error?.message}</p>
+                    <button onClick={() => this.setState({ hasError: false, error: null })}>
+                        Intentar de nuevo
+                    </button>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
+// Lazy loading de componentes para evitar conflictos
+const LazyAdministradorFrom = lazy(() => import("./Administrador/Administrador"));
+const LazyClienteFrom = lazy(() => import("./Administrador/Clientes"));
+const LazyImagenFrom = lazy(() => import("./Administrador/imgFrom"));
+const LazyProductosFrom = lazy(() => import("./Administrador/Productos"));
+const LazyCategoriaFrom = lazy(() => import("./Administrador/Categoria"));
+const LazyDetallePedidoFrom = lazy(() => import("./Administrador/DetallePedido"));
+const LazyEmpleado = lazy(() => import("./Administrador/Empleado"));
+const LazyEstadoPedidoFrom = lazy(() => import("./Administrador/EstadoPedido"));
+const LazyFactura = lazy(() => import("./Administrador/Factura"));
+const LazyHistorialEstado = lazy(() => import("./Administrador/HistorialEstado"));
+const LazyPedido = lazy(() => import("./Administrador/Pedido"));
+const LazyProyecto = lazy(() => import("./Administrador/Proyecto"));
+
+const LoadingSpinner = () => (
+    <div className={stiloAdmin.componentLoading}>
+        <div className={stiloAdmin.loadingSpinner}></div>
+        <p>Cargando componente...</p>
+    </div>
+);
 
 const Administrador = () => {
     const [activateComponent, setActivateComponent] = useState('AdministradorFrom');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [darkMode, setDarkMode] = useState(false);
-    const navigate = useNavigate();
-    const { logout, user } = useAuthStore(); 
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [componentKey, setComponentKey] = useState(0); // Para forzar re-render
     
-    // Configuración de navegación con iconos y descripciones
-    const navigationItems = [
+    const navigate = useNavigate();
+    const { logout, user, isAuthenticated } = useAuthStore();
+    
+    // Configuración de navegación memoizada
+    const navigationItems = useMemo(() => [
         { 
             key: 'AdministradorFrom', 
             label: 'Administradores', 
@@ -97,37 +143,172 @@ const Administrador = () => {
             icon: '📝',
             description: 'Información detallada'
         }
-    ];
+    ], []);
+
+    // Inicialización controlada
+    useEffect(() => {
+        const initializeComponent = async () => {
+            try {
+                // Verificar autenticación
+                if (!isAuthenticated) {
+                    navigate('/loginFrom');
+                    return;
+                }
+
+                // Simular carga para evitar race conditions
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Cargar configuración
+                const savedTheme = localStorage.getItem('adminTheme');
+                const savedSidebar = localStorage.getItem('adminSidebar');
+                
+                if (savedTheme) {
+                    setDarkMode(savedTheme === 'dark');
+                }
+                if (savedSidebar) {
+                    setSidebarCollapsed(savedSidebar === 'collapsed');
+                }
+
+                setIsLoading(false);
+            } catch (err) {
+                console.error('Error inicializando:', err);
+                setError('Error cargando el panel de administración');
+                setIsLoading(false);
+            }
+        };
+
+        initializeComponent();
+    }, [isAuthenticated, navigate]);
+
+    // Guardar configuración
+    useEffect(() => {
+        if (isLoading) return;
+        
+        try {
+            localStorage.setItem('adminTheme', darkMode ? 'dark' : 'light');
+        } catch (err) {
+            console.error('Error guardando tema:', err);
+        }
+    }, [darkMode, isLoading]);
+
+    useEffect(() => {
+        if (isLoading) return;
+        
+        try {
+            localStorage.setItem('adminSidebar', sidebarCollapsed ? 'collapsed' : 'expanded');
+        } catch (err) {
+            console.error('Error guardando sidebar:', err);
+        }
+    }, [sidebarCollapsed, isLoading]);
     
-    const handleNavClick = (component) => {
-        setActivateComponent(component);
-    };
+    const handleNavClick = useCallback((component) => {
+        try {
+            setError(null);
+            if (component !== activateComponent) {
+                setActivateComponent(component);
+                // Incrementar key para forzar re-render limpio
+                setComponentKey(prev => prev + 1);
+            }
+        } catch (err) {
+            console.error('Error navegando:', err);
+            setError('Error al cambiar de sección');
+        }
+    }, [activateComponent]);
     
-    const goToMenu = () => {
-        navigate('/');
-    };
+    const goToMenu = useCallback(() => {
+        try {
+            navigate('/');
+        } catch (err) {
+            console.error('Error navegando:', err);
+            window.location.href = '/';
+        }
+    }, [navigate]);
 
-    const openMenuInNewTab = () => {
-        window.open('/', '_blank');
-    };
+    const openMenuInNewTab = useCallback(() => {
+        try {
+            window.open('/', '_blank');
+        } catch (err) {
+            console.error('Error abriendo pestaña:', err);
+        }
+    }, []);
     
-    const handleLogout = () => {
-        logout();
-        navigate('/loginFrom');
-    };
+    const handleLogout = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            await logout();
+            navigate('/loginFrom');
+        } catch (err) {
+            console.error('Error cerrando sesión:', err);
+            window.location.href = '/loginFrom';
+        }
+    }, [logout, navigate]);
 
-    const toggleSidebar = () => {
-        setSidebarCollapsed(!sidebarCollapsed);
-    };
+    const toggleSidebar = useCallback(() => {
+        setSidebarCollapsed(prev => !prev);
+    }, []);
 
-    const toggleDarkMode = () => {
-        setDarkMode(!darkMode);
-    };
+    const toggleDarkMode = useCallback(() => {
+        setDarkMode(prev => !prev);
+    }, []);
 
-    const getComponentTitle = () => {
+    const getComponentTitle = useCallback(() => {
         const item = navigationItems.find(item => item.key === activateComponent);
         return item ? item.label : 'Panel de Administración';
-    };
+    }, [activateComponent, navigationItems]);
+
+    // Renderizado de componentes con error boundaries y lazy loading
+    const renderActiveComponent = useMemo(() => {
+        const componentMap = {
+            'AdministradorFrom': <LazyAdministradorFrom />,
+            'ClienteFrom': <LazyClienteFrom />,
+            'ImagenFrom': <LazyImagenFrom />,
+            'ProductosFrom': <LazyProductosFrom />,
+            'CategoriaFrom': <LazyCategoriaFrom />,
+            'Empleado': <LazyEmpleado />,
+            'EstadoPedidoFrom': <LazyEstadoPedidoFrom />,
+            'Proyecto': <LazyProyecto />,
+            'Pedido': <LazyPedido />,
+            'Factura': <LazyFactura />,
+            'HistorialEstado': <LazyHistorialEstado />,
+            'DetallePedidoFrom': <LazyDetallePedidoFrom />
+        };
+
+        const ActiveComponent = componentMap[activateComponent];
+
+        if (!ActiveComponent) {
+            return (
+                <div className={stiloAdmin.errorContainer}>
+                    <h2>Componente no encontrado</h2>
+                    <p>El componente "{activateComponent}" no está disponible.</p>
+                    <button 
+                        onClick={() => handleNavClick('AdministradorFrom')}
+                        className={stiloAdmin.errorButton}
+                    >
+                        Volver al inicio
+                    </button>
+                </div>
+            );
+        }
+
+        return (
+            <ErrorBoundary key={`error-boundary-${componentKey}`}>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <div key={`component-${activateComponent}-${componentKey}`} className={stiloAdmin.componentContainer}>
+                        {ActiveComponent}
+                    </div>
+                </Suspense>
+            </ErrorBoundary>
+        );
+    }, [activateComponent, componentKey, handleNavClick]);
+
+    if (isLoading) {
+        return (
+            <div className={stiloAdmin.loadingContainer}>
+                <div className={stiloAdmin.loadingSpinner}></div>
+                <p>Cargando panel de administración...</p>
+            </div>
+        );
+    }
 
     return(
         <div className={`${stiloAdmin.container} ${darkMode ? stiloAdmin.darkMode : stiloAdmin.lightMode}`}>
@@ -142,6 +323,7 @@ const Administrador = () => {
                         onClick={toggleSidebar}
                         className={stiloAdmin.toggleButton}
                         title={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
+                        aria-label={sidebarCollapsed ? "Expandir sidebar" : "Colapsar sidebar"}
                     >
                         {sidebarCollapsed ? '→' : '←'}
                     </button>
@@ -153,6 +335,7 @@ const Administrador = () => {
                         onClick={goToMenu}
                         className={stiloAdmin.actionButton}
                         title="Ir al menú principal"
+                        aria-label="Ir al menú principal"
                     >
                         <span className={stiloAdmin.actionIcon}>🏠</span>
                         {!sidebarCollapsed && <span>Menú Principal</span>}
@@ -161,6 +344,7 @@ const Administrador = () => {
                         onClick={openMenuInNewTab}
                         className={stiloAdmin.actionButton}
                         title="Abrir menú en nueva pestaña"
+                        aria-label="Abrir menú en nueva pestaña"
                     >
                         <span className={stiloAdmin.actionIcon}>🔗</span>
                         {!sidebarCollapsed && <span>Ver Sitio</span>}
@@ -169,6 +353,7 @@ const Administrador = () => {
                         onClick={toggleDarkMode}
                         className={stiloAdmin.actionButton}
                         title={darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+                        aria-label={darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
                     >
                         <span className={stiloAdmin.actionIcon}>{darkMode ? '☀️' : '🌙'}</span>
                         {!sidebarCollapsed && <span>{darkMode ? 'Modo Claro' : 'Modo Oscuro'}</span>}
@@ -187,6 +372,7 @@ const Administrador = () => {
                                     activateComponent === item.key ? stiloAdmin.active : ''
                                 }`}
                                 title={sidebarCollapsed ? `${item.label} - ${item.description}` : item.description}
+                                aria-label={`${item.label} - ${item.description}`}
                             >
                                 <span className={stiloAdmin.navIcon}>{item.icon}</span>
                                 {!sidebarCollapsed && (
@@ -205,18 +391,22 @@ const Administrador = () => {
                     {user && !sidebarCollapsed && (
                         <div className={stiloAdmin.userInfo}>
                             <div className={stiloAdmin.userAvatar}>
-                                {user.nombre.charAt(0).toUpperCase()}
+                                {(user.nombre || user.name || 'U').charAt(0).toUpperCase()}
                             </div>
                             <div className={stiloAdmin.userDetails}>
-                                <span className={stiloAdmin.userName}>{user.nombre}</span>
+                                <span className={stiloAdmin.userName}>
+                                    {user.nombre || user.name || 'Usuario'}
+                                </span>
                                 <span className={stiloAdmin.userRole}>Administrador</span>
                             </div>
                         </div>
                     )}
-                    <button 
+                    <button
                         onClick={handleLogout}
                         className={stiloAdmin.logoutButton}
                         title="Cerrar sesión"
+                        aria-label="Cerrar sesión"
+                        disabled={isLoading}
                     >
                         <span className={stiloAdmin.logoutIcon}>🚪</span>
                         {!sidebarCollapsed && <span>Cerrar Sesión</span>}
@@ -234,6 +424,7 @@ const Administrador = () => {
                                 onClick={toggleDarkMode}
                                 className={stiloAdmin.themeToggle}
                                 title={darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+                                aria-label={darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
                             >
                                 {darkMode ? '☀️' : '🌙'}
                             </button>
@@ -248,18 +439,22 @@ const Administrador = () => {
 
                 {/* Contenido principal */}
                 <div className={stiloAdmin.contentArea}>
-                    {activateComponent === 'AdministradorFrom' && <AdministradorFrom/>}
-                    {activateComponent === 'ClienteFrom' && <ClienteFrom/>}
-                    {activateComponent === 'ImagenFrom' && <ImagenFrom/>}
-                    {activateComponent === 'ProductosFrom' && <ProductosFrom/>}
-                    {activateComponent === 'CategoriaFrom' && <CategoriaFrom/>}
-                    {activateComponent === 'Empleado' && <Empleado/>}
-                    {activateComponent === 'EstadoPedidoFrom' && <EstadoPedidoFrom/>}
-                    {activateComponent === 'Proyecto' && <Proyecto/>}
-                    {activateComponent === 'Pedido' && <Pedido/>}
-                    {activateComponent === 'Factura' && <Factura/>}
-                    {activateComponent === 'HistorialEstado' && <HistorialEstado/>}
-                    {activateComponent === 'DetallePedidoFrom' && <DetallePedidoFrom/>}
+                    {error && (
+                        <div className={stiloAdmin.errorAlert}>
+                            <span className={stiloAdmin.errorIcon}>⚠️</span>
+                            <span>{error}</span>
+                            <button 
+                                onClick={() => setError(null)}
+                                className={stiloAdmin.errorClose}
+                                aria-label="Cerrar error"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    )}
+                    
+                    {/* Componente activo */}
+                    {renderActiveComponent}
                 </div>
             </main>
         </div>
