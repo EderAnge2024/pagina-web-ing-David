@@ -38,6 +38,7 @@ class ErrorBoundary extends React.Component {
 }
 
 // Lazy loading de componentes para evitar conflictos
+const LazyDashboardAdmin = lazy(() => import("./Administrador/DashboardAdmin"))
 const LazyAdministradorFrom = lazy(() => import("./Administrador/Administrador"));
 const LazyClienteFrom = lazy(() => import("./Administrador/Clientes"));
 const LazyImagenFrom = lazy(() => import("./Administrador/imgFrom"));
@@ -59,7 +60,7 @@ const LoadingSpinner = () => (
 );
 
 const Administrador = () => {
-    const [activateComponent, setActivateComponent] = useState('AdministradorFrom');
+    const [activateComponent, setActivateComponent] = useState('DashboardAdmin');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [darkMode, setDarkMode] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -69,7 +70,7 @@ const Administrador = () => {
     const navigate = useNavigate();
     const { logout, user, isAuthenticated } = useAuthStore();
     
-    // Configuración de navegación memoizada
+    // Configuración de navegación memoizada (sin Dashboard ya que estará en el menú principal)
     const navigationItems = useMemo(() => [
         { 
             key: 'AdministradorFrom', 
@@ -215,14 +216,15 @@ const Administrador = () => {
         }
     }, [activateComponent]);
     
-    const goToMenu = useCallback(() => {
+    // Función modificada para ir al Dashboard en lugar del menú externo
+    const goToDashboard = useCallback(() => {
         try {
-            navigate('/');
+            handleNavClick('DashboardAdmin');
         } catch (err) {
-            console.error('Error navegando:', err);
-            window.location.href = '/';
+            console.error('Error navegando al dashboard:', err);
+            setError('Error al cargar el dashboard');
         }
-    }, [navigate]);
+    }, [handleNavClick]);
 
     const openMenuInNewTab = useCallback(() => {
         try {
@@ -252,6 +254,9 @@ const Administrador = () => {
     }, []);
 
     const getComponentTitle = useCallback(() => {
+        if (activateComponent === 'DashboardAdmin') {
+            return 'Dashboard';
+        }
         const item = navigationItems.find(item => item.key === activateComponent);
         return item ? item.label : 'Panel de Administración';
     }, [activateComponent, navigationItems]);
@@ -259,6 +264,7 @@ const Administrador = () => {
     // Renderizado de componentes con error boundaries y lazy loading
     const renderActiveComponent = useMemo(() => {
         const componentMap = {
+            'DashboardAdmin': <LazyDashboardAdmin/>,
             'AdministradorFrom': <LazyAdministradorFrom />,
             'ClienteFrom': <LazyClienteFrom />,
             'ImagenFrom': <LazyImagenFrom />,
@@ -281,10 +287,10 @@ const Administrador = () => {
                     <h2>Componente no encontrado</h2>
                     <p>El componente "{activateComponent}" no está disponible.</p>
                     <button 
-                        onClick={() => handleNavClick('AdministradorFrom')}
+                        onClick={() => handleNavClick('DashboardAdmin')}
                         className={stiloAdmin.errorButton}
                     >
-                        Volver al inicio
+                        Volver al Dashboard
                     </button>
                 </div>
             );
@@ -332,13 +338,13 @@ const Administrador = () => {
                 {/* Botones de navegación principal */}
                 <div className={stiloAdmin.quickActions}>
                     <button 
-                        onClick={goToMenu}
-                        className={stiloAdmin.actionButton}
-                        title="Ir al menú principal"
-                        aria-label="Ir al menú principal"
+                        onClick={goToDashboard}
+                        className={`${stiloAdmin.actionButton} ${activateComponent === 'DashboardAdmin' ? stiloAdmin.active : ''}`}
+                        title="Dashboard - Panel principal de administración"
+                        aria-label="Dashboard - Panel principal de administración"
                     >
-                        <span className={stiloAdmin.actionIcon}>🏠</span>
-                        {!sidebarCollapsed && <span>Menú Principal</span>}
+                        <span className={stiloAdmin.actionIcon}>📊</span>
+                        {!sidebarCollapsed && <span>Dashboard</span>}
                     </button>
                     <button 
                         onClick={openMenuInNewTab}

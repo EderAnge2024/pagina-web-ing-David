@@ -221,6 +221,213 @@
     background-color: #7f8c8d;
 }
 
+/* Estilos adicionales para agregar a imgFrom.module.css */
+
+/* Alerta de configuración */
+.configAlert {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 20px;
+  color: #856404;
+}
+
+.configAlert p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+/* Contenedor de subida de archivos */
+.fileUploadContainer {
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: border-color 0.3s ease;
+}
+
+.fileUploadContainer:hover {
+  border-color: #007bff;
+}
+
+.fileInput {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.fileHint {
+  margin: 8px 0 0 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.urlHint {
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Contenedor de preview */
+.previewContainer {
+  margin: 15px 0;
+}
+
+.previewContainer label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.imagePreviewWrapper {
+  position: relative;
+  display: inline-block;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.imagePreview {
+  width: 200px;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+}
+
+.removePreviewBtn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.removePreviewBtn:hover {
+  background: rgba(255, 0, 0, 0.8);
+  color: white;
+}
+
+/* Separador */
+.separator {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #ddd;
+}
+
+.separator span {
+  padding: 0 15px;
+  color: #666;
+  font-weight: 500;
+  background: white;
+}
+
+/* Barra de progreso */
+.uploadProgress {
+  margin: 15px 0;
+  text-align: center;
+}
+
+.uploadProgress p {
+  margin-bottom: 8px;
+  color: #007bff;
+  font-weight: 500;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  animation: progressAnimation 2s ease-in-out infinite;
+  width: 100%;
+}
+
+@keyframes progressAnimation {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Imagen en tarjeta */
+.cardImage {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+/* Imagen actual en modal */
+.currentImageContainer {
+  margin: 15px 0;
+}
+
+.currentImageContainer label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.currentImage {
+  width: 150px;
+  height: 100px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Estados deshabilitados */
+.formInput:disabled,
+.fileInput:disabled,
+.primaryButton:disabled,
+.editButton:disabled,
+.deleteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .imagePreview {
+    width: 150px;
+    height: 112px;
+  }
+  
+  .cardImage {
+    height: 100px;
+  }
+  
+  .fileUploadContainer {
+    padding: 15px;
+  }
+}
 @media (max-width: 768px) {
     .imageGrid {
         grid-template-columns: 1fr;

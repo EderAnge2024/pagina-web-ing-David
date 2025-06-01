@@ -465,7 +465,7 @@ const Carrito = () => {
     }
     
     const mensaje = generarMensajeWhatsApp();
-    const telefono = '51987654321'; // Número del negocio
+    const telefono = '51934819598'; // Número del negocio
     window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, '_blank');
   }, [carrito, generarMensajeWhatsApp]);
 

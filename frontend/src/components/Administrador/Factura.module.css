@@ -24,14 +24,12 @@
 }
 
 .form {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 15px;
 }
 
 .input {
-  flex: 1;
-  min-width: 200px;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -47,6 +45,9 @@
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s;
+  grid-column: 1 / -1;
+  max-width: 200px;
+  margin: 0 auto;
 }
 
 .button:hover {
@@ -62,22 +63,30 @@
   color: #2c3e50;
 }
 
-.pedidoCard {
+.facturaCard {
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 15px;
   margin-bottom: 15px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
 }
 
-.pedidoInfo {
+.facturaInfo {
   margin-bottom: 10px;
+}
+
+.actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
 }
 
 .deleteButton {
   background-color: #e74c3c;
-  margin-right: 10px;
 }
 
 .deleteButton:hover {
@@ -132,8 +141,14 @@
   color: #2c3e50;
 }
 
+.modalForm {
+  display: grid;
+  gap: 15px;
+}
+
 .botones {
   display: flex;
   gap: 10px;
   margin-top: 15px;
+  justify-content: center;
 }
