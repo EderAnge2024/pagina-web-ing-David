@@ -462,7 +462,7 @@ const Principal = () => {
         </div>
       </div>
       <div className={styles.copyright}>
-        <p>© {new Date().getFullYear()} Tu Empresa. Todos los derechos reservados.</p>
+        <p>© {new Date().getFullYear()} Tu Empresa. Todos los derechos reservados por AFACEA.</p>
       </div>
     </footer>
   );

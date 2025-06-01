@@ -5,8 +5,8 @@ import style from './Administrador.module.css'
 const Administrador = () => {
     const {addAdministrador, fetchAdministrador, administradors, deleteAdministrador, updateAdministrador} = useAdministradorStore() 
     const [editingAdministrador, setEditingAdministrador] = useState(null)
-    const [administradorData, setAdministradorData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: ""})
-    const [formData, setFormData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: ""})
+    const [administradorData, setAdministradorData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: "",NumAdministrador: ""})
+    const [formData, setFormData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: "",NumAdministrador: ""})
 
     useEffect(()=>{
         fetchAdministrador()
@@ -23,7 +23,7 @@ const Administrador = () => {
     const handelSubmit = async(e)=>{
         e.preventDefault()
         await addAdministrador(administradorData)
-        setAdministradorData({Nombre_Administrador:"", Usuario:"", Contrasena: ""})
+        setAdministradorData({Nombre_Administrador:"", Usuario:"", Contrasena: "",NumAdministrador: ""})
         fetchAdministrador()
     }
 
@@ -39,7 +39,8 @@ const Administrador = () => {
         setFormData({
             Nombre_Administrador: administrador.Nombre_Administrador, 
             Usuario: administrador.Usuario, 
-            Contrasena: administrador.Contrasena
+            Contrasena: administrador.Contrasena,
+            NumAdministrador: administrador.NumAdministrador
         })
     }
 
@@ -88,6 +89,14 @@ const Administrador = () => {
                     required
                     name="Contrasena"
                     value={administradorData.Contrasena}
+                    onChange={handleInputChange}
+                    />
+                    <input
+                    type="text"
+                    placeholder="NumAdministrador"
+                    required
+                    name="NumAdministrador"
+                    value={administradorData.NumAdministrador}
                     onChange={handleInputChange}
                     />
                     <button className={style.saveBtn}>Guardar Datos</button>
@@ -147,6 +156,13 @@ const Administrador = () => {
                         value={formData.Contrasena}
                         onChange={handleInputChangeUpdate}
                         placeholder="Contraseña"
+                      />
+                      <input 
+                        type="text"
+                        name="NumAdministrador"
+                        value={formData.NumAdministrador}
+                        onChange={handleInputChangeUpdate}
+                        placeholder="NumAdministrador"
                       />
                       <div className={style.botones}>
                         <button className={style.saveBtn} onClick={handleUpdate}>Guardar</button>

@@ -2,6 +2,10 @@
 import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/AuthStore";
+import useClienteStore from "../store/ClienteStore";
+import usePedidoStore from "../store/PedidoStore";
+import useEstadoPedidoStore from "../store/EstadoPedidoStore";
+import useHistorialEstadoStore from "../store/HistorialEstadoStore";
 import stiloAdmin from './administrador.module.css';
 import React from "react";
 
@@ -58,19 +62,78 @@ const LoadingSpinner = () => (
     </div>
 );
 
+// Componente Dashboard/Inicio
+const Dashboard = ({ clientes, pedidos, tareasPendientes, goToTienda }) => (
+    <div className={stiloAdmin.dashboardContainer}>
+        <div className={stiloAdmin.dashboardHeader}>
+            <h1 className={stiloAdmin.dashboardTitle}>Panel de Control</h1>
+            <p className={stiloAdmin.dashboardSubtitle}>Bienvenido a tu panel de control administrativo</p>
+        </div>
+        
+        <div className={stiloAdmin.cards}>
+            <div className={stiloAdmin.card}>
+                <div className={stiloAdmin.cardIcon}>👥</div>
+                <div className={stiloAdmin.cardContent}>
+                    <p className={stiloAdmin.count}>{clientes?.length ?? 0}</p>
+                    <p className={stiloAdmin.cardLabel}>Usuarios Registrados</p>
+                </div>
+            </div>
+            <div className={stiloAdmin.card}>
+                <div className={stiloAdmin.cardIcon}>🛒</div>
+                <div className={stiloAdmin.cardContent}>
+                    <p className={stiloAdmin.count}>{pedidos?.length ?? 0}</p>
+                    <p className={stiloAdmin.cardLabel}>Ventas Realizadas</p>
+                </div>
+            </div>
+            <div className={stiloAdmin.card}>
+                <div className={stiloAdmin.cardIcon}>⏳</div>
+                <div className={stiloAdmin.cardContent}>
+                    <p className={stiloAdmin.count}>{tareasPendientes?.length ?? 0}</p>
+                    <p className={stiloAdmin.cardLabel}>Tareas Pendientes</p>
+                </div>
+            </div>
+        </div>
+        
+        <div className={stiloAdmin.dashboardActions}>
+            <button 
+                className={stiloAdmin.btn_tienda} 
+                onClick={goToTienda}
+                title="Ver tu tienda en una nueva pestaña"
+            >
+                <span className={stiloAdmin.buttonIcon}>🏪</span>
+                Ver tu tienda
+            </button>
+        </div>
+    </div>
+);
+
 const Administrador = () => {
-    const [activateComponent, setActivateComponent] = useState('AdministradorFrom');
+    // Estados de navegación
+    const [activateComponent, setActivateComponent] = useState('Dashboard'); // Cambio: inicio por defecto
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [darkMode, setDarkMode] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [componentKey, setComponentKey] = useState(0); // Para forzar re-render
+    const [componentKey, setComponentKey] = useState(0);
     
+    // Hooks de navegación y autenticación
     const navigate = useNavigate();
     const { logout, user, isAuthenticated } = useAuthStore();
     
-    // Configuración de navegación memoizada
+    // Hooks de datos del dashboard
+    const { clientes, fetchCliente } = useClienteStore();
+    const { pedidos, fetchPedido } = usePedidoStore();
+    const { estadoPedidos, fetchEstadoPedido } = useEstadoPedidoStore();
+    const { historialEstados, fetchHistorialEstado } = useHistorialEstadoStore();
+    
+    // Configuración de navegación memoizada con Dashboard incluido
     const navigationItems = useMemo(() => [
+        { 
+            key: 'Dashboard', 
+            label: 'Inicio', 
+            icon: '🏠',
+            description: 'Panel principal con estadísticas'
+        },
         { 
             key: 'AdministradorFrom', 
             label: 'Administradores', 
@@ -145,6 +208,19 @@ const Administrador = () => {
         }
     ], []);
 
+    // Calcular tareas pendientes para el dashboard
+    const tareasPendientes = useMemo(() => {
+        const estadoEnProceso = estadoPedidos.find(
+            (estado) => estado.Estado === 'En Proceso'
+        );
+        
+        return estadoEnProceso 
+            ? historialEstados.filter(
+                (historial) => historial.ID_EstadoPedido === estadoEnProceso.ID_EstadoPedido
+              )
+            : [];
+    }, [estadoPedidos, historialEstados]);
+
     // Inicialización controlada
     useEffect(() => {
         const initializeComponent = async () => {
@@ -179,6 +255,31 @@ const Administrador = () => {
 
         initializeComponent();
     }, [isAuthenticated, navigate]);
+
+    // Cargar datos del dashboard con polling
+    useEffect(() => {
+        if (!isAuthenticated || isLoading) return;
+
+        const loadDashboardData = async () => {
+            try {
+                await Promise.all([
+                    fetchCliente(),
+                    fetchPedido(),
+                    fetchEstadoPedido(),
+                    fetchHistorialEstado()
+                ]);
+            } catch (err) {
+                console.error('Error cargando datos del dashboard:', err);
+            }
+        };
+
+        loadDashboardData();
+
+        // Polling cada 30 segundos (reducido de 5 segundos para mejor rendimiento)
+        const interval = setInterval(loadDashboardData, 30000);
+        
+        return () => clearInterval(interval);
+    }, [isAuthenticated, isLoading, fetchCliente, fetchPedido, fetchEstadoPedido, fetchHistorialEstado]);
 
     // Guardar configuración
     useEffect(() => {
@@ -258,6 +359,20 @@ const Administrador = () => {
 
     // Renderizado de componentes con error boundaries y lazy loading
     const renderActiveComponent = useMemo(() => {
+        // Manejar Dashboard como caso especial
+        if (activateComponent === 'Dashboard') {
+            return (
+                <ErrorBoundary key={`error-boundary-dashboard-${componentKey}`}>
+                    <Dashboard 
+                        clientes={clientes}
+                        pedidos={pedidos}
+                        tareasPendientes={tareasPendientes}
+                        goToTienda={openMenuInNewTab}
+                    />
+                </ErrorBoundary>
+            );
+        }
+
         const componentMap = {
             'AdministradorFrom': <LazyAdministradorFrom />,
             'ClienteFrom': <LazyClienteFrom />,
@@ -281,7 +396,7 @@ const Administrador = () => {
                     <h2>Componente no encontrado</h2>
                     <p>El componente "{activateComponent}" no está disponible.</p>
                     <button 
-                        onClick={() => handleNavClick('AdministradorFrom')}
+                        onClick={() => handleNavClick('Dashboard')}
                         className={stiloAdmin.errorButton}
                     >
                         Volver al inicio
@@ -299,7 +414,7 @@ const Administrador = () => {
                 </Suspense>
             </ErrorBoundary>
         );
-    }, [activateComponent, componentKey, handleNavClick]);
+    }, [activateComponent, componentKey, handleNavClick, clientes, pedidos, tareasPendientes, openMenuInNewTab]);
 
     if (isLoading) {
         return (
@@ -317,7 +432,7 @@ const Administrador = () => {
                 <div className={stiloAdmin.sidebarHeader}>
                     <div className={stiloAdmin.logo}>
                         <span className={stiloAdmin.logoIcon}>⚡</span>
-                        {!sidebarCollapsed && <span className={stiloAdmin.logoText}>AdminPanel</span>}
+                        {!sidebarCollapsed && <span className={stiloAdmin.logoText}>BRADATEC</span>}
                     </div>
                     <button 
                         onClick={toggleSidebar}

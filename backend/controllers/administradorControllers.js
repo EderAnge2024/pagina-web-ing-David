@@ -2,10 +2,10 @@ const Administrador = require('../models/Administrador');
 const bcrypt = require('bcrypt');
 
 
-const createAdministradorController = async ({ ID_Administrador, Nombre_Administrador, Usuario, Contrasena }) => {
+const createAdministradorController = async ({ ID_Administrador, Nombre_Administrador, Usuario, Contrasena,NumAdministrador }) => {
     try {
         const hashedPassword = await bcrypt.hash(Contrasena, 10);
-        const newAdministrador = await Administrador.create({ID_Administrador, Nombre_Administrador,Usuario, Contrasena: hashedPassword});
+        const newAdministrador = await Administrador.create({ID_Administrador, Nombre_Administrador,Usuario, Contrasena: hashedPassword, NumAdministrador});
         return newAdministrador;
     } catch (error) {
         throw new Error(error.message);

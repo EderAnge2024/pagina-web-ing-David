@@ -742,3 +742,176 @@
     border: 2px solid var(--danger-color);
   }
 }
+
+
+/*-------------------dashboard-----------------*/
+
+/* Dashboard Container */
+.dashboardContainer {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboardHeader {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.dashboardTitle {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.dashboardSubtitle {
+    font-size: 1.1rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Cards Container */
+.cards {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 30px 0;
+    justify-content: center;
+}
+
+/* Individual Card */
+.card {
+    background-color: #0ea5e9;
+    color: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    width: 220px;
+    text-align: center;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Card Icon */
+.cardIcon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    opacity: 0.9;
+}
+
+/* Card Content */
+.cardContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Count Number */
+.count {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin: 8px 0;
+    line-height: 1;
+}
+
+/* Card Label */
+.cardLabel {
+    font-size: 0.95rem;
+    margin: 0;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+/* Dashboard Actions */
+.dashboardActions {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+/* Button Tienda */
+.btn_tienda {
+    margin-top: 30px;
+    padding: 12px 24px;
+    background-color: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    transition: background-color 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn_tienda:hover {
+    background-color: #16a34a;
+    transform: translateY(-2px);
+}
+
+.buttonIcon {
+    font-size: 1.1rem;
+}
+
+/* Variantes de colores para las cards */
+.card:nth-child(1) {
+    background-color: #0ea5e9; /* Azul - Usuarios */
+}
+
+.card:nth-child(2) {
+    background-color: #f59e0b; /* Naranja - Ventas */
+}
+
+.card:nth-child(3) {
+    background-color: #ef4444; /* Rojo - Tareas Pendientes */
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .cards {
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .card {
+        width: 180px;
+        padding: 20px;
+        min-height: 120px;
+    }
+    
+    .count {
+        font-size: 1.8rem;
+    }
+    
+    .cardIcon {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cards {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .card {
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .dashboardTitle {
+        font-size: 1.8rem;
+    }
+}

@@ -18,6 +18,10 @@ const Administrador = sequelize.define('Administrador', {
   Contrasena: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  NumAdministrador: {
+    type: DataTypes.INTEGER,
+    allowNull: false
   }
 });
 

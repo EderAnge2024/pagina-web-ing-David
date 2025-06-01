@@ -45,7 +45,7 @@ administradorRouters.post('/login', async (req, res) => {
             admin: {
                 ID_Administrador: admin.ID_Administrador,
                 Nombre_Administrador: admin.Nombre_Administrador,
-                Usuario: admin.Usuario
+                Usuario: admin.Usuario,NumAdministrador: admin.NumAdministrador
             },
             token
         });
