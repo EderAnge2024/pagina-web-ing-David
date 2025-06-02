@@ -3,16 +3,26 @@ import useImagenStore from '../../store/ImagenStore'
 import styles from './imgFrom.module.css'
 
 const ImagenForm = () => {
-    const { addImagen, fetchImagen, imagenes, deleteImagen, updateImagen } = useImagenStore() 
+    const { 
+        addImagen, 
+        fetchImagen, 
+        imagenes, 
+        deleteImagen, 
+        updateImagen,
+        setLogoPrincipal,    // 🆕 Nueva función
+        getLogoPrincipal,    // 🆕 Helper
+        getLogos            // 🆕 Helper
+    } = useImagenStore()
     const [editingImagen, setEditingImagen] = useState(null)
-    const [imagenData, setImagenData] = useState({ Tipo_Imagen: "", URL: "" })
-    const [formData, setFormData] = useState({ Tipo_Imagen: "", URL: "" })
+    const [imagenData, setImagenData] = useState({ Tipo_Imagen: "", URL: "", es_principal: false })
+    const [formData, setFormData] = useState({ Tipo_Imagen: "", URL: "", es_principal: false })
     const [selectedFile, setSelectedFile] = useState(null)
     const [uploading, setUploading] = useState(false)
     const [uploadProgress, setUploadProgress] = useState(0)
     const [previewUrl, setPreviewUrl] = useState("")
     const [editingFile, setEditingFile] = useState(null)
     const [editingPreview, setEditingPreview] = useState("")
+    const [activeTab, setActiveTab] = useState("logos") // Tab para separar logos y banners
 
     // Configuración de Cloudinary - Reemplaza con tus credenciales
     const CLOUDINARY_UPLOAD_PRESET = 'bradatec' // Reemplaza con tu upload preset
@@ -21,6 +31,11 @@ const ImagenForm = () => {
     useEffect(() => {
         fetchImagen()
     }, [fetchImagen])
+
+    // Filtrar imágenes por tipo
+    const logos = getLogos()
+    const logoPrincipal = getLogoPrincipal()
+    const banners = imagenes.filter(img => img.Tipo_Imagen === "Banner")
 
     // Manejar selección de archivo
     const handleFileSelect = (e) => {
@@ -74,10 +89,10 @@ const ImagenForm = () => {
     }
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target  
+        const { name, value, type, checked } = e.target  
         setImagenData({
             ...imagenData,
-            [name]: value
+            [name]: type === 'checkbox' ? checked : value
         })
     }
 
@@ -94,11 +109,17 @@ const ImagenForm = () => {
                 const uploadedUrl = await uploadToCloudinary(selectedFile)
                 finalImagenData.URL = uploadedUrl
             }
+
+            // Si es un logo y se marca como principal, desmarcar otros logos principales
+            if (finalImagenData.Tipo_Imagen === "Logo" && finalImagenData.es_principal) {
+                // Aquí deberías implementar la lógica para desmarcar otros logos principales
+                // Por ahora solo agregamos la imagen
+            }
             
             await addImagen(finalImagenData)
             
             // Limpiar formulario
-            setImagenData({ Tipo_Imagen: "", URL: "" })
+            setImagenData({ Tipo_Imagen: "", URL: "", es_principal: false })
             setSelectedFile(null)
             setPreviewUrl("")
             
@@ -129,16 +150,20 @@ const ImagenForm = () => {
 
     const handleEditClick = (imagen) => {
         setEditingImagen(imagen)
-        setFormData({ Tipo_Imagen: imagen.Tipo_Imagen, URL: imagen.URL })
+        setFormData({ 
+            Tipo_Imagen: imagen.Tipo_Imagen, 
+            URL: imagen.URL,
+            es_principal: imagen.es_principal || false
+        })
         setEditingFile(null)
         setEditingPreview("")
     }
 
     const handleInputChangeUpdate = (e) => {
-        const { name, value } = e.target
+        const { name, value, type, checked } = e.target
         setFormData({
             ...formData,
-            [name]: value
+            [name]: type === 'checkbox' ? checked : value
         })
     }
 
@@ -169,7 +194,7 @@ const ImagenForm = () => {
 
     const handleCancelEdit = () => {
         setEditingImagen(null)
-        setFormData({ Tipo_Imagen: "", URL: "" })
+        setFormData({ Tipo_Imagen: "", URL: "", es_principal: false })
         setEditingFile(null)
         setEditingPreview("")
     }
@@ -186,12 +211,96 @@ const ImagenForm = () => {
         setEditingPreview("")
     }
 
+    // Función para marcar logo como principal
+    const handleSetLogoPrincipal = async (logoId) => {
+        if (!window.confirm('¿Deseas cambiar el logo principal?')) {
+            return;
+        }
+        
+        try {
+            setUploading(true)
+            await setLogoPrincipal(logoId) // Usar la función del store
+            alert('Logo principal actualizado correctamente')
+        } catch (error) {
+            console.error('Error al cambiar logo principal:', error)
+            alert('Error al cambiar logo principal: ' + error.message)
+        } finally {
+            setUploading(false)
+        }
+    }
+
+    const renderImageCard = (imagen, showPrincipalOption = false) => (
+        <div key={imagen.ID_Imagen} className={`${styles.imageCard} ${imagen.es_principal ? styles.principalCard : ''}`}>
+            {imagen.es_principal && (
+                <div className={styles.principalBadge}>
+                    ⭐ Logo Principal
+                </div>
+            )}
+            <div className={styles.imageInfo}>
+                <h3>{imagen.Tipo_Imagen}</h3>
+                <p className={styles.urlText}>{imagen.URL}</p>
+                {imagen.URL && (
+                    <div className={styles.imagePreview}>
+                        <img 
+                            src={imagen.URL} 
+                            alt={imagen.Tipo_Imagen}
+                            className={styles.cardImage}
+                            onError={(e) => {
+                                e.target.style.display = 'none'
+                            }}
+                        />
+                    </div>
+                )}
+            </div>
+            
+            <div className={styles.actions}>
+                {showPrincipalOption && !imagen.es_principal && (
+                    <button 
+                        onClick={() => handleSetLogoPrincipal(imagen.ID_Imagen)} // ✅ Usar la nueva función
+                        className={styles.principalButton}
+                        disabled={uploading}
+                    >
+                        Hacer Principal
+                    </button>
+                )}
+                <button 
+                    onClick={() => handleEditClick(imagen)}
+                    className={styles.editButton}
+                    disabled={uploading}
+                >
+                    Editar
+                </button>
+                <button 
+                    onClick={() => handleDelete(imagen.ID_Imagen)}
+                    className={styles.deleteButton}
+                    disabled={uploading}
+                >
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    )
+
     return (
         <div className={styles.ImagenFrom}>
-            {/* Sección principal mejorada */}
             <div className={styles.container}>
                 <div className={styles.formSection}>
                     <h1 className={styles.sectionTitle}>Gestión de Imágenes</h1>
+                    
+                    {/* Logo Principal Actual */}
+                    {logoPrincipal && (
+                        <div className={styles.currentLogoSection}>
+                            <h2 className={styles.subTitle}>Logo Principal Actual</h2>
+                            <div className={styles.currentLogoDisplay}>
+                                <img 
+                                    src={logoPrincipal.URL} 
+                                    alt="Logo Principal"
+                                    className={styles.currentLogo}
+                                />
+                                <p>{logoPrincipal.Tipo_Imagen}</p>
+                            </div>
+                        </div>
+                    )}
                     
                     {/* Mensaje de configuración */}
                     <div className={styles.configAlert}>
@@ -215,6 +324,25 @@ const ImagenForm = () => {
                                 <option value="Banner">Banner</option>
                             </select>
                         </div>
+
+                        {/* Checkbox para marcar como principal (solo para logos) */}
+                        {imagenData.Tipo_Imagen === "Logo" && (
+                            <div className={styles.formGroup}>
+                                <label className={styles.checkboxLabel}>
+                                    <input
+                                        type="checkbox"
+                                        name="es_principal"
+                                        checked={imagenData.es_principal}
+                                        onChange={handleInputChange}
+                                        disabled={uploading}
+                                    />
+                                    Establecer como logo principal
+                                </label>
+                                <p className={styles.hint}>
+                                    Solo puede haber un logo principal a la vez
+                                </p>
+                            </div>
+                        )}
                         
                         {/* Opción de subir archivo */}
                         <div className={styles.formGroup}>
@@ -297,47 +425,51 @@ const ImagenForm = () => {
                     </form>
                 </div>
 
-                {/* Lista de imágenes */}
+                {/* Lista de imágenes con tabs */}
                 <div className={styles.listSection}>
                     <h2 className={styles.sectionTitle}>Imágenes Registradas</h2>
-                    <div className={styles.imageGrid}>
-                        {imagenes.map((imagen) => (
-                            <div key={imagen.ID_Imagen} className={styles.imageCard}>
-                                <div className={styles.imageInfo}>
-                                    <h3>{imagen.Tipo_Imagen}</h3>
-                                    <p className={styles.urlText}>{imagen.URL}</p>
-                                    {imagen.URL && (
-                                        <div className={styles.imagePreview}>
-                                            <img 
-                                                src={imagen.URL} 
-                                                alt={imagen.Tipo_Imagen}
-                                                className={styles.cardImage}
-                                                onError={(e) => {
-                                                    e.target.style.display = 'none'
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                <div className={styles.actions}>
-                                    <button 
-                                        onClick={() => handleEditClick(imagen)}
-                                        className={styles.editButton}
-                                        disabled={uploading}
-                                    >
-                                        Editar
-                                    </button>
-                                    <button 
-                                        onClick={() => handleDelete(imagen.ID_Imagen)}
-                                        className={styles.deleteButton}
-                                        disabled={uploading}
-                                    >
-                                        Eliminar
-                                    </button>
-                                </div>
+                    
+                    {/* Tabs para separar logos y banners */}
+                    <div className={styles.tabContainer}>
+                        <button 
+                            className={`${styles.tab} ${activeTab === 'logos' ? styles.activeTab : ''}`}
+                            onClick={() => setActiveTab('logos')}
+                        >
+                            Logos ({logos.length})
+                        </button>
+                        <button 
+                            className={`${styles.tab} ${activeTab === 'banners' ? styles.activeTab : ''}`}
+                            onClick={() => setActiveTab('banners')}
+                        >
+                            Banners ({banners.length})
+                        </button>
+                    </div>
+
+                    {/* Contenido de los tabs */}
+                    <div className={styles.tabContent}>
+                        {activeTab === 'logos' && (
+                            <div className={styles.imageGrid}>
+                                {logos.length > 0 ? (
+                                    logos.map(logo => renderImageCard(logo, true))
+                                ) : (
+                                    <div className={styles.emptyState}>
+                                        <p>No hay logos registrados</p>
+                                    </div>
+                                )}
                             </div>
-                        ))}
+                        )}
+
+                        {activeTab === 'banners' && (
+                            <div className={styles.imageGrid}>
+                                {banners.length > 0 ? (
+                                    banners.map(banner => renderImageCard(banner, false))
+                                ) : (
+                                    <div className={styles.emptyState}>
+                                        <p>No hay banners registrados</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -369,6 +501,22 @@ const ImagenForm = () => {
                                     <option value="Banner">Banner</option>
                                 </select>
                             </div>
+
+                            {/* Checkbox para marcar como principal (solo para logos) */}
+                            {formData.Tipo_Imagen === "Logo" && (
+                                <div className={styles.formGroup}>
+                                    <label className={styles.checkboxLabel}>
+                                        <input
+                                            type="checkbox"
+                                            name="es_principal"
+                                            checked={formData.es_principal}
+                                            onChange={handleInputChangeUpdate}
+                                            disabled={uploading}
+                                        />
+                                        Establecer como logo principal
+                                    </label>
+                                </div>
+                            )}
 
                             {/* Imagen actual */}
                             {formData.URL && !editingPreview && (

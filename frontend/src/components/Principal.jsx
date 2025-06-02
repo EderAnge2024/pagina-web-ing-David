@@ -67,7 +67,7 @@ const Principal = () => {
   
   // Hooks de navegación y stores
   const navigate = useNavigate();
-  const { fetchImagen, imagenes } = useImagenStore();
+  const { fetchImagen, imagenes, getLogoPrincipal } = useImagenStore();
   const { searchQuery, setSearchQuery } = useBusquedaStore();
 
   // Efectos
@@ -93,6 +93,11 @@ const Principal = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    console.log('Imágenes actualizadas en Principal:', imagenes);
+    console.log('Logo principal:', getLogoPrincipal());
+}, [imagenes, getLogoPrincipal]);
 
   // Función de búsqueda optimizada con debounce
   const performSearch = useCallback((query, category = 'Todos') => {
@@ -240,22 +245,51 @@ const Principal = () => {
   }, []);
 
   // Componentes auxiliares
-  const renderLogo = () => (
-  <div className={styles.logo_container}>
-    {imagenes
-      .filter((img) => img.Tipo_Imagen === "Logo")
-      .map((img) => (
-        <div 
-          key={img.ID_Imagen} 
-          className={styles.logo}
-          onClick={() => window.location.href = "/"} // Recarga la página
-        >
-          <img src={img.URL} alt="Logo de la empresa" />
-        </div>
-      ))
+  const renderLogo = () => {
+    const logoPrincipal = getLogoPrincipal();
+    
+    console.log('Logo principal actual:', logoPrincipal); // Debug
+    
+    if (!logoPrincipal) {
+        // Fallback: mostrar el primer logo disponible
+        const primerLogo = imagenes.find(img => img.Tipo_Imagen === "Logo");
+        if (primerLogo) {
+            return (
+                <div className={styles.logo_container}>
+                    <div 
+                        className={styles.logo}
+                        onClick={() => window.location.href = "/"}
+                    >
+                        <img src={primerLogo.URL} alt="Logo de la empresa" />
+                    </div>
+                </div>
+            );
+        }
+        
+        return (
+            <div className={styles.logo_container}>
+                <div className={styles.logo}>
+                    <span>Sin Logo</span>
+                </div>
+            </div>
+        );
     }
-  </div>
-)
+
+    return (
+        <div className={styles.logo_container}>
+            <div 
+                className={styles.logo}
+                onClick={() => window.location.href = "/"}
+            >
+                <img 
+                    src={logoPrincipal.URL} 
+                    alt="Logo de la empresa"
+                    key={logoPrincipal.ID_Imagen} // Forzar re-render
+                />
+            </div>
+        </div>
+    );
+};
 
   const renderSearchBar = () => (
     <div className={styles.enhanced_search_wrapper} ref={searchContainerRef}>
