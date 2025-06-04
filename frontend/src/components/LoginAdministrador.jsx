@@ -125,10 +125,14 @@ const LoginForm = () => {
                         className={`${styles.login__button} ${isLoading ? styles['login__button--loading'] : ''}`}
                         disabled={isLoading}
                     >
-                        {isLoading && (
-                            <span className={styles.login__spinner}></span>
+                        {isLoading ? (
+                            <>
+                                <span className={styles.login__spinner}></span>
+                                <span>Iniciando sesión...</span>
+                            </>
+                        ) : (
+                            <span>Iniciar sesión</span>
                         )}
-                        {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
                     </button>
                 </form>
                 

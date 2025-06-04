@@ -1,0 +1,194 @@
+/* Administrador.module.css */
+
+/* Estilos generales */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container h1 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 24px;
+  border-bottom: 2px solid #3498db;
+  padding-bottom: 10px;
+}
+
+/* Formulario de agregar */
+.formContainer {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.formContainer form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: flex-end;
+}
+
+.formContainer input {
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  flex: 1;
+  min-width: 200px;
+  transition: border 0.3s;
+}
+
+.formContainer input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Lista de administradores */
+.listContainer {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.adminCard {
+  background-color: #f8f9fa;
+  border-left: 4px solid #3498db;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.adminCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.adminInfo p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.adminInfo p:first-child {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* Botones */
+.listContainer button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+  margin-left: 10px;
+}
+
+.saveBtn {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.saveBtn:hover {
+  background-color: #27ae60;
+}
+
+.editBtn {
+  background-color: #3498db;
+  color: white;
+}
+
+.editBtn:hover {
+  background-color: #2980b9;
+}
+
+.deleteBtn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.deleteBtn:hover {
+  background-color: #c0392b;
+}
+
+/* Modal de edición */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalWindow {
+  background-color: white;
+  padding: 25px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.modalClose {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #7f8c8d;
+}
+
+.modalClose:hover {
+  color: #e74c3c;
+}
+
+.modalWindow h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.modalWindow input {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .formContainer form{
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .adminCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .listContainer button {
+    margin: 5px 0;
+    width: 100%;
+  }
+}

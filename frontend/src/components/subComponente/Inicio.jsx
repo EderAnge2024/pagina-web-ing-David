@@ -1,94 +1,365 @@
 import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import useImagenStore from "../../store/ImagenStore";
 import useProductoStore from "../../store/ProductoStore";
-import sitloInicio from './inicio.module.css';
+import styles from './inicio.module.css';
 
-const Inicio = ({searchQuery }) => {
-    const { imagens, fetchImagen } = useImagenStore();
+const Inicio = ({ searchQuery = "" }) => {
+    const { imagenes, fetchImagen } = useImagenStore();
     const { productos, fetchProducto } = useProductoStore();
-    const [mensaje, setMensaje] = useState("");  // Para mostrar mensajes como "Producto agregado"
+    const [mensaje, setMensaje] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
     
-    // Encuentra la imagen tipo "Banner"
-    const bannerImg = imagens.find(img => img.Tipo_Imagen === "Banner");
+    // Estados para el carrusel
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+    
+    // Obtener todas las imágenes de banner
+    const bannerImages = imagenes && Array.isArray(imagenes) 
+        ? imagenes.filter(img => img.Tipo_Imagen === "Banner") 
+        : [];
 
     useEffect(() => {
-        fetchImagen();
-        fetchProducto(); // Cargar productos al iniciar
-        const interval = setInterval(fetchProducto, 10000); // cada 10 segundos
+        const cargarDatos = async () => {
+            try {
+                setIsLoading(true);
+                await Promise.all([fetchImagen(), fetchProducto()]);
+            } catch (error) {
+                console.error("Error cargando datos:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        cargarDatos();
+        
+        const interval = setInterval(fetchProducto, 10000);
         return () => clearInterval(interval);
     }, [fetchImagen, fetchProducto]);
 
+    // Auto-play del carrusel
+    useEffect(() => {
+        if (!isAutoPlaying || bannerImages.length <= 1) return;
+
+        const interval = setInterval(() => {
+            setCurrentSlide(prev => (prev + 1) % bannerImages.length);
+        }, 5000); // Cambia cada 5 segundos
+
+        return () => clearInterval(interval);
+    }, [isAutoPlaying, bannerImages.length]);
+
     const manejarCompra = (producto) => {
-        // Obtener el carrito actual del localStorage
-        const carritoActual = JSON.parse(localStorage.getItem("carrito")) || [];
-
-        // Verificar si el producto ya está en el carrito
-        const productoExistente = carritoActual.find(p => p.ID_Producto === producto.ID_Producto);
-
-        if (productoExistente) {
-            // Si ya existe, incrementar la cantidad
-            productoExistente.cantidad += 1;
-        } else {
-            // Si no, agregarlo al carrito con cantidad 1
-            carritoActual.push({ ...producto, cantidad: 1 });
+        if (producto.cantidad_Disponible <= 0) {
+            setMensaje("❌ Producto sin stock disponible");
+            setTimeout(() => setMensaje(""), 1500);
+            return;
         }
 
-        // Guardar el carrito actualizado en localStorage
-        localStorage.setItem("carrito", JSON.stringify(carritoActual));
+        try {
+            const carritoActual = JSON.parse(localStorage.getItem("carrito")) || [];
+            const productoExistente = carritoActual.find(p => p.ID_Producto === producto.ID_Producto);
 
-        // Mostrar mensaje de éxito
-        setMensaje("✅ Producto agregado al carrito");
+            if (productoExistente) {
+                if (productoExistente.cantidad >= producto.cantidad_Disponible) {
+                    setMensaje("❌ No hay más stock disponible");
+                    setTimeout(() => setMensaje(""), 1500);
+                    return;
+                }
+                productoExistente.cantidad += 1;
+            } else {
+                carritoActual.push({ 
+                    ...producto, 
+                    cantidad: 1,
+                    fechaAgregado: new Date().toISOString()
+                });
+            }
 
-        // Limpiar el mensaje después de un tiempo
-        setTimeout(() => {
-            setMensaje("");
-        }, 1500);
+            localStorage.setItem("carrito", JSON.stringify(carritoActual));
+            setMensaje("✅ Producto agregado al carrito");
+            setTimeout(() => setMensaje(""), 1500);
+        } catch (error) {
+            console.error("Error al agregar producto:", error);
+            setMensaje("❌ Error al agregar producto");
+            setTimeout(() => setMensaje(""), 1500);
+        }
     };
-    const productosFiltrados = productos.filter(producto =>
-        producto.Nombre_Producto.toLowerCase().includes(searchQuery.toLowerCase())
-    );
 
-    return (
-        <div className={sitloInicio.cuerpoBanner}>
-            {mensaje && <div className="toast">{mensaje}</div>}
-    
-            <div
-                className={sitloInicio.inicio}
-                style={{
-                    backgroundImage: 
-                    `linear-gradient(rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.3)),
-                    url(${bannerImg?.URL})`,
-                }}
-            >
-                <div className={sitloInicio.baner}>
-                    <h1>Compra los mejores</h1>
-                    <h1>productos</h1>
-                    <h5>Descubra la calidad de nuestros productos y los mejores servicios</h5>
-                    <h4>"¡Compre ya!"</h4>
+    // Funciones del carrusel
+    const nextSlide = () => {
+        setCurrentSlide(prev => (prev + 1) % bannerImages.length);
+    };
+
+    const prevSlide = () => {
+        setCurrentSlide(prev => (prev - 1 + bannerImages.length) % bannerImages.length);
+    };
+
+    const goToSlide = (index) => {
+        setCurrentSlide(index);
+    };
+
+    const handleMouseEnter = () => {
+        setIsAutoPlaying(false);
+    };
+
+    const handleMouseLeave = () => {
+        setIsAutoPlaying(true);
+    };
+
+    const obtenerProductosDestacados = () => {
+        if (!productos || !Array.isArray(productos)) return [];
+        
+        const productosDisponibles = productos.filter(producto => 
+            producto && 
+            producto.Nombre_Producto && 
+            producto.cantidad_Disponible > 0
+        );
+
+        const productosFiltradosPorBusqueda = searchQuery && searchQuery.trim() !== ''
+            ? productosDisponibles.filter(producto =>
+                producto.Nombre_Producto.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            : productosDisponibles;
+
+        const productosDestacados = productosFiltradosPorBusqueda
+            .sort((a, b) => {
+                const aStockLimitado = a.cantidad_Disponible < 10;
+                const bStockLimitado = b.cantidad_Disponible < 10;
+                
+                if (aStockLimitado && !bStockLimitado) return -1;
+                if (!aStockLimitado && bStockLimitado) return 1;
+                
+                const precioA = parseFloat(a.Precio_Final) || 0;
+                const precioB = parseFloat(b.Precio_Final) || 0;
+                
+                if (precioA !== precioB) return precioB - precioA;
+                
+                return b.cantidad_Disponible - a.cantidad_Disponible;
+            })
+            .slice(0, 8);
+
+        return productosDestacados;
+    };
+
+    const productosDestacados = obtenerProductosDestacados();
+
+    const renderProductCard = (producto) => {
+        const precioFormateado = new Intl.NumberFormat('es-PE', {
+            style: 'currency',
+            currency: 'PEN'
+        }).format(producto.Precio_Final);
+
+        const isStockLimitado = producto.cantidad_Disponible < 10;
+        const isOutOfStock = producto.cantidad_Disponible <= 0;
+
+        return (
+            <div key={producto.ID_Producto} className={styles.productCard}>
+                <div className={styles.productImageContainer}>
+                    <img 
+                        src={producto.Url || '/placeholder-image.png'} 
+                        alt={producto.Nombre_Producto || 'Producto'}
+                        className={styles.productImage}
+                        onError={(e) => {
+                            e.target.src = '/placeholder-image.png';
+                        }}
+                    />
+                    {isStockLimitado && !isOutOfStock && (
+                        <div className={styles.stockBadge}>
+                            ¡Últimas {producto.cantidad_Disponible} unidades!
+                        </div>
+                    )}
+                    {isOutOfStock && (
+                        <div className={styles.outOfStockBadge}>
+                            Sin Stock
+                        </div>
+                    )}
                 </div>
-            </div>  
-    
-            <div className={sitloInicio.contenidoPro}>
-                <h5>Productos destacados ✨</h5>
-                <div className={sitloInicio.productosDes}>
-                    <div className={sitloInicio.datosProd}>
-                        {productosFiltrados
-                            .filter(producto => producto.cantidad_Disponible < 99)
-                            .map((producto) => (
-                                <div key={producto.ID_Producto} className={sitloInicio.catalogoProc}>
-                                    <img src={producto.Url} alt={producto.Nombre_Producto} width="150" height="150" />
-                                    <p>Producto: {producto.Nombre_Producto}</p>
-                                    <p>Precio: {producto.Precio_Final}</p>
-                                    <p>Cantidad disponible: {producto.cantidad_Disponible}</p>
-                                    <button onClick={() => manejarCompra(producto)}>Agregar a Carrito</button>
-                                </div>
-                            ))
-                        }
-                    </div>
+                
+                <div className={styles.productInfo}>
+                    <h3 className={styles.productName}>
+                        {producto.Nombre_Producto || 'Sin nombre'}
+                    </h3>
+                    <p className={styles.productPrice}>
+                        {precioFormateado}
+                    </p>
+                    <p className={styles.productStock}>
+                        Stock: {producto.cantidad_Disponible || 0} unidades
+                    </p>
+                    
+                    <button 
+                        onClick={() => manejarCompra(producto)}
+                        disabled={isOutOfStock}
+                        className={`${styles.addToCartBtn} ${isOutOfStock ? styles.disabled : ''}`}
+                    >
+                        {isOutOfStock ? "Sin Stock" : "Agregar al Carrito"}
+                    </button>
                 </div>
             </div>
-        </div>  
+        );
+    };
+
+    // Render del carrusel de banners
+    const renderCarousel = () => {
+        if (bannerImages.length === 0) {
+            return (
+                <div className={styles.heroBanner} style={{
+                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/placeholder-banner.jpg')`,
+                }}>
+                    <div className={styles.bannerContent}>
+                        <h1 className={styles.bannerTitle}>Compra los mejores productos</h1>
+                        <p className={styles.bannerSubtitle}>Descubre la calidad de nuestros productos y los mejores servicios</p>
+                        <button className={styles.bannerCta}>¡Compre ya!</button>
+                    </div>
+                </div>
+            );
+        }
+
+        if (bannerImages.length === 1) {
+            return (
+                <div className={styles.heroBanner} style={{
+                    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${bannerImages[0].URL})`,
+                }}>
+                    <div className={styles.bannerContent}>
+                        <h1 className={styles.bannerTitle}>Compra los mejores productos</h1>
+                        <p className={styles.bannerSubtitle}>Descubre la calidad de nuestros productos y los mejores servicios</p>
+                        <button className={styles.bannerCta}>¡Compre ya!</button>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div 
+                className={styles.carouselContainer}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+            >
+                <div className={styles.carouselWrapper}>
+                    {bannerImages.map((banner, index) => (
+                        <div 
+                            key={banner.ID_Imagen} 
+                            className={`${styles.carouselSlide} ${index === currentSlide ? styles.active : ''}`}
+                            style={{
+                                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${banner.URL})`,
+                            }}
+                        >
+                            <div className={styles.bannerContent}>
+                                <h1 className={styles.bannerTitle}>
+                                    {banner.Titulo || "Compra los mejores productos"}
+                                </h1>
+                                <p className={styles.bannerSubtitle}>
+                                    {banner.Descripcion || "Descubre la calidad de nuestros productos y los mejores servicios"}
+                                </p>
+                                <button className={styles.bannerCta}>¡Compre ya!</button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Botones de navegación */}
+                <button 
+                    className={`${styles.carouselBtn} ${styles.prevBtn}`}
+                    onClick={prevSlide}
+                    aria-label="Imagen anterior"
+                >
+                    &#8249;
+                </button>
+                <button 
+                    className={`${styles.carouselBtn} ${styles.nextBtn}`}
+                    onClick={nextSlide}
+                    aria-label="Siguiente imagen"
+                >
+                    &#8250;
+                </button>
+
+                {/* Indicadores de puntos */}
+                <div className={styles.carouselDots}>
+                    {bannerImages.map((_, index) => (
+                        <button
+                            key={index}
+                            className={`${styles.dot} ${index === currentSlide ? styles.activeDot : ''}`}
+                            onClick={() => goToSlide(index)}
+                            aria-label={`Ir a imagen ${index + 1}`}
+                        />
+                    ))}
+                </div>
+
+                {/* Indicador de progreso */}
+                <div className={styles.progressBar}>
+                    <div 
+                        className={styles.progressFill}
+                        style={{
+                            width: `${((currentSlide + 1) / bannerImages.length) * 100}%`
+                        }}
+                    />
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className={styles.container}>
+            {mensaje && (
+                <div className={`${styles.toast} ${
+                    mensaje.includes('✅') ? styles.success : styles.error
+                }`}>
+                    {mensaje}
+                </div>
+            )}
+    
+            {renderCarousel()}
+    
+            <div className={styles.featuredProducts}>
+                <div className={styles.sectionHeader}>
+                    <h2 className={styles.sectionTitle}>Productos destacados <span className={styles.highlight}>✨</span></h2>
+                    {searchQuery && (
+                        <p className={styles.searchInfo}>
+                            Mostrando resultados para: <strong>{searchQuery}</strong>
+                        </p>
+                    )}
+                </div>
+
+                <div className={styles.productsGrid}>
+                    {isLoading ? (
+                        <div className={styles.loadingContainer}>
+                            <div className={styles.loadingSpinner}></div>
+                            <p className={styles.loadingText}>Cargando productos destacados...</p>
+                        </div>
+                    ) : productosDestacados.length === 0 ? (
+                        <div className={styles.emptyState}>
+                            {searchQuery ? (
+                                <p className={styles.emptyText}>No se encontraron productos para <strong>{searchQuery}</strong></p>
+                            ) : (
+                                <p className={styles.emptyText}>No hay productos destacados disponibles en este momento</p>
+                            )}
+                            <button 
+                                className={styles.refreshButton}
+                                onClick={() => window.location.reload()}
+                            >
+                                Recargar productos
+                            </button>
+                        </div>
+                    ) : (
+                        <div className={styles.productsContainer}>
+                            {productosDestacados.map(renderProductCard)}
+                        </div>
+                    )}
+                </div>
+
+                {!searchQuery && !isLoading && productosDestacados.length > 0 && (
+                    <div className={styles.featuredInfo}>
+                        <p className={styles.infoText}>
+                            💡 Los productos destacados incluyen artículos premium, 
+                            con stock limitado y los más populares de nuestra tienda.
+                        </p>
+                    </div>
+                )}
+            </div>
+        </div>
     );
+};
+
+Inicio.propTypes = {
+    searchQuery: PropTypes.string
 };
 
 export default Inicio;

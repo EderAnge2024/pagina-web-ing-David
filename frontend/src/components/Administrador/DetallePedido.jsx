@@ -1,204 +1,253 @@
 import { useEffect, useState } from 'react'
 import useDetallePedidoStore from '../../store/DetallePedidoStore'
-import useProductoStore from '../../store/ProductoStore'
+import styles from './DetallePedido.module.css'
 
-const DetallePedidoFrom= ()=>{
-    const {addDetallePedido,fetchDetallePedido,detallePedidos,deleteDetallePedido,updateDetallePedido} = useDetallePedidoStore() 
-    const {productos, fetchProducto} = useProductoStore() 
-    const [editingDetallePedido, setEditingDetallePedido]= useState(null)
-    const [detallePedidoData, setDetallePedidoData] = useState ({ID_Pedido:"",ID_Producto:"",Cantidad:"",Precio_Unitario:"",Descuento:"",Subtotal:""})
-    const [fromData, setFormData] = useState ({ID_Pedido:"",ID_Producto:"",Cantidad:"",Precio_Unitario:"",Descuento:"",Subtotal:""})
+const DetallePedidoFrom = () => {
+    const {
+        addDetallePedido,
+        fetchDetallePedido,
+        detallePedidos,
+        deleteDetallePedido,
+        updateDetallePedido
+    } = useDetallePedidoStore() 
+    
+    const [editingDetallePedido, setEditingDetallePedido] = useState(null)
+    const [detallePedidoData, setDetallePedidoData] = useState({
+        ID_Pedido: "",
+        ID_Producto: "",
+        Cantidad: "",
+        Precio_Unitario: "",
+        Descuento: "",
+        Subtotal: ""
+    })
+    const [formData, setFormData] = useState({
+        ID_Pedido: "",
+        ID_Producto: "",
+        Cantidad: "",
+        Precio_Unitario: "",
+        Descuento: "",
+        Subtotal: ""
+    })
 
-    console.log(detallePedidoData)
-    useEffect(()=>{
+    useEffect(() => {
         fetchDetallePedido()
-        fetchProducto()
-    },[])
+    }, [])
 
-    // escucha lo que se ecribe en los input de la interfaz creada.
-    const handleInputChange = (e)=>{
-       const {name, value} = e. target 
+    const handleInputChange = (e) => {
+       const {name, value} = e.target 
        setDetallePedidoData({
         ...detallePedidoData,
-        [name]:value
+        [name]: value
        })
     }
 
-    // creamos la funcion que graba los datos de los input
-    const handelSubmit = async(e)=>{
-        e.preventDefault()      // previene algo por defecto nose
+    const handelSubmit = async(e) => {
+        e.preventDefault()
         addDetallePedido(detallePedidoData)
-        setDetallePedidoData({ID_Pedido:"",ID_Producto:"",Cantidad:"",Precio_Unitario:"",Descuento:"",Subtotal:""})
-        alert("se agrego detalles del pedido")
+        setDetallePedidoData({
+            ID_Pedido: "",
+            ID_Producto: "",
+            Cantidad: "",
+            Precio_Unitario: "",
+            Descuento: "",
+            Subtotal: ""
+        })
+        alert("Se agregaron los detalles del pedido")
     }
-    // elimina a la detallePedido
-    const handleDelete = (ID_Detalle)=>{
-        if(window.confirm("Are you sure")){
+
+    const handleDelete = (ID_Detalle) => {
+        if(window.confirm("¿Estás seguro de eliminar este detalle?")) {
             deleteDetallePedido(ID_Detalle)
             fetchDetallePedido()
         }
     }
-    //configura al estudinate para su edicion
+
     const handleEditClick = (detallePedido) => {
         setEditingDetallePedido(detallePedido)
-        setFormData({ID_Pedido:detallePedido.ID_Pedido, ID_Producto:detallePedido.ID_Producto, Cantidad:detallePedido.Cantidad,Precio_Unitario:detallePedido.Precio_Unitario,Descuento:detallePedido.Descuento,Subtotal:detallePedido.Subtotal})
-    }
-    // manejar can¿bios de la formulaion edicion
-    const handleInputChangeUpdate = (e)=>{
         setFormData({
-            ...fromData,
+            ID_Pedido: detallePedido.ID_Pedido, 
+            ID_Producto: detallePedido.ID_Producto, 
+            Cantidad: detallePedido.Cantidad,
+            Precio_Unitario: detallePedido.Precio_Unitario,
+            Descuento: detallePedido.Descuento,
+            Subtotal: detallePedido.Subtotal
+        })
+    }
+
+    const handleInputChangeUpdate = (e) => {
+        setFormData({
+            ...formData,
             [e.target.name]: e.target.value
         })
     }
 
-    // actualiza a la imgen
-    const handleUpdate = async()=>{
-        updateDetallePedido(editingDetallePedido.ID_Detalle, fromData)
+    const handleUpdate = async() => {
+        updateDetallePedido(editingDetallePedido.ID_Detalle, formData)
         fetchDetallePedido()
         setEditingDetallePedido(null)
     }
-    const handleCancelEdit = () => {
-        setEditingDetallePedido(null);
-      }
-    return (
-        <div>
-        <div>
-            <h1>Agregar detallePedidos</h1>
-            <form onSubmit={handelSubmit}>
-                <input
-                type="text"
-                placeholder="enter ID_Pedido"
-                required
-                name="ID_Pedido"
-                value={detallePedidoData.ID_Pedido}
-                onChange={handleInputChange}
-                />
-                <select
-                  name="ID_Producto"
-                  value={detallePedidoData.ID_Producto}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">-- Seleccionar producto --</option>
-                  {productos.map((producto) => (
-                    <option key={producto.ID_Producto} value={producto.ID_Producto}>
-                      {producto.Nombre_Producto}
-                    </option>
-                  ))}
-                </select>
-                <input
-                type="text"
-                placeholder="enter Cantidad"
-                required
-                name="Cantidad"
-                value={detallePedidoData.Cantidad}
-                onChange={handleInputChange}
-                />
-                <input
-                type="text"
-                placeholder="enter Precio_Unitario"
-                required
-                name="Precio_Unitario"
-                value={detallePedidoData.Precio_Unitario}
-                onChange={handleInputChange}
-                />
-                <input
-                type="text"
-                placeholder="enter Descuento"
-                required
-                name="Descuento"
-                value={detallePedidoData.Descuento}
-                onChange={handleInputChange}
-                />
-                <input
-                type="text"
-                placeholder="enter Subtotal"
-                required
-                name="Subtotal"
-                value={detallePedidoData.Subtotal}
-                onChange={handleInputChange}
-                />
-                <button>Guardar Datos</button>
-            </form>
-        </div>
-        <div>
-            
-            <div>
-                <div>
-                <h1>Lista de la detallePedidoes</h1>
-                {
-                    detallePedidos.map((user) =>(
-                        <div key={user.ID_Detalle}>
-                            <p>ID_Pedido: {user.ID_Pedido} </p>
-                            <p>ID_Producto: {user.ID_Producto}</p>
-                            <p>Cantidad: {user.Cantidad}</p>
-                            <p>Precio_Unitario: {user.Precio_Unitario}</p>
-                            <p>Numero Descuento: {user.Descuento}</p>
-                            <p>Numero Subtotal: {user.Subtotal}</p>
-                            <button onClick={()=> handleDelete(user.ID_Detalle)}>❌👍</button>
-                            <button onClick={()=> handleEditClick(user)}>👌✍️🗃️</button>
-                        </div>
-                    ))
-                }
-                </div>
-                {editingDetallePedido && (
-                  <div className="modal-overlay">
-                    <div className="modal-window">
-                      <span className="modal-close" onClick={handleCancelEdit}>&times;</span>
-                      <h3>Editar detallePedido</h3>
-                      <input 
-                        type="text"
-                        name="ID_Pedido"
-                        value={fromData.ID_Pedido}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Tipo de detallePedido"
-                      />
-                      <input 
-                        type="text"
-                        name="ID_Producto"
-                        value={fromData.ID_Producto}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="ID_Producto o ruta"
-                      />
-                      <input 
-                        type="text"
-                        name="Cantidad"
-                        value={fromData.Cantidad}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Cantidad"
-                      />
-                      <input 
-                        type="text"
-                        name="Precio_Unitario"
-                        value={fromData.Precio_Unitario}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Precio_Unitario"
-                      />
-                      <input 
-                        type="text"
-                        name="Descuento"
-                        value={fromData.Descuento}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Descuento"
-                      />
-                      <input 
-                        type="text"
-                        name="Subtotal"
-                        value={fromData.Subtotal}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Subtotal"
-                      />
-                      <div className="botones">
-                        <button onClick={handleUpdate}>Guardar</button>
-                        <button onClick={handleCancelEdit}>Cancelar</button>
-                    
-                      </div>
-                     </div>
-                  </div>
-                )}
 
+    const handleCancelEdit = () => {
+        setEditingDetallePedido(null)
+    }
+
+    return (
+        <div className={styles.container}>
+            <div className={styles.formContainer}>
+                <h1 className={styles.formTitle}>Agregar Detalles de Pedido</h1>
+                <form onSubmit={handelSubmit} className={styles.form}>
+                    <input
+                        className={styles.input}
+                        type="text"
+                        placeholder="ID Pedido"
+                        required
+                        name="ID_Pedido"
+                        value={detallePedidoData.ID_Pedido}
+                        onChange={handleInputChange}
+                    />
+                    <input
+                        className={styles.input}
+                        type="text"
+                        placeholder="ID Producto"
+                        required
+                        name="ID_Producto"
+                        value={detallePedidoData.ID_Producto}
+                        onChange={handleInputChange}
+                    />
+                    <input
+                        className={styles.input}
+                        type="text"
+                        placeholder="Cantidad"
+                        required
+                        name="Cantidad"
+                        value={detallePedidoData.Cantidad}
+                        onChange={handleInputChange}
+                    />
+                    <input
+                        className={styles.input}
+                        type="text"
+                        placeholder="Precio Unitario"
+                        required
+                        name="Precio_Unitario"
+                        value={detallePedidoData.Precio_Unitario}
+                        onChange={handleInputChange}
+                    />
+                    <input
+                        className={styles.input}
+                        type="text"
+                        placeholder="Descuento"
+                        required
+                        name="Descuento"
+                        value={detallePedidoData.Descuento}
+                        onChange={handleInputChange}
+                    />
+                    <input
+                        className={styles.input}
+                        type="text"
+                        placeholder="Subtotal"
+                        required
+                        name="Subtotal"
+                        value={detallePedidoData.Subtotal}
+                        onChange={handleInputChange}
+                    />
+                    <button type="submit" className={styles.button}>Guardar Detalles</button>
+                </form>
             </div>
-        </div>
+            
+            <div className={styles.listContainer}>
+                <h1 className={styles.listTitle}>Lista de Detalles de Pedido</h1>
+                <div>
+                    {detallePedidos.map((detalle) => (
+                        <div key={detalle.ID_Detalle} className={styles.detalleCard}>
+                            <div className={styles.detalleInfo}>
+                                <p>ID Pedido: {detalle.ID_Pedido}</p>
+                                <p>ID Producto: {detalle.ID_Producto}</p>
+                                <p>Cantidad: {detalle.Cantidad}</p>
+                                <p className={styles.monetaryValue}>Precio Unitario: ${detalle.Precio_Unitario}</p>
+                                <p className={styles.monetaryValue}>Descuento: ${detalle.Descuento}</p>
+                                <p className={styles.monetaryValue}>Subtotal: ${detalle.Subtotal}</p>
+                            </div>
+                            <div className={styles.actions}>
+                                <button 
+                                    onClick={() => handleDelete(detalle.ID_Detalle)}
+                                    className={`${styles.button} ${styles.deleteButton}`}
+                                >
+                                    Eliminar
+                                </button>
+                                <button 
+                                    onClick={() => handleEditClick(detalle)}
+                                    className={`${styles.button} ${styles.editButton}`}
+                                >
+                                    Editar
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                
+                {editingDetallePedido && (
+                    <div className={styles.modalOverlay}>
+                        <div className={styles.modalWindow}>
+                            <span className={styles.modalClose} onClick={handleCancelEdit}>&times;</span>
+                            <h3 className={styles.modalTitle}>Editar Detalle de Pedido</h3>
+                            <div className={styles.modalForm}>
+                                <input 
+                                    className={styles.input}
+                                    type="text"
+                                    name="ID_Pedido"
+                                    value={formData.ID_Pedido}
+                                    onChange={handleInputChangeUpdate}
+                                    placeholder="ID Pedido"
+                                />
+                                <input 
+                                    className={styles.input}
+                                    type="text"
+                                    name="ID_Producto"
+                                    value={formData.ID_Producto}
+                                    onChange={handleInputChangeUpdate}
+                                    placeholder="ID Producto"
+                                />
+                                <input 
+                                    className={styles.input}
+                                    type="text"
+                                    name="Cantidad"
+                                    value={formData.Cantidad}
+                                    onChange={handleInputChangeUpdate}
+                                    placeholder="Cantidad"
+                                />
+                                <input 
+                                    className={styles.input}
+                                    type="text"
+                                    name="Precio_Unitario"
+                                    value={formData.Precio_Unitario}
+                                    onChange={handleInputChangeUpdate}
+                                    placeholder="Precio Unitario"
+                                />
+                                <input 
+                                    className={styles.input}
+                                    type="text"
+                                    name="Descuento"
+                                    value={formData.Descuento}
+                                    onChange={handleInputChangeUpdate}
+                                    placeholder="Descuento"
+                                />
+                                <input 
+                                    className={styles.input}
+                                    type="text"
+                                    name="Subtotal"
+                                    value={formData.Subtotal}
+                                    onChange={handleInputChangeUpdate}
+                                    placeholder="Subtotal"
+                                />
+                                <div className={styles.botones}>
+                                    <button onClick={handleUpdate} className={styles.button}>Guardar</button>
+                                    <button onClick={handleCancelEdit} className={styles.button}>Cancelar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

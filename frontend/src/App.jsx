@@ -1,12 +1,12 @@
-// src/App.js
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+// src/App.jsx
+import { BrowserRouter, Routes, Route, Navigate} from 'react-router-dom';
 import Principal from './components/Principal';
-import Administrador from './components/Administrador';
+import Administrador from './components/AdministradorComponent';
 import LoginForm from './components/LoginAdministrador';
+import AgregarAdministradorPrimer from './components/primerAdmin';
 import useAuthStore from './store/AuthStore';
 import useAdministradorStore from './store/AdministradorStore';
-import AgregarAdministradorPrimer from './components/PrimerAdmin';
+import { useState,useEffect } from 'react';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -30,22 +30,21 @@ function App() {
   if (loading) {
     return <div>Cargando aplicación...</div>;
   }
-
   return (
     <BrowserRouter>
       <Routes>
+        <Route path='/' element={<Principal />} />
         {/* Ruta raíz dinámica */}
         <Route 
-          path="/" 
+          path="/loginFrom" 
           element={
             administradors.length === 0 ? (
               <AgregarAdministradorPrimer />
             ) : (
-              <Principal />
+              <LoginForm />
             )
           } 
         />
-        
         <Route path="/loginFrom" element={<LoginForm />} />
         
         {/* Ruta protegida */}
