@@ -1,78 +1,14 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { ShoppingCart, User, Calendar, Phone, Trash2, Plus, Minus, Send, MessageCircle, AlertTriangle } from "lucide-react";
 import style from './Carrito.module.css';
-import useProductoStore from '../../store/ProductoStore'; // Importar el store de productos
-
-// Simulación de stores usando React state en lugar de localStorage
-const useClienteStore = () => {
-  const [clientes, setClientes] = useState([]);
-  
-  const addCliente = async (cliente) => {
-    const nuevoCliente = { ...cliente, ID_Cliente: Date.now() };
-    setClientes(prev => [...prev, nuevoCliente]);
-    return nuevoCliente;
-  };
-  
-  return { addCliente, clientes };
-};
-
-const usePedidoStore = () => {
-  const [pedidos, setPedidos] = useState([]);
-  
-  const addPedido = async (pedido) => {
-    const nuevoPedido = { ...pedido, ID_Pedido: Date.now() };
-    setPedidos(prev => [...prev, nuevoPedido]);
-    return nuevoPedido;
-  };
-  
-  return { addPedido, pedidos };
-};
-
-const useDetallePedidoStore = () => {
-  const [detalles, setDetalles] = useState([]);
-  
-  const addDetallePedido = async (detalle) => {
-    const nuevoDetalle = { ...detalle, ID_DetallePedido: Date.now() + Math.random() };
-    setDetalles(prev => [...prev, nuevoDetalle]);
-    return nuevoDetalle;
-  };
-  
-  return { addDetallePedido, detalles };
-};
-
-const useFacturaStore = () => {
-  const [facturas, setFacturas] = useState([]);
-  
-  const addFactura = async (factura) => {
-    const nuevaFactura = { ...factura, ID_Factura: Date.now() };
-    setFacturas(prev => [...prev, nuevaFactura]);
-    return nuevaFactura;
-  };
-  
-  return { addFactura, facturas };
-};
-
-const useHistorialEstadoStore = () => {
-  const [historiales, setHistoriales] = useState([]);
-  
-  const addHistorialEstado = async (historial) => {
-    const nuevoHistorial = { ...historial, ID_Historial: Date.now() };
-    setHistoriales(prev => [...prev, nuevoHistorial]);
-    return nuevoHistorial;
-  };
-  
-  return { addHistorialEstado, historiales };
-};
-
-const useEstadoPedidoStore = () => ({
-  estadoPedidos: [
-    { ID_EstadoPedido: 1, Estado: 'Recibido' },
-    { ID_EstadoPedido: 2, Estado: 'En Proceso' },
-    { ID_EstadoPedido: 3, Estado: 'Enviado' },
-    { ID_EstadoPedido: 4, Estado: 'Entregado' }
-  ],
-  fetchEstadoPedido: async () => {}
-});
+import useProductoStore from '../../store/ProductoStore';
+import useClienteStore from "../../store/ClienteStore";
+import usePedidoStore from "../../store/PedidoStore";
+import useDetallePedidoStore from '../../store/DetallePedidoStore';
+import useFacturaStore from "../../store/FacturaStore";
+import useHistorialEstadoStore from "../../store/HistorialEstadoStore";
+import useEstadoPedidoStore from "../../store/EstadoPedidoStore";
+import useAdministradorStore from "../../store/AdministradorStore";
 
 const Carrito = () => {
   // Estados principales - ahora cargamos desde localStorage
@@ -105,15 +41,16 @@ const Carrito = () => {
   const [clienteGuardado, setClienteGuardado] = useState(null);
   const [numCelularBusqueda, setNumCelularBusqueda] = useState("");
 
-  // Hooks de stores
-  const { addCliente, clientes } = useClienteStore();
-  const { addPedido, pedidos } = usePedidoStore();
-  const { addDetallePedido, detalles } = useDetallePedidoStore();
-  const { addFactura, facturas } = useFacturaStore();
-  const { addHistorialEstado, historiales } = useHistorialEstadoStore();
+  // Hooks de stores reales
+  const { addCliente } = useClienteStore();
+  const { addPedido } = usePedidoStore();
+  const { addDetallePedido } = useDetallePedidoStore();
+  const { addFactura } = useFacturaStore();
+  const { addHistorialEstado } = useHistorialEstadoStore();
   const { estadoPedidos, fetchEstadoPedido } = useEstadoPedidoStore();
+  const { administradors, fetchAdministrador} = useAdministradorStore();
   
-  // Hook del store de productos - NUEVO
+  // Hook del store de productos
   const { decreaseStock, checkStock, productos, fetchProducto } = useProductoStore();
 
   // Efectos
@@ -128,7 +65,7 @@ const Carrito = () => {
     }
   }, [carrito]);
 
-  // Verificar stock cuando cambia el carrito - NUEVO
+  // Verificar stock cuando cambia el carrito
   useEffect(() => {
     verificarStockCarrito();
   }, [carrito, productos]);
@@ -140,14 +77,15 @@ const Carrito = () => {
       setPedidoData(prev => ({ ...prev, Fecha_Pedido: hoy }));
       
       await fetchEstadoPedido();
+      await fetchAdministrador();
       await fetchProducto(); // Cargar productos para verificar stock
     } catch (error) {
       setError("Error al inicializar el componente");
       console.error("Error:", error);
     }
-  }, [fetchEstadoPedido, fetchProducto]);
+  }, [fetchEstadoPedido,fetchAdministrador, fetchProducto]);
 
-  // Nueva función para verificar stock del carrito
+  // Función para verificar stock del carrito
   const verificarStockCarrito = useCallback(() => {
     const warnings = [];
     
@@ -181,6 +119,30 @@ const Carrito = () => {
   const tieneProblemasStock = useMemo(() => {
     return stockWarnings.length > 0;
   }, [stockWarnings]);
+
+  // FUNCIONES DE WHATSAPP CORREGIDAS - SOLO PARA ADMINISTRADOR
+  const generarMensajeWhatsAppAdmin = useCallback(() => {
+    const productos = carrito.map(producto => 
+      `- ${producto.Nombre_Producto} (Cantidad: ${producto.cantidad}, Precio: $${producto.Precio_Final})`
+    ).join('\n');
+    
+    const fechaEntrega = pedidoData.Fecha_Entrega || 'Por definir';
+    const cliente = clienteGuardado ? `${clienteGuardado.Nombre} ${clienteGuardado.Apellido}` : 'Cliente no identificado';
+    const telefono = clienteGuardado ? clienteGuardado.NumCelular : 'No disponible';
+    
+    return `📋 NUEVO PEDIDO\n\n👤 Cliente: ${cliente}\n📱 Teléfono: ${telefono}\n\n🛍️ Productos:\n${productos}\n\n💰 Total: $${totalCarrito.toFixed(2)}\n📅 Fecha de entrega: ${fechaEntrega}`;
+  }, [carrito, totalCarrito, pedidoData.Fecha_Entrega, clienteGuardado]);
+
+  const enviarWhatsAppAdmin = useCallback(() => {
+    if (carrito.length === 0) {
+      setError("El carrito está vacío");
+      return;
+    }
+    
+    const mensaje = generarMensajeWhatsAppAdmin();
+    const telefono = '51' + administradors[0].NumAdministrador; // Número del negocio
+    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, '_blank');
+  }, [carrito, generarMensajeWhatsAppAdmin, administradors]);
 
   // Funciones de manejo del carrito
   const actualizarCantidadProducto = useCallback((index, nuevaCantidad) => {
@@ -239,7 +201,7 @@ const Carrito = () => {
       return false;
     }
 
-    // Validar stock antes de procesar el pedido - NUEVO
+    // Validar stock antes de procesar el pedido
     if (tieneProblemasStock) {
       setError("Hay problemas de stock que deben resolverse antes de procesar el pedido");
       return false;
@@ -248,15 +210,16 @@ const Carrito = () => {
     return true;
   }, [pedidoData, tieneProblemasStock]);
 
-  // Funciones de búsqueda y verificación
+  // Función para verificar cliente existente usando localStorage como en el código original
   const verificarClienteExiste = useCallback(async (numCelular) => {
     try {
-      return clientes.find(cliente => cliente.NumCelular === Number(numCelular));
+      const clientesGuardados = JSON.parse(localStorage.getItem("clientes")) || [];
+      return clientesGuardados.find(cliente => cliente.NumCelular === Number(numCelular));
     } catch (error) {
       console.error("Error al verificar cliente:", error);
       return null;
     }
-  }, [clientes]);
+  }, []);
 
   // Funciones de manejo de formularios
   const handleInputChangeCliente = useCallback((e) => {
@@ -301,7 +264,7 @@ const Carrito = () => {
     }
   }, [clienteData, validarFormularioCliente, addCliente]);
 
-  // Función principal modificada para disminuir stock - MODIFICADA
+  // Función principal para procesar pedido con stores reales - CORREGIDA
   const handleSubmitPedido = useCallback(async (e) => {
     e.preventDefault();
     
@@ -334,7 +297,7 @@ const Carrito = () => {
         ID_Cliente: clienteGuardado.ID_Cliente
       };
       
-      // 2. Guardar pedido
+      // 2. Guardar pedido usando store real
       const pedidoCreado = await addPedido(nuevoPedido);
       const idPedido = pedidoCreado.ID_Pedido || pedidoCreado;
       
@@ -355,7 +318,7 @@ const Carrito = () => {
         subtotalTotal += detalle.Subtotal;
         await addDetallePedido(detalle);
         
-        // NUEVO: Disminuir stock del producto
+        // Disminuir stock del producto
         const stockResult = await decreaseStock(producto.ID_Producto, producto.cantidad);
         stockUpdateResults.push({
           producto: producto.Nombre_Producto,
@@ -413,12 +376,13 @@ const Carrito = () => {
       resetearFormularios();
       limpiarCarrito();
       
-      // 8. Mostrar mensaje de éxito con información de stock
-      const mensajeCompleto = `Pedido y factura guardados correctamente.\n\n${mensajeStock}\n¿Desea enviar el comprobante por WhatsApp?`;
-      const enviarWhatsApp = window.confirm(mensajeCompleto);
+      // 8. CORREGIDO: Solo mostrar mensaje de éxito y enviar al administrador
+      const mensajeCompleto = `Pedido y factura guardados correctamente.\n\n${mensajeStock}`;
+      alert(mensajeCompleto);
       
-      if (enviarWhatsApp && clienteGuardado.NumCelular) {
-        enviarWhatsAppCliente(clienteGuardado.NumCelular);
+      const confirmarEnvio = confirm("¿Desea enviar un WhatsApp al administrador con los detalles del pedido?");
+      if (confirmarEnvio) {
+        enviarWhatsAppAdmin();
       }
       
     } catch (error) {
@@ -427,7 +391,7 @@ const Carrito = () => {
     } finally {
       setLoading(false);
     }
-  }, [pedidoData, clienteGuardado, carrito, validarFormularioPedido, addPedido, addDetallePedido, addFactura, addHistorialEstado, estadoPedidos, limpiarCarrito, checkStock, decreaseStock]);
+  }, [pedidoData, clienteGuardado, carrito, validarFormularioPedido, addPedido, addDetallePedido, addFactura, addHistorialEstado, estadoPedidos, limpiarCarrito, checkStock, decreaseStock, enviarWhatsAppAdmin]);
 
   // Funciones de utilidades
   const resetearFormularios = useCallback(() => {
@@ -442,32 +406,6 @@ const Carrito = () => {
     setNumCelularBusqueda("");
     setStockWarnings([]);
   }, []);
-
-  const generarMensajeWhatsApp = useCallback(() => {
-    const productos = carrito.map(producto => 
-      `- ${producto.Nombre_Producto} (Cantidad: ${producto.cantidad}, Precio: $${producto.Precio_Final})`
-    ).join('\n');
-    
-    const fechaEntrega = pedidoData.Fecha_Entrega || 'Por definir';
-    
-    return `¡Hola! Quiero realizar este pedido:\n\n${productos}\n\nTotal: $${totalCarrito.toFixed(2)}\n\nFecha de entrega: ${fechaEntrega}`;
-  }, [carrito, totalCarrito, pedidoData.Fecha_Entrega]);
-
-  const enviarWhatsAppCliente = useCallback((telefono) => {
-    const mensaje = generarMensajeWhatsApp();
-    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, '_blank');
-  }, [generarMensajeWhatsApp]);
-
-  const enviarWhatsAppNegocio = useCallback(() => {
-    if (carrito.length === 0) {
-      setError("El carrito está vacío");
-      return;
-    }
-    
-    const mensaje = generarMensajeWhatsApp();
-    const telefono = '51934819598'; // Número del negocio
-    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, '_blank');
-  }, [carrito, generarMensajeWhatsApp]);
 
   const manejarBusquedaCliente = useCallback(async () => {
     if (!numCelularBusqueda.trim()) {
@@ -523,7 +461,7 @@ const Carrito = () => {
         </div>
       )}
 
-      {/* Advertencias de stock - NUEVO */}
+      {/* Advertencias de stock */}
       {stockWarnings.length > 0 && (
         <div className={style.stockWarnings}>
           <div className={style.warningHeader}>
@@ -662,15 +600,15 @@ const Carrito = () => {
             </div>
           </div>
 
-          {/* Botones de acción */}
+          {/* Botones de acción - CORREGIDO */}
           <div className={style.actionButtons}>
             <button
-              onClick={enviarWhatsAppNegocio}
+              onClick={enviarWhatsAppAdmin}
               disabled={loading || tieneProblemasStock}
               className={style.whatsappButton}
             >
               <MessageCircle className={style.whatsappIcon} />
-              Enviar por WhatsApp
+              Enviar Pedido por WhatsApp
             </button>
             <button
               onClick={limpiarCarrito}

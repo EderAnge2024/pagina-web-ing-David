@@ -10,7 +10,8 @@ const AgregarAdministradorPrimer = () => {
   const [administradorData, setAdministradorData] = useState({
     Nombre_Administrador: '',
     Usuario: '',
-    Contrasena: ''
+    Contrasena: '',
+    NumAdministrador:''
   })
 
   const handleInputChange = (e) => {
@@ -29,7 +30,8 @@ const AgregarAdministradorPrimer = () => {
       setAdministradorData({ 
         Nombre_Administrador: '', 
         Usuario: '', 
-        Contrasena: '' 
+        Contrasena: '',
+        NumAdministrador:''
       })
       alert('Administrador registrado exitosamente!')
       window.location.href = '/'
@@ -81,6 +83,19 @@ const AgregarAdministradorPrimer = () => {
               required
               placeholder="Mínimo 8 caracteres"
               minLength="8"
+              className={styles.adminInput}
+            />
+          </div>
+          <div className={styles.adminFormGroup}>
+            <label htmlFor="NumAdministrador" className={styles.adminLabel}>Contraseña</label>
+            <input
+              type="text"
+              name="NumAdministrador"
+              value={administradorData.NumAdministrador}
+              onChange={handleInputChange}
+              required
+              placeholder="Mumero del Administrador"
+              minLength="9"
               className={styles.adminInput}
             />
           </div>
