@@ -41,20 +41,26 @@ const useDashboardStore = create((set, get) => ({
     // Obtener totales generales
     fetchTotales: async () => {
         try {
-            const [pedidosRes, clientesRes, productosRes, facturasRes] = await Promise.all([
+            const [pedidosRes,historialEstadoRes, clientesRes, productosRes, facturasRes] = await Promise.all([
+
                 axios.get('http://localhost:3001/pedidos'),
+                axios.get('http://localhost:3001/historialEstado'),
                 axios.get('http://localhost:3001/clientes'),
                 axios.get('http://localhost:3001/productos'),
                 axios.get('http://localhost:3001/factura')
             ]);
 
             const pedidos = pedidosRes.data;
+            const historialEstados = historialEstadoRes.data;
             const clientes = clientesRes.data;
             const productos = productosRes.data;
             const facturas = facturasRes.data;
 
+            // para ver si hay ventas
+            
+
             // Calcular totales
-            const totalVentas = facturas.reduce((sum, factura) => sum + parseFloat(factura.total || 0), 0);
+            const totalVentas = facturas.reduce((sum, factura) => sum + parseFloat(factura.Monto_Total || 0), 0);
             const totalPedidos = pedidos.length;
             const totalClientes = clientes.length;
             const totalProductos = productos.length;
@@ -62,14 +68,29 @@ const useDashboardStore = create((set, get) => ({
             // Ventas de hoy (simulado - puedes ajustar según tu estructura de fechas)
             const hoy = new Date().toISOString().split('T')[0];
             const ventasHoy = facturas
-                .filter(factura => factura.fecha_Factura?.includes(hoy))
-                .reduce((sum, factura) => sum + parseFloat(factura.total || 0), 0);
+                .filter(factura => factura.Fecha?.includes(hoy))
+                .reduce((sum, factura) => sum + parseFloat(factura.Monto_Total || 0), 0);
 
             // Pedidos pendientes
-            const pedidosPendientes = pedidos.filter(pedido => 
-                pedido.ID_EstadoPedido === 1 || pedido.estado?.toLowerCase() === 'pendiente'
+            const obtenerIdEstadoPendiente = async () => {
+                try {
+                    const response = await axios.get('http://localhost:3001/estadoPedido');
+                    const estadoPendiente = response.data.find(estado =>
+                        estado?.Estado?.toLowerCase().trim() === 'en proceso'
+                    );
+                    
+                    console.log("Estado encontrado:", estadoPendiente);
+                    return estadoPendiente?.ID_EstadoPedido || 1;
+                } catch (error) {
+                    console.error('Error al obtener estado pendiente:', error);
+                    return 1;
+                }
+            };
+            
+            const estadoPendiente = await obtenerIdEstadoPendiente();
+            const pedidosPendientes = historialEstados.filter(pedido => 
+                pedido.ID_EstadoPedido === estadoPendiente 
             ).length;
-
             set(state => ({
                 dashboardData: {
                     ...state.dashboardData,
@@ -78,7 +99,8 @@ const useDashboardStore = create((set, get) => ({
                     totalClientes,
                     totalProductos,
                     ventasHoy,
-                    pedidosPendientes
+                    pedidosPendientes,
+                    
                 }
             }));
 
