@@ -37,8 +37,23 @@ const useAdministradorStore = create((set)=>({
         } catch (error) {
             console.log("Error updating administrador:", error.message)
         }
+    },
+
+    verificarAdmins: async () => {
+      console.log("[Debug] Ejecutando verificación de admins...");
+      try {
+        const response = await axios.get('http://localhost:3001/administrador');
+        console.log("[Debug] Respuesta de API:", response.data);
+        return {
+          hayAdmins: response.data.length > 0,
+          total: response.data.length
+        };
+      } catch (error) {
+        console.error("[Debug] Error en verificación:", error);
+        return { hayAdmins: false, total: 0 };
+      }
     }
-    
+        
 }))
 
 export default useAdministradorStore

@@ -1,34 +1,16 @@
+// src/store/AuthStore.js
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
-const useAuthStore = create(
-  persist(
-    (set) => ({
-      isAuthenticated: false,
-      user: null,
-      loading: true,
+const useAuthStore = create((set) => ({
+  user: null,
+  token: null,
+  isAuthenticated: false,
 
-      initAuth: () => {
-        set({ loading: false });
-      },
+  login: (userData, token) => 
+    set({ user: userData, token, isAuthenticated: true }),
 
-      login: (userData, token) => {
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('userData', JSON.stringify(userData));
-        set({ isAuthenticated: true, user: userData });
-      },
-
-      logout: () => {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
-        set({ isAuthenticated: false, user: null });
-      },
-    }),
-    {
-      name: 'auth-storage',
-      getStorage: () => localStorage,
-    }
-  )
-);
+  logout: () => 
+    set({ user: null, token: null, isAuthenticated: false }),
+}));
 
 export default useAuthStore;

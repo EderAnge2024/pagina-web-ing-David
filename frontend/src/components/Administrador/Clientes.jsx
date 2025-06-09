@@ -1,150 +1,226 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import useClienteStore from '../../store/ClienteStore'
+import style from './Clientes.module.css'
 
-const ClienteFrom= ()=>{
-    const {addCliente,fetchCliente,clientes,deleteCliente,updateCliente} = useClienteStore() 
-    const [editingCliente, setEditingCliente]= useState(null)
-    const [clienteData, setClienteData] = useState ({Nombre:"",Apellido:"",NumCelular:""})
-    const [fromData, setFormData] = useState ({Nombre:"",Apellido:"",NumCelular:""})
+const ClienteForm = () => {
+    const { 
+        addCliente, 
+        fetchCliente, 
+        clientes, 
+        deleteCliente, 
+        updateCliente 
+    } = useClienteStore()
+    
+    const [editingCliente, setEditingCliente] = useState(null)
+    const [formData, setFormData] = useState({
+        Nombre: "",
+        Apellido: "",
+        NumCelular: ""
+    })
 
-    console.log(clienteData)
-    useEffect(()=>{
+    // Cargar clientes al montar el componente
+    useEffect(() => {
         fetchCliente()
-    },[])
+    }, [fetchCliente])
 
-    // escucha lo que se ecribe en los input de la interfaz creada.
-    const handleInputChange = (e)=>{
-       const {name, value} = e. target 
-       setClienteData({
-        ...clienteData,
-        [name]:value
-       })
-    }
+    // Manejar cambios en el formulario
+    const handleInputChange = useCallback((e) => {
+        const { name, value } = e.target
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }))
+    }, [])
 
-    // creamos la funcion que graba los datos de los input
-    const handelSubmit = async(e)=>{
-        e.preventDefault()      // previene algo por defecto nose
-        addCliente(clienteData)
-        setClienteData({Nombre:"",Apellido:"",NumCelular:""})
-        alert("se agrego cliente nuevo")
-    }
-    // elimina a la cliente
-    const handleDelete = (ID_Cliente)=>{
-        if(window.confirm("Are you sure")){
-            deleteCliente(ID_Cliente)
-            fetchCliente()
+    // Enviar nuevo cliente
+    const handleSubmit = useCallback(async (e) => {
+        e.preventDefault()
+        try {
+            await addCliente(formData)
+            setFormData({
+                Nombre: "",
+                Apellido: "",
+                NumCelular: ""
+            })
+            alert("Cliente agregado correctamente")
+        } catch (error) {
+            alert("Error al agregar cliente")
         }
-    }
-    //configura al estudinate para su edicion
-    const handleEditClick = (cliente) => {
+    }, [addCliente, formData])
+
+    // Eliminar cliente
+    const handleDelete = useCallback(async (ID_Cliente) => {
+        if (window.confirm("¿Estás seguro de eliminar este cliente?")) {
+            try {
+                await deleteCliente(ID_Cliente)
+            } catch (error) {
+                alert("Error al eliminar cliente")
+            }
+        }
+    }, [deleteCliente])
+
+    // Iniciar edición
+    const handleEditClick = useCallback((cliente) => {
         setEditingCliente(cliente)
-        setFormData({Nombre:cliente.Nombre, Apellido:cliente.Apellido, NumCelular:cliente.NumCelular})
-    }
-    // manejar can¿bios de la formulaion edicion
-    const handleInputChangeUpdate = (e)=>{
         setFormData({
-            ...fromData,
-            [e.target.name]: e.target.value
+            Nombre: cliente.Nombre,
+            Apellido: cliente.Apellido,
+            NumCelular: cliente.NumCelular
         })
-    }
+    }, [])
 
-    // actualiza a la imgen
-    const handleUpdate = async()=>{
-        updateCliente(editingCliente.ID_Cliente, fromData)
-        fetchCliente()
+    // Actualizar cliente
+    const handleUpdate = useCallback(async () => {
+        try {
+            await updateCliente(editingCliente.ID_Cliente, formData)
+            setEditingCliente(null)
+        } catch (error) {
+            alert("Error al actualizar cliente")
+        }
+    }, [editingCliente, formData, updateCliente])
+
+    // Cancelar edición
+    const handleCancelEdit = useCallback(() => {
         setEditingCliente(null)
-    }
-    const handleCancelEdit = () => {
-        setEditingCliente(null);
-      }
-    return (
-        <div>
-        <div>
-            <h1>Agregar clientes</h1>
-            <form onSubmit={handelSubmit}>
-                <input
-                type="text"
-                placeholder="enter Nombre"
-                required
-                name="Nombre"
-                value={clienteData.Nombre}
-                onChange={handleInputChange}
-                />
-                <input
-                type="text"
-                placeholder="enter Apellido"
-                required
-                name="Apellido"
-                value={clienteData.Apellido}
-                onChange={handleInputChange}
-                />
-                <input
-                type="text"
-                placeholder="enter NumCelular"
-                required
-                name="NumCelular"
-                value={clienteData.NumCelular}
-                onChange={handleInputChange}
-                />
-                <button>Guardar Datos</button>
-            </form>
-        </div>
-        <div>
-            
-            <div>
-                <div>
-                <h1>Lista de la clientees</h1>
-                {
-                    clientes.map((user) =>(
-                        <div key={user.ID_Cliente}>
-                            <p>Nombre: {user.Nombre} </p>
-                            <p>Apellido: {user.Apellido}</p>
-                            <p>Numero Celular: {user.NumCelular}</p>
-                            <button onClick={()=> handleDelete(user.ID_Cliente)}>❌👍</button>
-                            <button onClick={()=> handleEditClick(user)}>👌✍️🗃️</button>
-                        </div>
-                    ))
-                }
-                </div>
-                {editingCliente && (
-                  <div className="modal-overlay">
-                    <div className="modal-window">
-                      <span className="modal-close" onClick={handleCancelEdit}>&times;</span>
-                      <h3>Editar cliente</h3>
-                      <input 
-                        type="text"
-                        name="Nombre"
-                        value={fromData.Nombre}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Tipo de cliente"
-                      />
-                      <input 
-                        type="text"
-                        name="Apellido"
-                        value={fromData.Apellido}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Apellido o ruta"
-                      />
-                      <input 
-                        type="text"
-                        name="NumCelular"
-                        value={fromData.NumCelular}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="NumCelular"
-                      />
-                      <div className="botones">
-                        <button onClick={handleUpdate}>Guardar</button>
-                        <button onClick={handleCancelEdit}>Cancelar</button>
-                    
-                      </div>
-                     </div>
-                  </div>
-                )}
+        setFormData({
+            Nombre: "",
+            Apellido: "",
+            NumCelular: ""
+        })
+    }, [])
 
+    return (
+        <div className={style.cliente}>
+            <div className={style.cliente__form}>
+                <h1 className={style.cliente__title}>Agregar clientes</h1>
+                <form onSubmit={handleSubmit} className={style.form}>
+                    <input
+                        type="text"
+                        placeholder="Nombre del cliente"
+                        required
+                        name="Nombre"
+                        value={formData.Nombre}
+                        onChange={handleInputChange}
+                        className={style.form__input}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Apellido del cliente"
+                        required
+                        name="Apellido"
+                        value={formData.Apellido}
+                        onChange={handleInputChange}
+                        className={style.form__input}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Número de celular"
+                        required
+                        name="NumCelular"
+                        value={formData.NumCelular}
+                        onChange={handleInputChange}
+                        className={style.form__input}
+                    />
+                    <button type="submit" className={`${style.button} ${style['button--primary']}`}>
+                        Guardar Datos
+                    </button>
+                </form>
             </div>
-        </div>
+            
+            <div className={style.cliente__list}>
+                <h1 className={style.cliente__title}>Lista de clientes</h1>
+                <div className={style.list}>
+                    {clientes.map((user) => (
+                        <div className={style.card} key={user.ID_Cliente}>
+                            <div className={style.card__content}>
+                                <p className={style.card__item}>
+                                    <span className={style.card__label}>Nombre:</span> 
+                                    {user.Nombre}
+                                </p>
+                                <p className={style.card__item}>
+                                    <span className={style.card__label}>Apellido:</span> 
+                                    {user.Apellido}
+                                </p>
+                                <p className={style.card__item}>
+                                    <span className={style.card__label}>Celular:</span> 
+                                    {user.NumCelular}
+                                </p>
+                            </div>
+                            <div className={style.card__actions}>
+                                <button 
+                                    className={`${style.button} ${style['button--danger']}`}
+                                    onClick={() => handleDelete(user.ID_Cliente)}
+                                    aria-label="Eliminar cliente"
+                                >
+                                    Eliminar
+                                </button>
+                                <button 
+                                    className={`${style.button} ${style['button--secondary']}`}
+                                    onClick={() => handleEditClick(user)}
+                                    aria-label="Editar cliente"
+                                >
+                                    Editar
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {editingCliente && (
+                    <div className={style.modal}>
+                        <div className={style.modal__content}>
+                            <span 
+                                className={style.modal__close} 
+                                onClick={handleCancelEdit}
+                                aria-label="Cerrar modal"
+                            >
+                                &times;
+                            </span>
+                            <h3 className={style.modal__title}>Editar cliente</h3>
+                            <input 
+                                type="text"
+                                name="Nombre"
+                                value={formData.Nombre}
+                                onChange={handleInputChange}
+                                placeholder="Nombre del cliente"
+                                className={style.form__input}
+                            />
+                            <input 
+                                type="text"
+                                name="Apellido"
+                                value={formData.Apellido}
+                                onChange={handleInputChange}
+                                placeholder="Apellido del cliente"
+                                className={style.form__input}
+                            />
+                            <input 
+                                type="text"
+                                name="NumCelular"
+                                value={formData.NumCelular}
+                                onChange={handleInputChange}
+                                placeholder="Número de celular"
+                                className={style.form__input}
+                            />
+                            <div className={style.modal__actions}>
+                                <button 
+                                    className={`${style.button} ${style['button--primary']}`} 
+                                    onClick={handleUpdate}
+                                >
+                                    Guardar
+                                </button>
+                                <button 
+                                    className={`${style.button} ${style['button--danger']}`} 
+                                    onClick={handleCancelEdit}
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }
 
-export default ClienteFrom
+export default ClienteForm

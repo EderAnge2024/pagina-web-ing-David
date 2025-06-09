@@ -1,148 +1,188 @@
 import { useEffect, useState } from 'react'
 import useHistorialEstadoStore from '../../store/HistorialEstadoStore'
+import styles from './HistorialEstado.module.css'
 
-const HistorialEstado= ()=>{
-    const {addHistorialEstado,fetchHistorialEstado,historialEstados,deleteHistorialEstado,updateHistorialEstado} = useHistorialEstadoStore() 
-    const [editingHistorialEstado, setEditingHistorialEstado]= useState(null)
-    const [historialEstadoData, setHistorialEstadoData] = useState ({ID_EstadoPedido:"",ID_Pedido:"",Fecha:""})
-    const [fromData, setFormData] = useState ({ID_EstadoPedido:"",ID_Pedido:"",Fecha:""})
+const HistorialEstado = () => {
+    const {
+        addHistorialEstado,
+        fetchHistorialEstado,
+        historialEstados,
+        deleteHistorialEstado,
+        updateHistorialEstado
+    } = useHistorialEstadoStore() 
+    
+    const [editingHistorialEstado, setEditingHistorialEstado] = useState(null)
+    const [historialEstadoData, setHistorialEstadoData] = useState({
+        ID_EstadoPedido: "",
+        ID_Pedido: "",
+        Fecha: ""
+    })
+    const [formData, setFormData] = useState({
+        ID_EstadoPedido: "",
+        ID_Pedido: "",
+        Fecha: ""
+    })
 
-    console.log(historialEstadoData)
-    useEffect(()=>{
+    useEffect(() => {
         fetchHistorialEstado()
-    },[])
+    }, [])
 
-    // escucha lo que se ecribe en los input de la interfaz creada.
-    const handleInputChange = (e)=>{
-       const {name, value} = e. target 
+    const handleInputChange = (e) => {
+       const {name, value} = e.target 
        setHistorialEstadoData({
         ...historialEstadoData,
-        [name]:value
+        [name]: value
        })
     }
 
-    // creamos la funcion que graba los datos de los input
-    const handelSubmit = async(e)=>{
-        e.preventDefault()      // previene algo por defecto nose
+    const handelSubmit = async(e) => {
+        e.preventDefault()
         addHistorialEstado(historialEstadoData)
-        setHistorialEstadoData({ID_EstadoPedido:"",ID_Pedido:"",Fecha:""})
-        alert("se agrego un nuevo historial de pedidos")
+        setHistorialEstadoData({
+            ID_EstadoPedido: "",
+            ID_Pedido: "",
+            Fecha: ""
+        })
+        alert("Se agregó un nuevo historial de pedidos")
     }
-    // elimina a la historial
-    const handleDelete = (ID_Historial)=>{
-        if(window.confirm("Are you sure")){
+
+    const handleDelete = (ID_Historial) => {
+        if(window.confirm("¿Estás seguro de eliminar este historial?")) {
             deleteHistorialEstado(ID_Historial)
             fetchHistorialEstado()
         }
     }
-    //configura al estudinate para su edicion
+
     const handleEditClick = (historial) => {
         setEditingHistorialEstado(historial)
-        setFormData({ID_EstadoPedido:historial.ID_EstadoPedido, ID_Pedido:historial.ID_Pedido, Fecha:historial.Fecha})
-    }
-    // manejar can¿bios de la formulaion edicion
-    const handleInputChangeUpdate = (e)=>{
         setFormData({
-            ...fromData,
+            ID_EstadoPedido: historial.ID_EstadoPedido, 
+            ID_Pedido: historial.ID_Pedido, 
+            Fecha: historial.Fecha
+        })
+    }
+
+    const handleInputChangeUpdate = (e) => {
+        setFormData({
+            ...formData,
             [e.target.name]: e.target.value
         })
     }
 
-    // actualiza a la imgen
-    const handleUpdate = async()=>{
-        updateHistorialEstado(editingHistorialEstado.ID_Historial, fromData)
+    const handleUpdate = async() => {
+        updateHistorialEstado(editingHistorialEstado.ID_Historial, formData)
         fetchHistorialEstado()
         setEditingHistorialEstado(null)
     }
-    const handleCancelEdit = () => {
-        setEditingHistorialEstado(null);
-      }
-    return (
-        <div>
-        <div>
-            <h1>Agregar historialEstados</h1>
-            <form onSubmit={handelSubmit}>
-                <input
-                type="text"
-                placeholder="enter ID_EstadoPedido"
-                required
-                name="ID_EstadoPedido"
-                value={historialEstadoData.ID_EstadoPedido}
-                onChange={handleInputChange}
-                />
-                <input
-                type="text"
-                placeholder="enter ID_Pedido"
-                required
-                name="ID_Pedido"
-                value={historialEstadoData.ID_Pedido}
-                onChange={handleInputChange}
-                />
-                <input
-                type="text"
-                placeholder="enter Fecha"
-                required
-                name="Fecha"
-                value={historialEstadoData.Fecha}
-                onChange={handleInputChange}
-                />
-                <button>Guardar Datos</button>
-            </form>
-        </div>
-        <div>
-            
-            <div>
-                <div>
-                <h1>Lista de la historiales</h1>
-                {
-                    historialEstados.map((user) =>(
-                        <div key={user.ID_Historial}>
-                            <p>ID_EstadoPedido: {user.ID_EstadoPedido} </p>
-                            <p>ID_Pedido: {user.ID_Pedido}</p>
-                            <p>Fecha: {user.Fecha}</p>
-                            <button onClick={()=> handleDelete(user.ID_Historial)}>❌👍</button>
-                            <button onClick={()=> handleEditClick(user)}>👌✍️🗃️</button>
-                        </div>
-                    ))
-                }
-                </div>
-                {editingHistorialEstado && (
-                  <div className="modal-overlay">
-                    <div className="modal-window">
-                      <span className="modal-close" onClick={handleCancelEdit}>&times;</span>
-                      <h3>Editar historial</h3>
-                      <input 
-                        type="text"
-                        name="ID_EstadoPedido"
-                        value={fromData.ID_EstadoPedido}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Tipo de historial"
-                      />
-                      <input 
-                        type="text"
-                        name="ID_Pedido"
-                        value={fromData.ID_Pedido}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="ID_Pedido o ruta"
-                      />
-                      <input 
-                        type="text"
-                        name="Fecha"
-                        value={fromData.Fecha}
-                        onChange={handleInputChangeUpdate}
-                        placeholder="Fecha"
-                      />
-                      <div className="botones">
-                        <button onClick={handleUpdate}>Guardar</button>
-                        <button onClick={handleCancelEdit}>Cancelar</button>
-                    
-                      </div>
-                     </div>
-                  </div>
-                )}
 
+    const handleCancelEdit = () => {
+        setEditingHistorialEstado(null)
+    }
+
+    return (
+        <div className={styles.container}>
+            <div className={styles.formContainer}>
+                <h1 className={styles.formTitle}>Agregar Historial de Estados</h1>
+                <form onSubmit={handelSubmit} className={styles.form}>
+                    <input
+                        className={styles.input}
+                        type="text"
+                        placeholder="ID Estado Pedido"
+                        required
+                        name="ID_EstadoPedido"
+                        value={historialEstadoData.ID_EstadoPedido}
+                        onChange={handleInputChange}
+                    />
+                    <input
+                        className={styles.input}
+                        type="text"
+                        placeholder="ID Pedido"
+                        required
+                        name="ID_Pedido"
+                        value={historialEstadoData.ID_Pedido}
+                        onChange={handleInputChange}
+                    />
+                    <input
+                        className={styles.input}
+                        type="text"
+                        placeholder="Fecha"
+                        required
+                        name="Fecha"
+                        value={historialEstadoData.Fecha}
+                        onChange={handleInputChange}
+                    />
+                    <button type="submit" className={styles.button}>Guardar Datos</button>
+                </form>
             </div>
-        </div>
+            
+            <div className={styles.listContainer}>
+                <h1 className={styles.listTitle}>Lista de Historiales</h1>
+                <div>
+                    {historialEstados.map((historial) => (
+                        <div key={historial.ID_Historial} className={styles.historialCard}>
+                            <p className={styles.historialInfo}>
+                                <span className={`${styles.statusIndicator} ${styles['status-active']}`}></span>
+                                ID Estado Pedido: {historial.ID_EstadoPedido}
+                            </p>
+                            <p className={styles.historialInfo}>ID Pedido: {historial.ID_Pedido}</p>
+                            <p className={styles.historialInfo}>Fecha: {historial.Fecha}</p>
+                            <div className={styles.actions}>
+                                <button 
+                                    onClick={() => handleDelete(historial.ID_Historial)}
+                                    className={`${styles.button} ${styles.deleteButton}`}
+                                >
+                                    Eliminar
+                                </button>
+                                <button 
+                                    onClick={() => handleEditClick(historial)}
+                                    className={`${styles.button} ${styles.editButton}`}
+                                >
+                                    Editar
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                
+                {editingHistorialEstado && (
+                    <div className={styles.modalOverlay}>
+                        <div className={styles.modalWindow}>
+                            <span className={styles.modalClose} onClick={handleCancelEdit}>&times;</span>
+                            <h3 className={styles.modalTitle}>Editar Historial</h3>
+                            <div className={styles.modalForm}>
+                                <input 
+                                    className={styles.input}
+                                    type="text"
+                                    name="ID_EstadoPedido"
+                                    value={formData.ID_EstadoPedido}
+                                    onChange={handleInputChangeUpdate}
+                                    placeholder="ID Estado Pedido"
+                                />
+                                <input 
+                                    className={styles.input}
+                                    type="text"
+                                    name="ID_Pedido"
+                                    value={formData.ID_Pedido}
+                                    onChange={handleInputChangeUpdate}
+                                    placeholder="ID Pedido"
+                                />
+                                <input 
+                                    className={styles.input}
+                                    type="text"
+                                    name="Fecha"
+                                    value={formData.Fecha}
+                                    onChange={handleInputChangeUpdate}
+                                    placeholder="Fecha"
+                                />
+                                <div className={styles.botones}>
+                                    <button onClick={handleUpdate} className={styles.button}>Guardar</button>
+                                    <button onClick={handleCancelEdit} className={styles.button}>Cancelar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

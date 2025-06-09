@@ -12,7 +12,7 @@ const HistorialEstado = require('./HistorialEstado')
 const Proyecto = require('./Proyecto')
 const Administrador = require('./Administrador')
 const Imagen = require('./Imagen')
-
+ 
 const db={
     sequelize,
     Categoria,
