@@ -87,7 +87,7 @@ const AgregarAdministradorPrimer = () => {
             />
           </div>
           <div className={styles.adminFormGroup}>
-            <label htmlFor="NumAdministrador" className={styles.adminLabel}>Contraseña</label>
+            <label htmlFor="NumAdministrador" className={styles.adminLabel}>Telefono</label>
             <input
               type="text"
               name="NumAdministrador"
