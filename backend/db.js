@@ -1,6 +1,6 @@
 const {Sequelize}= require('sequelize')
 
-const sequelize = new Sequelize('postgres://postgres:1234@localhost:5432/bradatecsrll',{
+const sequelize = new Sequelize('postgres://postgres:1234@localhost:5432/bradatecsrl',{
     logging:false
 })
 module.exports = sequelize
