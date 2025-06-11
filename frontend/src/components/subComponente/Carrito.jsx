@@ -507,7 +507,15 @@ const Carrito = () => {
                       alt={producto.Nombre_Producto}
                       className={style.productImage}
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/150';
+                        // Solo intentamos el fallback si no es ya el placeholder
+                        if (!e.target.src.includes('via.placeholder.com')) {
+                          e.target.src = 'https://placehold.co/150'; 
+                          e.target.onerror = null; 
+                        } else {
+                          // Si ya estamos en el fallback y falla, lo dejamos vacío
+                          e.target.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // 1px transparent
+                          e.target.onerror = null;
+                        }
                       }}
                     />
                     {hasStockIssue && (

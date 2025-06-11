@@ -52,11 +52,22 @@ const Administrador = () => {
         })
     }
 
-    const handleUpdate = async()=>{
-        await updateAdministrador(editingAdministrador.ID_Administrador, formData)
-        fetchAdministrador()
-        setEditingAdministrador(null)
-    }
+    const handleUpdate = async () => {
+
+        const updateData = {
+            Nombre_Administrador: formData.Nombre_Administrador,
+            Usuario: formData.Usuario,
+            NumAdministrador: formData.NumAdministrador
+        };
+    
+        if (formData.Contrasena && formData.Contrasena !== editingAdministrador.Contrasena) {
+            updateData.Contrasena = formData.Contrasena;
+        }
+    
+        await updateAdministrador(editingAdministrador.ID_Administrador, updateData);
+        fetchAdministrador();
+        setEditingAdministrador(null);
+    };
 
     const handleCancelEdit = () => {
         setEditingAdministrador(null)
@@ -101,6 +112,10 @@ const Administrador = () => {
                     />
                     <button className={style.saveBtn}>Guardar Datos</button>
                 </form>
+            </div>
+            <div>
+                <h1>Generdor de facturas</h1>
+                
             </div>
             
             <div className={style.listContainer}>

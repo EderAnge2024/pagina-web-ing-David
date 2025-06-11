@@ -41,20 +41,26 @@ const useDashboardStore = create((set, get) => ({
     // Obtener totales generales
     fetchTotales: async () => {
         try {
-            const [pedidosRes, clientesRes, productosRes, facturasRes] = await Promise.all([
+            const [pedidosRes,historialEstadoRes, clientesRes, productosRes, facturasRes] = await Promise.all([
+
                 axios.get('http://localhost:3001/pedidos'),
+                axios.get('http://localhost:3001/historialEstado'),
                 axios.get('http://localhost:3001/clientes'),
                 axios.get('http://localhost:3001/productos'),
                 axios.get('http://localhost:3001/factura')
             ]);
 
             const pedidos = pedidosRes.data;
+            const historialEstados = historialEstadoRes.data;
             const clientes = clientesRes.data;
             const productos = productosRes.data;
             const facturas = facturasRes.data;
 
+            // para ver si hay ventas
+            
+
             // Calcular totales
-            const totalVentas = facturas.reduce((sum, factura) => sum + parseFloat(factura.total || 0), 0);
+            const totalVentas = facturas.reduce((sum, factura) => sum + parseFloat(factura.Monto_Total || 0), 0);
             const totalPedidos = pedidos.length;
             const totalClientes = clientes.length;
             const totalProductos = productos.length;
@@ -62,14 +68,29 @@ const useDashboardStore = create((set, get) => ({
             // Ventas de hoy (simulado - puedes ajustar según tu estructura de fechas)
             const hoy = new Date().toISOString().split('T')[0];
             const ventasHoy = facturas
-                .filter(factura => factura.fecha_Factura?.includes(hoy))
-                .reduce((sum, factura) => sum + parseFloat(factura.total || 0), 0);
+                .filter(factura => factura.Fecha?.includes(hoy))
+                .reduce((sum, factura) => sum + parseFloat(factura.Monto_Total || 0), 0);
 
             // Pedidos pendientes
-            const pedidosPendientes = pedidos.filter(pedido => 
-                pedido.ID_EstadoPedido === 1 || pedido.estado?.toLowerCase() === 'pendiente'
+            const obtenerIdEstadoPendiente = async () => {
+                try {
+                    const response = await axios.get('http://localhost:3001/estadoPedido');
+                    const estadoPendiente = response.data.find(estado =>
+                        estado?.Estado?.toLowerCase().trim() === 'en proceso'
+                    );
+                    
+                    console.log("Estado encontrado:", estadoPendiente);
+                    return estadoPendiente?.ID_EstadoPedido || 1;
+                } catch (error) {
+                    console.error('Error al obtener estado pendiente:', error);
+                    return 1;
+                }
+            };
+            
+            const estadoPendiente = await obtenerIdEstadoPendiente();
+            const pedidosPendientes = historialEstados.filter(pedido => 
+                pedido.ID_EstadoPedido === estadoPendiente 
             ).length;
-
             set(state => ({
                 dashboardData: {
                     ...state.dashboardData,
@@ -78,7 +99,8 @@ const useDashboardStore = create((set, get) => ({
                     totalClientes,
                     totalProductos,
                     ventasHoy,
-                    pedidosPendientes
+                    pedidosPendientes,
+                    
                 }
             }));
 
@@ -105,11 +127,11 @@ const useDashboardStore = create((set, get) => ({
                 const fechaStr = fecha.toISOString().split('T')[0];
                 
                 const ventasDia = facturas.filter(factura => 
-                    factura.fecha_Factura?.includes(fechaStr)
+                    factura.Fecha?.includes(fechaStr)
                 );
                 
                 const totalVentas = ventasDia.reduce((sum, factura) => 
-                    sum + parseFloat(factura.total || 0), 0
+                    sum + parseFloat(factura.Monto_Total || 0), 0
                 );
                 
                 ventasSemanales.push({
@@ -151,10 +173,10 @@ const useDashboardStore = create((set, get) => ({
             detalles.forEach(detalle => {
                 const producto = productos.find(p => p.ID_Producto === detalle.ID_Producto);
                 if (producto) {
-                    const categoria = categorias.find(c => c.ID_Categoria === producto.ID_categoria);
+                    const categoria = categorias.find(c => c.ID_Categoria === producto.ID_Categoria);
                     if (categoria) {
-                        const nombreCategoria = categoria.nombre_Categoria;
-                        const ventaDetalle = parseFloat(detalle.cantidad || 0) * parseFloat(detalle.precio_Unitario || 0);
+                        const nombreCategoria = categoria.Tipo_Producto;
+                        const ventaDetalle = parseFloat(detalle.Cantidad || 0) * parseFloat(detalle.Precio_Unitario || 0);
                         
                         if (!ventasPorCategoria[nombreCategoria]) {
                             ventasPorCategoria[nombreCategoria] = 0;
@@ -190,50 +212,58 @@ const useDashboardStore = create((set, get) => ({
 
     // Obtener pedidos por estado
     fetchPedidosPorEstado: async () => {
-        try {
-            const [pedidosRes, estadosRes] = await Promise.all([
-                axios.get('http://localhost:3001/pedidos'),
-                axios.get('http://localhost:3001/estadoPedido')
-            ]);
+    try {
+        const [pedidosRes, estadosRes, historialRes] = await Promise.all([
+            axios.get('http://localhost:3001/pedidos'),
+            axios.get('http://localhost:3001/estadoPedido'),
+            axios.get('http://localhost:3001/historialEstado')
+        ]);
 
-            const pedidos = pedidosRes.data;
-            const estados = estadosRes.data;
+        const pedidos = pedidosRes.data;
+        const estados = estadosRes.data;
+        const historial = historialRes.data;
 
-            const pedidosPorEstado = {};
-            
-            pedidos.forEach(pedido => {
-                const estado = estados.find(e => e.ID_EstadoPedido === pedido.ID_EstadoPedido);
-                const nombreEstado = estado ? estado.nombre_Estado : 'Sin estado';
-                
-                pedidosPorEstado[nombreEstado] = (pedidosPorEstado[nombreEstado] || 0) + 1;
-            });
+        const pedidosPorEstado = {};
 
-            const colores = {
-                'Completado': '#00C49F',
-                'Pendiente': '#FFBB28',
-                'En Proceso': '#0088FE',
-                'Cancelado': '#FF8042',
-                'Enviado': '#8884d8'
-            };
+        pedidos.forEach(pedido => {
+            // Filtrar todos los estados de este pedido
+            const historialPedido = historial.filter(h => h.ID_Pedido === pedido.ID_Pedido);
 
-            const pedidosEstadoData = Object.entries(pedidosPorEstado).map(([estado, cantidad]) => ({
-                estado,
-                cantidad,
-                color: colores[estado] || '#82ca9d'
-            }));
+            // Obtener el último estado según la fecha
+            const ultimoEstado = historialPedido.sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha))[0];
 
-            set(state => ({
-                dashboardData: {
-                    ...state.dashboardData,
-                    pedidosPorEstado: pedidosEstadoData
-                }
-            }));
+            // Buscar el nombre del estado
+            const estado = estados.find(e => e.ID_EstadoPedido === (ultimoEstado?.ID_EstadoPedido));
+            const nombreEstado = estado ? estado.Estado : 'Sin estado';
 
-        } catch (error) {
-            console.error('Error fetching pedidos por estado:', error);
-            throw error;
-        }
-    },
+            pedidosPorEstado[nombreEstado] = (pedidosPorEstado[nombreEstado] || 0) + 1;
+        });
+
+        const colores = {
+            'En Proceso': '#00C49F',
+            'Completado': '#FFBB28',
+            'Cancelado': '#FF8042',
+            'Enviado': '#8884d8'
+        };
+
+        const pedidosEstadoData = Object.entries(pedidosPorEstado).map(([estado, cantidad]) => ({
+            estado,
+            cantidad,
+            color: colores[estado] || '#82ca9d'
+        }));
+
+        set(state => ({
+            dashboardData: {
+                ...state.dashboardData,
+                pedidosPorEstado: pedidosEstadoData
+            }
+        }));
+
+    } catch (error) {
+        console.error('Error fetching pedidos por estado:', error);
+        throw error;
+    }
+},
 
     // Obtener ventas mensuales
     fetchVentasMensuales: async () => {
@@ -251,12 +281,12 @@ const useDashboardStore = create((set, get) => ({
                 const año = fecha.getFullYear();
                 
                 const ventasMes = facturas.filter(factura => {
-                    const fechaFactura = new Date(factura.fecha_Factura);
+                    const fechaFactura = new Date(factura.Fecha);
                     return fechaFactura.getMonth() === mesIndex && fechaFactura.getFullYear() === año;
                 });
                 
                 const totalVentas = ventasMes.reduce((sum, factura) => 
-                    sum + parseFloat(factura.total || 0), 0
+                    sum + parseFloat(factura.Monto_Total || 0), 0
                 );
                 
                 // Objetivo simulado (puedes ajustarlo según tu lógica de negocio)
@@ -285,24 +315,25 @@ const useDashboardStore = create((set, get) => ({
     // Obtener actividad reciente
     fetchActividadReciente: async () => {
         try {
-            const [pedidosRes, clientesRes, productosRes] = await Promise.all([
+            const [pedidosRes, clientesRes, productosRes, facturasRes] = await Promise.all([
                 axios.get('http://localhost:3001/pedidos'),
                 axios.get('http://localhost:3001/clientes'),
-                axios.get('http://localhost:3001/productos')
+                axios.get('http://localhost:3001/productos'),
+                axios.get('http://localhost:3001/factura')
             ]);
 
             const pedidos = pedidosRes.data.slice(-5); // Últimos 5 pedidos
             const clientes = clientesRes.data.slice(-3); // Últimos 3 clientes
             const productos = productosRes.data.slice(-2); // Últimos 2 productos
-
+            const facturas = facturasRes.data.slice(-5)
             const actividades = [];
 
             // Agregar pedidos recientes
-            pedidos.forEach(pedido => {
+           facturas.forEach(factura => {
                 actividades.push({
-                    id: `pedido-${pedido.ID_Pedido}`,
+                    id: `pedido-${factura.ID_Factura}`,
                     icon: '🛒',
-                    mensaje: `Nuevo pedido #${pedido.ID_Pedido} por S/. ${pedido.total || '0.00'}`,
+                    mensaje: `Nuevo pedido #${factura.ID_Pedido} por S/. ${factura.Monto_Total || '0.00'}`,
                     tiempo: 'Hace 5 minutos'
                 });
             });
@@ -312,7 +343,7 @@ const useDashboardStore = create((set, get) => ({
                 actividades.push({
                     id: `cliente-${cliente.ID_Cliente}`,
                     icon: '👤',
-                    mensaje: `Nuevo cliente registrado: ${cliente.nombre_Cliente} ${cliente.apellido_Cliente}`,
+                    mensaje: `Nuevo cliente registrado: ${cliente.Nombre} ${cliente.Apellido}`,
                     tiempo: 'Hace 15 minutos'
                 });
             });
@@ -322,7 +353,7 @@ const useDashboardStore = create((set, get) => ({
                 actividades.push({
                     id: `producto-${producto.ID_Producto}`,
                     icon: '📦',
-                    mensaje: `Producto "${producto.nombre_Producto}" agregado al inventario`,
+                    mensaje: `Producto "${producto.Nombre_Producto}" agregado al inventario`,
                     tiempo: 'Hace 1 hora'
                 });
             });
