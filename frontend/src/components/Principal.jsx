@@ -16,6 +16,7 @@ import servicio from '../img/servicio.png';
 // Estilos y stores
 import styles from './principal.module.css';
 import useImagenStore from "../store/ImagenStore";
+import {useColorStore} from "../store/colorStore";
 
 // Constantes
 const NAVIGATION_ITEMS = [
@@ -64,6 +65,19 @@ const Principal = () => {
   const toggleMenu = useCallback(() => {
     setIsMenuOpen(prev => !prev);
   }, []);
+
+  // Función para calcular color de texto contrastante
+  const getTextColor = (bgColor) => {
+    if (!bgColor) return 'inherit';
+    const hex = bgColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 125 ? 'black' : 'white';
+  };
+  const headerColor = useColorStore(state => state.headerColor);
+  const footerColor = useColorStore(state => state.footerColor);
 
   // Componentes auxiliares
   const renderLogo = () => {
@@ -182,7 +196,11 @@ const Principal = () => {
   );
 
   const renderFooter = () => (
-    <footer className={styles.modern_footer}>
+    <footer className={styles.modern_footer}
+    style={{
+      backgroundColor: footerColor || undefined,
+      color: getTextColor(footerColor),
+    }}>
       <div className={styles.footer_content}>
         <div className={styles.footer_section}>
           {renderContactInfo()}
@@ -206,7 +224,11 @@ const Principal = () => {
 
   return (
     <div className={styles.principal_container}>
-      <header className={styles.modern_header}>
+      <header className={styles.modern_header}
+      style={{
+        backgroundColor: headerColor || undefined,
+        color: getTextColor(headerColor),
+      }}>
         {renderLogo()}
         {renderHamburgerMenu()}
         {renderNavigation()}
