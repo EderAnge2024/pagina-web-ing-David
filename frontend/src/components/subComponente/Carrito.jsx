@@ -929,28 +929,6 @@ const Carrito = () => {
                 />
               </div>
               
-              <div className={style.formGroup}>
-                <label>Dirección</label>
-                <input
-                  type="text"
-                  name="Direccion"
-                  value={clienteData.Direccion}
-                  onChange={handleInputChangeCliente}
-                  className={style.input}
-                />
-              </div>
-              
-              <div className={style.formGroup}>
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="Email"
-                  value={clienteData.Email}
-                  onChange={handleInputChangeCliente}
-                  className={style.input}
-                />
-              </div>
-              
               <div className={style.modalFooter}>
                 <button 
                   type="button" 
