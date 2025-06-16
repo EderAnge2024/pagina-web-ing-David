@@ -380,7 +380,7 @@ const Carrito = () => {
           Cantidad: producto.cantidad,
           Precio_Unitario: producto.Precio_Final,
           Descuento: 0,
-          Subtotal: producto.cantidad * producto.Precio_Final
+          Subtotal: producto.cantidad * producto.Precio_Final * (1 - producto.Descuento / 100)
         };
         subtotalTotal += detalle.Subtotal;
         detallesPedido.push({
@@ -476,6 +476,7 @@ const Carrito = () => {
     }
   }, [pedidoData, clienteSeleccionado, carrito, validarFormularioPedido, addPedido, addDetallePedido, addFactura, addHistorialEstado, estadoPedidos, checkStock, decreaseStock, mostrarMensaje]);
 
+  
   // CAMBIO: Función para generar PDF actualizada
   const generarBoletaPDF = useCallback(async (datosFactura = ultimoPedidoCreado) => {
     if (!datosFactura) {
@@ -535,33 +536,35 @@ const Carrito = () => {
       
       const mensajeCliente = `🎉 ¡Hola ${cliente.Nombre}!
 
-✅ Tu pedido #${datosFactura.pedido.ID_Pedido} ha sido confirmado exitosamente.
-
-📋 DETALLES DEL PEDIDO:
-${productos}
-
-💰 Total: $${datosFactura.total.toFixed(2)}
-📅 Fecha de entrega: ${fechaEntrega}
-${datosFactura.pedido.Observaciones ? `📝 Observaciones: ${datosFactura.pedido.Observaciones}` : ''}
-
-📄 Adjunto encontrarás tu boleta de compra en PDF.
-
-¡Gracias por tu preferencia! 😊
-
-Para cualquier consulta, no dudes en contactarnos.`;
-
-      // Nota: En un entorno real, aquí podrías usar una API de WhatsApp Business
-      // para enviar el PDF como archivo adjunto. Por ahora, enviamos el mensaje
-      // con instrucciones para descargar el PDF
+  ✅ Tu pedido #${datosFactura.pedido.ID_Pedido} ha sido confirmado exitosamente.
+  
+  📋 DETALLES DEL PEDIDO:
+  ${productos}
+  
+  💰 Total: $${datosFactura.total.toFixed(2)}
+  📅 Fecha de entrega: ${fechaEntrega}
+  ${datosFactura.pedido.Observaciones ? `📝 Observaciones: ${datosFactura.pedido.Observaciones}` : ''}
+  
+  📄 Adjunto encontrarás tu boleta de compra en PDF.
+  
+  ¡Gracias por tu preferencia! 😊
+  
+  Para cualquier consulta, no dudes en contactarnos.`;
+  
+        // Nota: En un entorno real, aquí podrías usar una API de WhatsApp Business
+        // para enviar el PDF como archivo adjunto. Por ahora, enviamos el mensaje
+        // con instrucciones para descargar el PDF
+        
+    const mensajeFinal = `${mensajeCliente}
+  
+  📎 IMPORTANTE: Para descargar tu boleta PDF, solicítala al administrador o descárgala desde nuestro sistema.
+  
+  PDF generado: ${resultadoPDF.filename}`;
       
-      const mensajeFinal = `${mensajeCliente}
-
-📎 IMPORTANTE: Para descargar tu boleta PDF, solicítala al administrador o descárgala desde nuestro sistema.
-
-PDF generado: ${resultadoPDF.filename}`;
-
+      const numeroClienteEnvio = `51${numeroCliente}` ;
+      console.log("este es el numero: "+numeroClienteEnvio)
       const mensajeCodificado = encodeURIComponent(mensajeFinal);
-      const urlWhatsAppCliente = `https://wa.me/${numeroCliente}?text=${mensajeCodificado}`;
+      const urlWhatsAppCliente = `https://wa.me/${numeroClienteEnvio}?text=${mensajeCodificado}`;
       
       window.open(urlWhatsAppCliente, '_blank');
       mostrarMensaje(`Mensaje enviado al cliente: ${cliente.Nombre} ${cliente.Apellido}`);
@@ -588,7 +591,7 @@ PDF generado: ${resultadoPDF.filename}`;
         Nombre_Producto: p.Nombre_Producto,
         Cantidad: Number(p.cantidad) || 0,
         Precio_Unitario: Number(p.Precio_Final) || 0,
-        Subtotal: (Number(p.cantidad) || 0) * (Number(p.Precio_Final) || 0)
+        Subtotal: (Number(p.cantidad) || 0) * (Number(p.Precio_Final) || 0) * (1 - (Number(p.Descuento) || 0) / 100)
       })),
       total: Number(totalCarrito) || 0
     };
@@ -606,7 +609,7 @@ PDF generado: ${resultadoPDF.filename}`;
     
     const mensaje = `📋 NUEVO PEDIDO ${datos.pedido.ID_Pedido ? `#${datos.pedido.ID_Pedido}` : ''}\n\n👤 Cliente: ${cliente}\n📱 Teléfono: ${telefono}\n\n🛍️ Productos:\n${productos}\n\n💰 Total: $${datos.total.toFixed(2)}\n📅 Fecha de entrega: ${datos.pedido.Fecha_Entrega || 'Por definir'}${observaciones}`;
 
-    const numeroAdmin = administradors.length > 0 ? administradors[0].NumTelefono : '51987654321';
+    const numeroAdmin = administradors.length > 0 ? administradors[0].NumAdministrador : '51987654321';
     const mensajeCodificado = encodeURIComponent(mensaje);
     const urlWhatsApp = `https://wa.me/${numeroAdmin}?text=${mensajeCodificado}`;
     
