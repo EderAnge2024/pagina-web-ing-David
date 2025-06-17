@@ -6,11 +6,11 @@ const Pedido = () => {
     const {addPedido, fetchPedido, pedidos, deletePedido, updatePedido} = usePedidoStore() 
     const [editingPedido, setEditingPedido] = useState(null)
     const [pedidoData, setPedidoData] = useState({ID_Cliente:"", Fecha_Pedido:"", Fecha_Entrega:""})
-    const [fromData, setFormData] = useState({ID_Cliente:"", Fecha_Pedido:"", Fecha_Entrega:""})
+    const [formData, setFormData] = useState({ID_Cliente:"", Fecha_Pedido:"", Fecha_Entrega:""})
 
     useEffect(()=>{
         fetchPedido()
-        fetchCliente()
+        // Removido fetchCliente() ya que no está definido
     },[])
 
     const handleInputChange = (e)=>{
@@ -21,17 +21,27 @@ const Pedido = () => {
        })
     }
 
-    const handelSubmit = async(e)=>{
+    const handleSubmit = async(e)=>{
         e.preventDefault()
-        addPedido(pedidoData)
-        setPedidoData({ID_Cliente:"", Fecha_Pedido:"", Fecha_Entrega:""})
-        alert("Se agregó el pedido")
+        try {
+            await addPedido(pedidoData)
+            setPedidoData({ID_Cliente:"", Fecha_Pedido:"", Fecha_Entrega:""})
+            alert("Se agregó el pedido")
+        } catch (error) {
+            console.error("Error al agregar pedido:", error)
+            alert("Error al agregar el pedido")
+        }
     }
 
-    const handleDelete = (ID_Pedido)=>{
+    const handleDelete = async (ID_Pedido)=>{
         if(window.confirm("¿Estás seguro de eliminar este pedido?")){
-            deletePedido(ID_Pedido)
-            fetchPedido()
+            try {
+                await deletePedido(ID_Pedido)
+                // Removido fetchPedido() duplicado, el store debería actualizarse automáticamente
+            } catch (error) {
+                console.error("Error al eliminar pedido:", error)
+                alert("Error al eliminar el pedido")
+            }
         }
     }
 
@@ -46,26 +56,33 @@ const Pedido = () => {
 
     const handleInputChangeUpdate = (e)=>{
         setFormData({
-            ...fromData,
+            ...formData, // Corregido: era fromData
             [e.target.name]: e.target.value
         })
     }
 
     const handleUpdate = async()=>{
-        updatePedido(editingPedido.ID_Pedido, fromData)
-        fetchPedido()
-        setEditingPedido(null)
+        try {
+            await updatePedido(editingPedido.ID_Pedido, formData)
+            // Removido fetchPedido() duplicado, el store debería actualizarse automáticamente
+            setEditingPedido(null)
+            alert("Pedido actualizado correctamente")
+        } catch (error) {
+            console.error("Error al actualizar pedido:", error)
+            alert("Error al actualizar el pedido")
+        }
     }
 
     const handleCancelEdit = () => {
         setEditingPedido(null)
+        setFormData({ID_Cliente:"", Fecha_Pedido:"", Fecha_Entrega:""})
     }
 
     return (
         <div className={styles.container}>
             <div className={styles.formContainer}>
                 <h1 className={styles.formTitle}>Agregar pedidos</h1>
-                <form onSubmit={handelSubmit} className={styles.form}>
+                <form onSubmit={handleSubmit} className={styles.form}>
                     <input
                         className={styles.input}
                         type="text"
@@ -77,7 +94,7 @@ const Pedido = () => {
                     />
                     <input
                         className={styles.input}
-                        type="text"
+                        type="date"
                         placeholder="Fecha del Pedido"
                         required
                         name="Fecha_Pedido"
@@ -86,7 +103,7 @@ const Pedido = () => {
                     />
                     <input
                         className={styles.input}
-                        type="text"
+                        type="date"
                         placeholder="Fecha de Entrega"
                         required
                         name="Fecha_Entrega"
@@ -100,28 +117,32 @@ const Pedido = () => {
             <div className={styles.listContainer}>
                 <h1 className={styles.listTitle}>Lista de pedidos</h1>
                 <div>
-                    {pedidos.map((user) => (
-                        <div key={user.ID_Pedido} className={styles.pedidoCard}>
-                            <p className={styles.pedidoInfo}>ID: {user.ID_Pedido}</p>
-                            <p className={styles.pedidoInfo}>ID Cliente: {user.ID_Cliente}</p>
-                            <p className={styles.pedidoInfo}>Fecha Pedido: {user.Fecha_Pedido}</p>
-                            <p className={styles.pedidoInfo}>Fecha Entrega: {user.Fecha_Entrega}</p>
-                            <div>
-                                <button 
-                                    onClick={() => handleDelete(user.ID_Pedido)}
-                                    className={`${styles.button} ${styles.deleteButton}`}
-                                >
-                                    Eliminar
-                                </button>
-                                <button 
-                                    onClick={() => handleEditClick(user)}
-                                    className={`${styles.button} ${styles.editButton}`}
-                                >
-                                    Editar
-                                </button>
+                    {pedidos && pedidos.length > 0 ? (
+                        pedidos.map((pedido) => (
+                            <div key={pedido.ID_Pedido} className={styles.pedidoCard}>
+                                <p className={styles.pedidoInfo}>ID: {pedido.ID_Pedido}</p>
+                                <p className={styles.pedidoInfo}>ID Cliente: {pedido.ID_Cliente}</p>
+                                <p className={styles.pedidoInfo}>Fecha Pedido: {pedido.Fecha_Pedido}</p>
+                                <p className={styles.pedidoInfo}>Fecha Entrega: {pedido.Fecha_Entrega}</p>
+                                <div>
+                                    <button 
+                                        onClick={() => handleDelete(pedido.ID_Pedido)}
+                                        className={`${styles.button} ${styles.deleteButton}`}
+                                    >
+                                        Eliminar
+                                    </button>
+                                    <button 
+                                        onClick={() => handleEditClick(pedido)}
+                                        className={`${styles.button} ${styles.editButton}`}
+                                    >
+                                        Editar
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    ) : (
+                        <p>No hay pedidos disponibles</p>
+                    )}
                 </div>
                 
                 {editingPedido && (
@@ -133,23 +154,23 @@ const Pedido = () => {
                                 className={styles.input}
                                 type="text"
                                 name="ID_Cliente"
-                                value={fromData.ID_Cliente}
+                                value={formData.ID_Cliente}
                                 onChange={handleInputChangeUpdate}
                                 placeholder="ID del Cliente"
                             />
                             <input 
                                 className={styles.input}
-                                type="text"
+                                type="date"
                                 name="Fecha_Pedido"
-                                value={fromData.Fecha_Pedido}
+                                value={formData.Fecha_Pedido}
                                 onChange={handleInputChangeUpdate}
                                 placeholder="Fecha del Pedido"
                             />
                             <input 
                                 className={styles.input}
-                                type="text"
+                                type="date"
                                 name="Fecha_Entrega"
-                                value={fromData.Fecha_Entrega}
+                                value={formData.Fecha_Entrega}
                                 onChange={handleInputChangeUpdate}
                                 placeholder="Fecha de Entrega"
                             />

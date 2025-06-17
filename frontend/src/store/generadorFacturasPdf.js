@@ -2,7 +2,7 @@ import jsPDF from 'jspdf'
 
 export const generateFacturaPDF = ({ pedido, cliente, detalles, factura, total }) => {
     const doc = new jsPDF()
-    
+     
     // Configuración de colores y estilos
     const primaryColor = [41, 128, 185] // Azul
     const secondaryColor = [52, 73, 94] // Gris oscuro

@@ -1,12 +1,10 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { 
   ShoppingCart, User, Calendar, Phone, Trash2, Plus, Minus, 
-  Send, MessageCircle, AlertTriangle, FileText, Search, 
-  UserCheck, Download, History
+  Search, UserCheck, AlertTriangle, FileText, History
 } from "lucide-react";
 import style from './Carrito.module.css';
-// CAMBIO: Importar la nueva función de PDF
-import { generateFacturaPDF } from "../../store/generadorFacturasPdf"; // Ajusta la ruta según tu estructura
+import { generateFacturaPDF } from "../../store/generadorFacturasPdf";
 import useProductoStore from '../../store/ProductoStore';
 import useClienteStore from "../../store/ClienteStore";
 import usePedidoStore from "../../store/PedidoStore";
@@ -17,7 +15,9 @@ import useEstadoPedidoStore from "../../store/EstadoPedidoStore";
 import useAdministradorStore from "../../store/AdministradorStore";
 
 const Carrito = () => {
-  // Estados principales
+  // ========================
+  // ESTADOS PRINCIPALES
+  // ========================
   const [carrito, setCarrito] = useState(() => {
     const carritoGuardado = typeof window !== 'undefined' ? 
       JSON.parse(localStorage.getItem("carrito")) || [] : [];
@@ -29,13 +29,12 @@ const Carrito = () => {
   const [success, setSuccess] = useState("");
   const [stockWarnings, setStockWarnings] = useState([]);
   
-  // Estados de UI mejorados
+  // Estados de UI
   const [modalActivo, setModalActivo] = useState(null); // 'cliente', 'pedido', 'buscar'
-  const [clientesRecientes, setClientesRecientes] = useState([]);
-  const [clientesFiltrados, setClientesFiltrados] = useState([]);
   const [busquedaCliente, setBusquedaCliente] = useState("");
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
   
-  // Estados de datos
+  // Estados de formularios
   const [clienteData, setClienteData] = useState({
     Nombre: "",
     Apellido: "",
@@ -50,11 +49,10 @@ const Carrito = () => {
     Fecha_Entrega: "",
     Observaciones: ""
   });
-  
-  const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
-  const [ultimoPedidoCreado, setUltimoPedidoCreado] = useState(null);
 
-  // Hooks de stores
+  // ========================
+  // HOOKS DE STORES
+  // ========================
   const { addCliente, clientes, fetchCliente } = useClienteStore();
   const { addPedido } = usePedidoStore();
   const { addDetallePedido } = useDetallePedidoStore();
@@ -64,7 +62,9 @@ const Carrito = () => {
   const { administradors, fetchAdministrador } = useAdministradorStore();
   const { decreaseStock, checkStock, productos, fetchProducto } = useProductoStore();
 
-  // Efectos
+  // ========================
+  // EFECTOS
+  // ========================
   useEffect(() => {
     initializeComponent();
   }, []);
@@ -79,15 +79,9 @@ const Carrito = () => {
     verificarStockCarrito();
   }, [carrito, productos]);
 
-  useEffect(() => {
-    cargarClientesRecientes();
-  }, [clientes]);
-
-  useEffect(() => {
-    filtrarClientes();
-  }, [busquedaCliente, clientes]);
-
-  // Funciones de inicialización
+  // ========================
+  // INICIALIZACIÓN
+  // ========================
   const initializeComponent = useCallback(async () => {
     try {
       const hoy = new Date().toISOString().slice(0, 10);
@@ -105,34 +99,9 @@ const Carrito = () => {
     }
   }, [fetchEstadoPedido, fetchAdministrador, fetchProducto, fetchCliente]);
 
-  // Gestión mejorada de clientes
-  const cargarClientesRecientes = useCallback(() => {
-    if (clientes && clientes.length > 0) {
-      // Obtener los últimos 5 clientes más recientes
-      const recientes = [...clientes]
-        .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        .slice(0, 5);
-      setClientesRecientes(recientes);
-    }
-  }, [clientes]);
-
-  const filtrarClientes = useCallback(() => {
-    if (!busquedaCliente.trim()) {
-      setClientesFiltrados([]);
-      return;
-    }
-
-    const filtrados = clientes.filter(cliente => 
-      cliente.Nombre.toLowerCase().includes(busquedaCliente.toLowerCase()) ||
-      cliente.Apellido.toLowerCase().includes(busquedaCliente.toLowerCase()) ||
-      cliente.NumCelular.toString().includes(busquedaCliente) ||
-      (cliente.Email && cliente.Email.toLowerCase().includes(busquedaCliente.toLowerCase()))
-    ).slice(0, 10); // Limitar a 10 resultados
-
-    setClientesFiltrados(filtrados);
-  }, [busquedaCliente, clientes]);
-
-  // Función para verificar stock
+  // ========================
+  // VERIFICACIÓN DE STOCK
+  // ========================
   const verificarStockCarrito = useCallback(() => {
     const warnings = [];
     
@@ -153,7 +122,9 @@ const Carrito = () => {
     setStockWarnings(warnings);
   }, [carrito, checkStock]);
 
-  // Cálculos memoizados
+  // ========================
+  // CÁLCULOS MEMOIZADOS
+  // ========================
   const totalCarrito = useMemo(() => {
     return carrito.reduce((total, producto) => total + (producto.Precio_Final * producto.cantidad), 0);
   }, [carrito]);
@@ -166,7 +137,27 @@ const Carrito = () => {
     return stockWarnings.length > 0;
   }, [stockWarnings]);
 
-  // Funciones de utilidad
+  // Clientes filtrados
+  const clientesFiltrados = useMemo(() => {
+    if (!busquedaCliente.trim()) return [];
+    
+    return clientes.filter(cliente => 
+      cliente.Nombre.toLowerCase().includes(busquedaCliente.toLowerCase()) ||
+      cliente.Apellido.toLowerCase().includes(busquedaCliente.toLowerCase()) ||
+      cliente.NumCelular.toString().includes(busquedaCliente) ||
+      (cliente.Email && cliente.Email.toLowerCase().includes(busquedaCliente.toLowerCase()))
+    ).slice(0, 10);
+  }, [busquedaCliente, clientes]);
+
+  const clientesRecientes = useMemo(() => {
+    return [...clientes]
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .slice(0, 5);
+  }, [clientes]);
+
+  // ========================
+  // UTILIDADES
+  // ========================
   const mostrarMensaje = useCallback((mensaje, tipo = 'success') => {
     if (tipo === 'success') {
       setSuccess(mensaje);
@@ -183,7 +174,27 @@ const Carrito = () => {
     setSuccess("");
   }, []);
 
-  // Gestión del carrito
+  const resetearFormularios = useCallback(() => {
+    setClienteData({ Nombre: "", Apellido: "", NumCelular: "", Direccion: "", Email: "" });
+    setPedidoData({ 
+      ID_Cliente: "", 
+      Fecha_Pedido: new Date().toISOString().slice(0, 10), 
+      Fecha_Entrega: "", 
+      Observaciones: "" 
+    });
+    setClienteSeleccionado(null);
+    setModalActivo(null);
+    setBusquedaCliente("");
+  }, []);
+
+  const cerrarModal = useCallback(() => {
+    setModalActivo(null);
+    limpiarMensajes();
+  }, [limpiarMensajes]);
+
+  // ========================
+  // GESTIÓN DEL CARRITO
+  // ========================
   const actualizarCantidadProducto = useCallback((index, nuevaCantidad) => {
     if (nuevaCantidad <= 0) {
       eliminarProducto(index);
@@ -209,7 +220,9 @@ const Carrito = () => {
     mostrarMensaje("Carrito limpiado correctamente");
   }, [mostrarMensaje]);
 
-  // Gestión de clientes mejorada
+  // ========================
+  // GESTIÓN DE CLIENTES
+  // ========================
   const seleccionarCliente = useCallback((cliente) => {
     setClienteSeleccionado(cliente);
     setPedidoData(prev => ({
@@ -232,7 +245,9 @@ const Carrito = () => {
     setModalActivo('cliente');
   }, [busquedaCliente]);
 
-  // Validaciones mejoradas
+  // ========================
+  // VALIDACIONES
+  // ========================
   const validarFormularioCliente = useCallback(() => {
     const { Nombre, Apellido, NumCelular } = clienteData;
     
@@ -256,7 +271,6 @@ const Carrito = () => {
       return false;
     }
 
-    // Verificar si el cliente ya existe
     const clienteExistente = clientes.find(c => c.NumCelular === Number(NumCelular));
     if (clienteExistente) {
       mostrarMensaje("Ya existe un cliente con este número de celular", 'error');
@@ -289,7 +303,9 @@ const Carrito = () => {
     return true;
   }, [pedidoData, tieneProblemasStock, mostrarMensaje]);
 
-  // Manejo de formularios
+  // ========================
+  // MANEJO DE FORMULARIOS
+  // ========================
   const handleInputChangeCliente = useCallback((e) => {
     const { name, value } = e.target;
     setClienteData(prev => ({ ...prev, [name]: value }));
@@ -333,7 +349,79 @@ const Carrito = () => {
     }
   }, [clienteData, validarFormularioCliente, addCliente, seleccionarCliente, mostrarMensaje]);
 
-  // Función principal para procesar pedido con PDF - ACTUALIZADA
+  // ========================
+  // FUNCIONES DE NOTIFICACIÓN AUTOMÁTICA
+  // ========================
+  const enviarNotificacionesAutomaticas = useCallback(async (datosFactura) => {
+    try {
+      // Generar PDF automáticamente
+      const resultadoPDF = generateFacturaPDF(datosFactura);
+      
+      if (resultadoPDF.success) {
+        console.log(`PDF generado: ${resultadoPDF.filename}`);
+        
+        // Enviar automáticamente a WhatsApp del cliente
+        const cliente = datosFactura.cliente;
+        const productos = datosFactura.detalles.map(detalle => 
+          `• ${detalle.Nombre_Producto} x${detalle.Cantidad} - $${detalle.Subtotal.toFixed(2)}`
+        ).join('\n');
+        
+        const fechaEntrega = new Date(datosFactura.pedido.Fecha_Entrega).toLocaleDateString('es-ES');
+        
+        const mensajeCliente = `🎉 ¡Hola ${cliente.Nombre}!
+
+✅ Tu pedido #${datosFactura.pedido.ID_Pedido} ha sido confirmado.
+
+📋 DETALLES:
+${productos}
+
+💰 Total: $${datosFactura.total.toFixed(2)}
+📅 Entrega: ${fechaEntrega}
+${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}` : ''}
+
+¡Gracias por tu preferencia! 😊`;
+
+        // Enviar al cliente
+        const numeroCliente = `51${cliente.NumCelular}`;
+        const mensajeCodificadoCliente = encodeURIComponent(mensajeCliente);
+        const urlWhatsAppCliente = `https://wa.me/${numeroCliente}?text=${mensajeCodificadoCliente}`;
+        
+        setTimeout(() => {
+          window.open(urlWhatsAppCliente, '_blank');
+        }, 1000);
+
+        // Enviar al administrador
+        const mensajeAdmin = `📋 NUEVO PEDIDO #${datosFactura.pedido.ID_Pedido}
+
+👤 Cliente: ${cliente.Nombre} ${cliente.Apellido}
+📱 Teléfono: ${cliente.NumCelular}
+
+🛍️ Productos:
+${productos}
+
+💰 Total: $${datosFactura.total.toFixed(2)}
+📅 Entrega: ${fechaEntrega}
+${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}` : ''}`;
+
+        const numeroAdmin = administradors.length > 0 ? administradors[0].NumAdministrador : '51987654321';
+        const mensajeCodificadoAdmin = encodeURIComponent(mensajeAdmin);
+        const urlWhatsAppAdmin = `https://wa.me/${numeroAdmin}?text=${mensajeCodificadoAdmin}`;
+        
+        setTimeout(() => {
+          window.open(urlWhatsAppAdmin, '_blank');
+        }, 2000);
+        
+        mostrarMensaje("Pedido procesado. Notificaciones enviadas automáticamente.");
+      }
+    } catch (error) {
+      console.error("Error en notificaciones automáticas:", error);
+      mostrarMensaje("Pedido procesado, pero hubo un error en las notificaciones.", 'error');
+    }
+  }, [administradors, mostrarMensaje]);
+
+  // ========================
+  // PROCESAMIENTO DEL PEDIDO
+  // ========================
   const handleSubmitPedido = useCallback(async (e) => {
     e.preventDefault();
     
@@ -346,7 +434,7 @@ const Carrito = () => {
     setLoading(true);
     
     try {
-      // Verificar stock una vez más
+      // Verificar stock final
       const stockErrors = [];
       for (const producto of carrito) {
         const stockCheck = checkStock(producto.ID_Producto, producto.cantidad);
@@ -360,16 +448,16 @@ const Carrito = () => {
         return;
       }
 
+      // Crear pedido
       const nuevoPedido = {
         ...pedidoData,
         ID_Cliente: clienteSeleccionado.ID_Cliente
       };
       
-      // Guardar pedido
       const pedidoCreado = await addPedido(nuevoPedido);
       const idPedido = pedidoCreado.ID_Pedido || pedidoCreado;
       
-      // Guardar detalles y actualizar stock
+      // Procesar detalles del pedido
       let subtotalTotal = 0;
       const detallesPedido = [];
       
@@ -392,7 +480,7 @@ const Carrito = () => {
         await decreaseStock(producto.ID_Producto, producto.cantidad);
       }
       
-      // Generar factura
+      // Crear factura
       const nuevaFactura = {
         ID_Pedido: idPedido,
         ID_Cliente: clienteSeleccionado.ID_Cliente,
@@ -407,66 +495,44 @@ const Carrito = () => {
       const estadoEnProceso = estadoPedidos.find(estado => estado.Estado === 'En Proceso');
       const idEstadoEnProceso = estadoEnProceso ? estadoEnProceso.ID_EstadoPedido : 1;
       
-      const fechaActual = new Date();
       const historialData = {
         ID_EstadoPedido: idEstadoEnProceso,
         ID_Pedido: idPedido,
-        Fecha: fechaActual.toISOString()
+        Fecha: new Date().toISOString()
       };
       
       await addHistorialEstado(historialData);
 
-      // CAMBIO: Preparar datos para PDF en el formato correcto
+      // Preparar datos para notificaciones
       const datosFactura = {
-      pedido: {
-        ID_Pedido: idPedido,
-        Fecha_Pedido: pedidoData.Fecha_Pedido,
-        Fecha_Entrega: pedidoData.Fecha_Entrega,
-        Observaciones: pedidoData.Observaciones
-      },
-      cliente: clienteSeleccionado,
-      detalles: detallesPedido.map(detalle => ({
-        ...detalle,
-        // Asegurar que los valores numéricos sean números
-        Cantidad: Number(detalle.Cantidad) || 0,
-        Precio_Unitario: Number(detalle.Precio_Unitario) || 0,
-        Subtotal: Number(detalle.Subtotal) || 0,
-        Descuento: Number(detalle.Descuento) || 0
-      })),
-      factura: {
-        ...nuevaFactura,
-        ID_Factura: idFactura,
-        Monto_Total: Number(subtotalTotal) || 0
-      },
-      total: Number(subtotalTotal) || 0
-    };
-
-      setUltimoPedidoCreado(datosFactura);
+        pedido: {
+          ID_Pedido: idPedido,
+          Fecha_Pedido: pedidoData.Fecha_Pedido,
+          Fecha_Entrega: pedidoData.Fecha_Entrega,
+          Observaciones: pedidoData.Observaciones
+        },
+        cliente: clienteSeleccionado,
+        detalles: detallesPedido.map(detalle => ({
+          ...detalle,
+          Cantidad: Number(detalle.Cantidad) || 0,
+          Precio_Unitario: Number(detalle.Precio_Unitario) || 0,
+          Subtotal: Number(detalle.Subtotal) || 0,
+          Descuento: Number(detalle.Descuento) || 0
+        })),
+        factura: {
+          ...nuevaFactura,
+          ID_Factura: idFactura,
+          Monto_Total: Number(subtotalTotal) || 0
+        },
+        total: Number(subtotalTotal) || 0
+      };
       
       // Limpiar estado
       resetearFormularios();
       limpiarCarrito();
       
-      mostrarMensaje("Pedido procesado exitosamente");
-      
-      // Preguntar si desea generar PDF
-      setTimeout(() => {
-        const generarPDF = confirm("¿Desea generar y descargar la boleta en PDF?");
-        if (generarPDF) {
-          generarBoletaPDF(datosFactura);
-        }
-        
-        // NUEVO: Preguntar si desea enviar PDF al cliente
-        const enviarPDFCliente = confirm("¿Desea enviar la boleta PDF al cliente por WhatsApp?");
-        if (enviarPDFCliente) {
-          enviarPDFWhatsAppCliente(datosFactura);
-        }
-        
-        const enviarWhatsApp = confirm("¿Desea enviar el pedido por WhatsApp al administrador?");
-        if (enviarWhatsApp) {
-          enviarWhatsAppAdmin(datosFactura);
-        }
-      }, 1000);
+      // Enviar notificaciones automáticamente
+      await enviarNotificacionesAutomaticas(datosFactura);
       
     } catch (error) {
       mostrarMensaje("Error al procesar el pedido.", 'error');
@@ -474,169 +540,11 @@ const Carrito = () => {
     } finally {
       setLoading(false);
     }
-  }, [pedidoData, clienteSeleccionado, carrito, validarFormularioPedido, addPedido, addDetallePedido, addFactura, addHistorialEstado, estadoPedidos, checkStock, decreaseStock, mostrarMensaje]);
+  }, [pedidoData, clienteSeleccionado, carrito, validarFormularioPedido, addPedido, addDetallePedido, addFactura, addHistorialEstado, estadoPedidos, checkStock, decreaseStock, resetearFormularios, limpiarCarrito, enviarNotificacionesAutomaticas, mostrarMensaje]);
 
-  
-  // CAMBIO: Función para generar PDF actualizada
-  const generarBoletaPDF = useCallback(async (datosFactura = ultimoPedidoCreado) => {
-    if (!datosFactura) {
-      mostrarMensaje("No hay datos de factura para generar PDF", 'error');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      // Usar la nueva función de PDF con los datos en el formato correcto
-      const resultado = generateFacturaPDF(datosFactura);
-      
-      if (resultado.success) {
-        mostrarMensaje(`Boleta PDF generada: ${resultado.filename}`);
-        return resultado; // Devolver el resultado para uso posterior
-      } else {
-        throw new Error('Error al generar PDF');
-      }
-      
-    } catch (error) {
-      mostrarMensaje("Error al generar la boleta PDF", 'error');
-      console.error("Error al generar PDF:", error);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [ultimoPedidoCreado, mostrarMensaje]);
-
-  // NUEVA FUNCIÓN: Enviar PDF al cliente por WhatsApp
-  const enviarPDFWhatsAppCliente = useCallback(async (datosFactura = ultimoPedidoCreado) => {
-    if (!datosFactura || !datosFactura.cliente) {
-      mostrarMensaje("No hay datos del cliente para enviar PDF", 'error');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      // Primero generar el PDF si no existe
-      const resultadoPDF = await generarBoletaPDF(datosFactura);
-      
-      if (!resultadoPDF || !resultadoPDF.success) {
-        mostrarMensaje("Error al generar PDF para envío", 'error');
-        return;
-      }
-
-      const cliente = datosFactura.cliente;
-      const numeroCliente = cliente.NumCelular.toString();
-      
-      // Crear mensaje personalizado para el cliente
-      const productos = datosFactura.detalles.map(detalle => 
-        `• ${detalle.Nombre_Producto} x${detalle.Cantidad} - $${detalle.Subtotal.toFixed(2)}`
-      ).join('\n');
-      
-      const fechaEntrega = new Date(datosFactura.pedido.Fecha_Entrega).toLocaleDateString('es-ES');
-      
-      const mensajeCliente = `🎉 ¡Hola ${cliente.Nombre}!
-
-  ✅ Tu pedido #${datosFactura.pedido.ID_Pedido} ha sido confirmado exitosamente.
-  
-  📋 DETALLES DEL PEDIDO:
-  ${productos}
-  
-  💰 Total: $${datosFactura.total.toFixed(2)}
-  📅 Fecha de entrega: ${fechaEntrega}
-  ${datosFactura.pedido.Observaciones ? `📝 Observaciones: ${datosFactura.pedido.Observaciones}` : ''}
-  
-  📄 Adjunto encontrarás tu boleta de compra en PDF.
-  
-  ¡Gracias por tu preferencia! 😊
-  
-  Para cualquier consulta, no dudes en contactarnos.`;
-  
-        // Nota: En un entorno real, aquí podrías usar una API de WhatsApp Business
-        // para enviar el PDF como archivo adjunto. Por ahora, enviamos el mensaje
-        // con instrucciones para descargar el PDF
-        
-    const mensajeFinal = `${mensajeCliente}
-  
-  📎 IMPORTANTE: Para descargar tu boleta PDF, solicítala al administrador o descárgala desde nuestro sistema.
-  
-  PDF generado: ${resultadoPDF.filename}`;
-      
-      const numeroClienteEnvio = `51${numeroCliente}` ;
-      console.log("este es el numero: "+numeroClienteEnvio)
-      const mensajeCodificado = encodeURIComponent(mensajeFinal);
-      const urlWhatsAppCliente = `https://wa.me/${numeroClienteEnvio}?text=${mensajeCodificado}`;
-      
-      window.open(urlWhatsAppCliente, '_blank');
-      mostrarMensaje(`Mensaje enviado al cliente: ${cliente.Nombre} ${cliente.Apellido}`);
-      
-    } catch (error) {
-      mostrarMensaje("Error al enviar PDF al cliente", 'error');
-      console.error("Error al enviar PDF al cliente:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [ultimoPedidoCreado, generarBoletaPDF, mostrarMensaje]);
-
-  // WhatsApp mejorado para administrador
-  const enviarWhatsAppAdmin = useCallback((datosFactura = null) => {
-    if (carrito.length === 0 && !datosFactura) {
-      mostrarMensaje("El carrito está vacío", 'error');
-      return;
-    }
-    
-    const datos = datosFactura || {
-      pedido: { Fecha_Entrega: pedidoData.Fecha_Entrega },
-      cliente: clienteSeleccionado,
-      detalles: carrito.map(p => ({
-        Nombre_Producto: p.Nombre_Producto,
-        Cantidad: Number(p.cantidad) || 0,
-        Precio_Unitario: Number(p.Precio_Final) || 0,
-        Subtotal: (Number(p.cantidad) || 0) * (Number(p.Precio_Final) || 0) * (1 - (Number(p.Descuento) || 0) / 100)
-      })),
-      total: Number(totalCarrito) || 0
-    };
-    
-    const productos = datos.detalles.map(detalle => 
-      `- ${detalle.Nombre_Producto} (Cant: ${detalle.Cantidad}, Precio: $${detalle.Precio_Unitario})`
-    ).join('\n');
-    
-    const cliente = datos.cliente ? 
-      `${datos.cliente.Nombre} ${datos.cliente.Apellido}` : 
-      'Cliente no identificado';
-    const telefono = datos.cliente ? datos.cliente.NumCelular : 'No disponible';
-    const observaciones = datos.pedido.Observaciones ? 
-      `\n📝 Observaciones: ${datos.pedido.Observaciones}` : '';
-    
-    const mensaje = `📋 NUEVO PEDIDO ${datos.pedido.ID_Pedido ? `#${datos.pedido.ID_Pedido}` : ''}\n\n👤 Cliente: ${cliente}\n📱 Teléfono: ${telefono}\n\n🛍️ Productos:\n${productos}\n\n💰 Total: $${datos.total.toFixed(2)}\n📅 Fecha de entrega: ${datos.pedido.Fecha_Entrega || 'Por definir'}${observaciones}`;
-
-    const numeroAdmin = administradors.length > 0 ? administradors[0].NumAdministrador : '51987654321';
-    const mensajeCodificado = encodeURIComponent(mensaje);
-    const urlWhatsApp = `https://wa.me/${numeroAdmin}?text=${mensajeCodificado}`;
-    
-    window.open(urlWhatsApp, '_blank');
-    mostrarMensaje("Redirigiendo a WhatsApp del administrador...");
-  }, [carrito, pedidoData, clienteSeleccionado, totalCarrito, administradors, mostrarMensaje]);
-
-  // Funciones de utilidad
-  const resetearFormularios = useCallback(() => {
-    setClienteData({ Nombre: "", Apellido: "", NumCelular: "", Direccion: "", Email: "" });
-    setPedidoData({ 
-      ID_Cliente: "", 
-      Fecha_Pedido: new Date().toISOString().slice(0, 10), 
-      Fecha_Entrega: "", 
-      Observaciones: "" 
-    });
-    setClienteSeleccionado(null);
-    setModalActivo(null);
-    setBusquedaCliente("");
-  }, []);
-
-  const cerrarModal = useCallback(() => {
-    setModalActivo(null);
-    limpiarMensajes();
-  }, [limpiarMensajes]);
-
-  // Render del componente
+  // ========================
+  // RENDER
+  // ========================
   return (
     <div className={style.carritoContainer}>
       {/* Header */}
@@ -722,6 +630,7 @@ const Carrito = () => {
               <div className={style.subtotal}>
                 ${(producto.Precio_Final * producto.cantidad).toFixed(2)}
               </div>
+              
               <button 
                 onClick={() => eliminarProducto(index)}
                 className={style.btnEliminar}
@@ -754,41 +663,6 @@ const Carrito = () => {
             <User className={style.icon} />
             Procesar Pedido
           </button>
-        </div>
-      )}
-
-      {/* Acciones rápidas para último pedido */}
-      {ultimoPedidoCreado && (
-        <div className={style.accionesUltimoPedido}>
-          <h3>Último Pedido Procesado</h3>
-          <div className={style.botonesAccion}>
-            <button 
-              onClick={() => generarBoletaPDF()}
-              className={style.btnSecundario}
-              disabled={loading}
-            >
-              <Download className={style.icon} />
-              Descargar PDF
-            </button>
-            
-            <button 
-              onClick={() => enviarPDFWhatsAppCliente()}
-              className={style.btnSecundario}
-              disabled={loading}
-            >
-              <Send className={style.icon} />
-              Enviar PDF al Cliente
-            </button>
-            
-            <button 
-              onClick={() => enviarWhatsAppAdmin(ultimoPedidoCreado)}
-              className={style.btnSecundario}
-              disabled={loading}
-            >
-              <MessageCircle className={style.icon} />
-              Enviar a Admin
-            </button>
-          </div>
         </div>
       )}
 
@@ -901,6 +775,7 @@ const Carrito = () => {
                   onChange={handleInputChangeCliente}
                   className={style.input}
                   required
+                  autoFocus
                 />
               </div>
               
@@ -917,7 +792,7 @@ const Carrito = () => {
               </div>
               
               <div className={style.formGroup}>
-                <label>Número de Celular *</label>
+                <label>Teléfono *</label>
                 <input
                   type="tel"
                   name="NumCelular"
@@ -929,11 +804,34 @@ const Carrito = () => {
                 />
               </div>
               
-              <div className={style.modalFooter}>
+              <div className={style.formGroup}>
+                <label>Dirección</label>
+                <input
+                  type="text"
+                  name="Direccion"
+                  value={clienteData.Direccion}
+                  onChange={handleInputChangeCliente}
+                  className={style.input}
+                />
+              </div>
+              
+              <div className={style.formGroup}>
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="Email"
+                  value={clienteData.Email}
+                  onChange={handleInputChangeCliente}
+                  className={style.input}
+                />
+              </div>
+              
+              <div className={style.modalAcciones}>
                 <button 
                   type="button" 
                   onClick={cerrarModal}
                   className={style.btnSecundario}
+                  disabled={loading}
                 >
                   Cancelar
                 </button>
@@ -942,7 +840,7 @@ const Carrito = () => {
                   className={style.btnPrimario}
                   disabled={loading}
                 >
-                  {loading ? "Guardando..." : "Crear Cliente"}
+                  {loading ? 'Creando...' : 'Crear Cliente'}
                 </button>
               </div>
             </form>
@@ -957,7 +855,7 @@ const Carrito = () => {
             <div className={style.modalHeader}>
               <h3>
                 <FileText className={style.icon} />
-                Confirmar Pedido
+                Finalizar Pedido
               </h3>
               <button onClick={cerrarModal} className={style.btnCerrar}>×</button>
             </div>
@@ -969,37 +867,27 @@ const Carrito = () => {
                 <div className={style.clienteInfo}>
                   <p><strong>{clienteSeleccionado.Nombre} {clienteSeleccionado.Apellido}</strong></p>
                   <p><Phone className={style.iconSmall} /> {clienteSeleccionado.NumCelular}</p>
-                  {clienteSeleccionado.Email && (
-                    <p>📧 {clienteSeleccionado.Email}</p>
-                  )}
-                  {clienteSeleccionado.Direccion && (
-                    <p>📍 {clienteSeleccionado.Direccion}</p>
-                  )}
+                  {clienteSeleccionado.Email && <p>📧 {clienteSeleccionado.Email}</p>}
+                  {clienteSeleccionado.Direccion && <p>📍 {clienteSeleccionado.Direccion}</p>}
                 </div>
-                <button 
-                  onClick={() => setModalActivo('buscar')}
-                  className={style.btnCambiarCliente}
-                >
-                  Cambiar Cliente
-                </button>
               </div>
 
               {/* Resumen del pedido */}
               <div className={style.resumenPedido}>
                 <h4>Resumen del Pedido:</h4>
                 {carrito.map((producto, index) => (
-                  <div key={index} className={style.productoResumen}>
+                  <div key={index} className={style.resumenItem}>
                     <span>{producto.Nombre_Producto}</span>
                     <span>x{producto.cantidad}</span>
                     <span>${(producto.Precio_Final * producto.cantidad).toFixed(2)}</span>
                   </div>
                 ))}
-                <div className={style.totalResumen}>
+                <div className={style.resumenTotal}>
                   <strong>Total: ${totalCarrito.toFixed(2)}</strong>
                 </div>
               </div>
 
-              {/* Formulario de pedido */}
+              {/* Formulario del pedido */}
               <form onSubmit={handleSubmitPedido}>
                 <div className={style.formGroup}>
                   <label>Fecha de Entrega *</label>
@@ -1022,37 +910,31 @@ const Carrito = () => {
                     onChange={handleInputChangePedido}
                     className={style.textarea}
                     rows="3"
-                    placeholder="Instrucciones especiales, comentarios, etc."
+                    placeholder="Observaciones adicionales del pedido..."
                   />
                 </div>
                 
-                <div className={style.modalFooter}>
+                <div className={style.modalAcciones}>
                   <button 
                     type="button" 
                     onClick={cerrarModal}
                     className={style.btnSecundario}
+                    disabled={loading}
                   >
-                    Cancelar
+                    <Calendar className={style.icon} />
+                    Volver
                   </button>
                   <button 
                     type="submit"
                     className={style.btnPrimario}
                     disabled={loading || tieneProblemasStock}
                   >
-                    {loading ? "Procesando..." : "Confirmar Pedido"}
+                    {loading ? 'Procesando...' : 'Confirmar Pedido'}
                   </button>
                 </div>
               </form>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Loading overlay */}
-      {loading && (
-        <div className={style.loadingOverlay}>
-          <div className={style.spinner}></div>
-          <p>Procesando...</p>
         </div>
       )}
     </div>
