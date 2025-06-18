@@ -18,8 +18,10 @@ const useClienteStore = create((set)=>({
         try {
             const response = await axios.get('http://localhost:3001/clientes')
             set({clientes: response.data})
+            return response.data
         } catch (error) {
             console.log("Error fecthing clientes", error.message)
+            return []
         }
     },
     deleteCliente: async(ID_Cliente)=>{

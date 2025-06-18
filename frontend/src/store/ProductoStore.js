@@ -17,8 +17,10 @@ const useProductoStore = create((set, get)=>({
         try {
             const response = await axios.get('http://localhost:3001/productos')
             set({productos: response.data})
+            return response.data
         } catch (error) {
             console.log("Error fecthing productos", error.message)
+            return []
         }
     },
     
