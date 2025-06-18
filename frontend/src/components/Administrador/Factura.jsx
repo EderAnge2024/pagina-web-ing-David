@@ -20,7 +20,7 @@ const Factura = () => {
     const { addFactura, fetchFactura, facturas, deleteFactura, updateFactura } = useFacturaStore()
     const { clientes, fetchCliente } = useClienteStore()
     const { pedidos, fetchPedido } = usePedidoStore()
-    const { detallesPedido, fetchDetallePedido } = useDetallePedidoStore()
+    const { detallePedidos, fetchDetallePedido } = useDetallePedidoStore()
     const { productos, fetchProducto } = useProductoStore()
     
     // State management
@@ -34,52 +34,51 @@ const Factura = () => {
     // Initialize data on component mount
     useEffect(() => {
         initializeData()
+          console.log("Todas las facturas cargadas:", facturas);
     }, [])
 
-    const initializeData = async () => {
-        try {
-            setLoading(true)
-            console.log('Iniciando carga de datos...')
-            await Promise.all([
-                fetchFactura(),
-                fetchCliente(),
-                fetchPedido(),
-                fetchDetallePedido(),
-                fetchProducto()
-            ])
-            setDataLoaded(true)
-            console.log('Datos cargados exitosamente')
-        } catch (error) {
-            console.error('Error al cargar datos:', error)
-            mostrarMensaje('Error al cargar datos', 'error')
-        } finally {
-            setLoading(false)
-        }
+const initializeData = async () => {
+    try {
+        setLoading(true)
+        console.log('Iniciando carga de datos...')
+
+        const [facturas, clientes, pedidos, detalles, productos] = await Promise.all([
+            fetchFactura(),
+            fetchCliente(),
+            fetchPedido(),
+            fetchDetallePedido(),
+            fetchProducto()
+        ])
+
+        setDataLoaded(true)
+
+        console.log('Datos cargados exitosamente:')
+        console.log('Facturas:', facturas)
+        console.log('Clientes:', clientes)
+        console.log('Pedidos:', pedidos)
+        console.log('Detalles:', detalles)
+        console.log('Productos:', productos)
+
+    } catch (error) {
+        console.error('Error al cargar datos:', error)
+        mostrarMensaje('Error al cargar datos', 'error')
+    } finally {
+        setLoading(false)
     }
+}
+
 
     const mostrarMensaje = useCallback((texto, tipo = 'success') => {
         setMensaje({ texto, tipo })
         setTimeout(() => setMensaje({ texto: '', tipo: '' }), 5000)
     }, [])
 
-    // Validación corregida - maneja el caso donde detallesPedido no es array
     const validarDatosDisponibles = useCallback(() => {
-        const detallesValidos = Array.isArray(detallesPedido) || detallesPedido === null || detallesPedido === undefined
-        
-        console.log('Validando datos:', {
-            dataLoaded,
-            clientes: Array.isArray(clientes) ? clientes.length : 'No es array',
-            pedidos: Array.isArray(pedidos) ? pedidos.length : 'No es array',
-            detallesPedido: Array.isArray(detallesPedido) ? detallesPedido.length : typeof detallesPedido,
-            productos: Array.isArray(productos) ? productos.length : 'No es array'
-        })
-        
         return dataLoaded && 
-               Array.isArray(clientes) && 
-               Array.isArray(pedidos) && 
-               detallesValidos &&
-               Array.isArray(productos)
-    }, [dataLoaded, clientes, pedidos, detallesPedido, productos])
+               clientes?.length > 0 && 
+               pedidos?.length > 0 && 
+               productos?.length > 0
+    }, [dataLoaded, clientes, pedidos, productos])
 
     // Form handlers
     const handleInputChange = (e) => {
@@ -158,75 +157,161 @@ const Factura = () => {
         }
     }
 
-    // Función simplificada para obtener datos de factura
-    const obtenerDatosCompletosFactura = useCallback((factura) => {
-        if (!validarDatosDisponibles()) {
-            console.log('Datos no disponibles para obtener datos completos')
-            return null
+const obtenerDatosCompletosFactura = useCallback((factura) => {
+
+        if (!factura || !factura.ID_Cliente || !factura.ID_Pedido) {
+            console.error('Factura inválida:', factura);
+            return null;
+        }
+        console.warn("🔍 Verificando datos antes de continuar:", {
+  clientes: clientes.length,
+  pedidos: pedidos.length,
+  detallePedidos: detallePedidos.length,
+  productos: productos.length
+});
+       if (
+            !clientes.length || 
+            !pedidos.length || 
+            !detallePedidos.length || 
+            !productos.length
+        ) {
+            console.warn("🔴 Uno o más datos no están disponibles:", {
+                clientes: clientes.length,
+                pedidos: pedidos.length,
+                detallePedidos: detallePedidos.length,
+                productos: productos.length
+            });
+            return null;
         }
 
-        const cliente = clientes.find(c => c.ID_Cliente === factura.ID_Cliente)
-        const pedido = pedidos.find(p => p.ID_Pedido === factura.ID_Pedido)
+        console.log('Datos de factura recibidos:', factura)
+        console.log('Clientes disponibles:', clientes)
+        console.log('Buscando cliente con ID:', factura.ID_Cliente)
+            
+        // Datos por defecto para campos faltantes
+        const datosBase = {
+            ID_Cliente: factura.ID_Cliente || 'SIN_CLIENTE',
+            ID_Pedido: factura.ID_Pedido || 'SIN_PEDIDO',
+            ...factura
+        };
+    
+        // Conversión segura de IDs para comparación
+        const facturaClienteId = String(factura.ID_Cliente).trim()
+        const facturaPedidoId = String(factura.ID_Pedido).trim()
         
-        // Manejo seguro de detallesPedido
-        const detallesArray = Array.isArray(detallesPedido) ? detallesPedido : []
-        const detalles = detallesArray.filter(d => d.ID_Pedido === factura.ID_Pedido)
+        // Búsqueda del cliente con comparación de strings
+        const cliente = clientes.find(c => String(c.ID_Cliente).trim() === facturaClienteId)
         
-        console.log('Buscando datos para factura:', factura.ID_Factura, {
-            cliente: !!cliente,
-            pedido: !!pedido,
-            detallesCount: detalles.length,
-            detallesPedidoType: typeof detallesPedido
-        })
+        console.log('Cliente encontrado:', cliente)
         
-        const detallesConProductos = detalles.map(detalle => {
-            const producto = productos.find(p => p.ID_Producto === detalle.ID_Producto)
-            return {
-                ...detalle,
-                Nombre_Producto: producto?.Nombre_Producto || `Producto ${detalle.ID_Producto}`,
-                Precio_Unitario: parseFloat(detalle.Precio_Unitario) || 0,
-                Cantidad: parseInt(detalle.Cantidad) || 0,
-                Subtotal: parseFloat(detalle.Subtotal) || (detalle.Cantidad * detalle.Precio_Unitario) || 0
-            }
-        })
+        // Si no se encuentra el cliente, crear uno por defecto con información mínima
+        const clienteData = cliente ? {
+            ID_Cliente: cliente.ID_Cliente,
+            Nombre: cliente.Nombre || 'Cliente',
+            Apellido: cliente.Apellido || 'No especificado',
+            NumCelular: cliente.NumCelular || ''
+        } : {
+            ID_Cliente: factura.ID_Cliente,
+            Nombre: 'Cliente no encontrado',
+            Apellido: `(ID: ${factura.ID_Cliente})`,
+            NumCelular: ''
+        }
 
-        return {
+        // Búsqueda del pedido con comparación de strings
+        const pedido = pedidos.find(p => String(p.ID_Pedido).trim() === facturaPedidoId)
+        
+        const pedidoData = pedido ? {
+            ID_Pedido: pedido.ID_Pedido,
+            Fecha_Pedido: pedido.Fecha_Pedido || factura.Fecha,
+            Fecha_Entrega: pedido.Fecha_Entrega || '',
+            Observaciones: pedido.Observaciones || ''
+        } : {
+            ID_Pedido: factura.ID_Pedido || 'NUEVO',
+            Fecha_Pedido: factura.Fecha || new Date().toISOString(),
+            Fecha_Entrega: '',
+            Observaciones: 'Pedido no encontrado'
+        }
+
+        // Manejo seguro de detalles del pedido
+        const detallesArray = Array.isArray(detallePedidos) ? detallePedidos : []
+        const detalles = detallesArray.filter(d => String(d.ID_Pedido).trim() === facturaPedidoId)
+        
+        let detallesConProductos = []
+        
+        if (detalles.length > 0) {
+            detallesConProductos = detalles.map(detalle => {
+                const producto = productos.find(p => String(p.ID_Producto).trim() === String(detalle.ID_Producto).trim())
+                return {
+                    ...detalle,
+                    Nombre_Producto: producto?.Nombre_Producto || `Producto ${detalle.ID_Producto || 'N/D'}`,
+                    Precio_Unitario: parseFloat(detalle.Precio_Unitario) || 0,
+                    Cantidad: parseInt(detalle.Cantidad) || 0,
+                    Subtotal: parseFloat(detalle.Subtotal) || (parseFloat(detalle.Cantidad || 0) * parseFloat(detalle.Precio_Unitario || 0))
+                }
+            })
+        } else {
+            // Crear un detalle genérico si no hay detalles específicos
+            detallesConProductos = [{
+                ID_Detalle: 'GENERICO',
+                ID_Pedido: factura.ID_Pedido,
+                ID_Producto: 'SERVICIO',
+                Nombre_Producto: 'Producto/Servicio',
+                Cantidad: 1,
+                Precio_Unitario: parseFloat(factura.Monto_Total) || 0,
+                Subtotal: parseFloat(factura.Monto_Total) || 0
+            }]
+        }
+
+        // Formateo de fechas mejorado
+        const formatDate = (dateString) => {
+            if (!dateString) return ''
+            try {
+                const date = new Date(dateString)
+                if (isNaN(date.getTime())) return ''
+                return date.toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                })
+            } catch (error) {
+                console.error('Error al formatear fecha:', error)
+                return ''
+            }
+        }
+
+        const datosCompletos = {
             factura: {
-                ID_Factura: factura.ID_Factura,
-                Fecha: factura.Fecha,
+                ID_Factura: factura.ID_Factura || 'N/A', 
+                Fecha: formatDate(factura.Fecha) || formatDate(new Date()),
                 Monto_Total: parseFloat(factura.Monto_Total) || 0
             },
-            cliente: cliente ? {
-                Nombre: cliente.Nombre || '',
-                Apellido: cliente.Apellido || '',
-                NumCelular: cliente.NumCelular || '',
-                Email: cliente.Email || '',
-                Direccion: cliente.Direccion || ''
-            } : null,
-            pedido: pedido ? {
-                ID_Pedido: pedido.ID_Pedido,
-                Fecha_Pedido: pedido.Fecha_Pedido ? new Date(pedido.Fecha_Pedido).toLocaleDateString('es-ES') : '',
-                Fecha_Entrega: pedido.Fecha_Entrega ? new Date(pedido.Fecha_Entrega).toLocaleDateString('es-ES') : '',
-                Observaciones: pedido.Observaciones || ''
-            } : null,
+            cliente: clienteData,
+            pedido: {
+                ...pedidoData,
+                Fecha_Pedido: formatDate(pedidoData.Fecha_Pedido),
+                Fecha_Entrega: formatDate(pedidoData.Fecha_Entrega)
+            },
             detalles: detallesConProductos,
             total: parseFloat(factura.Monto_Total) || 0
         }
-    }, [validarDatosDisponibles, clientes, pedidos, detallesPedido, productos])
+
+        console.log('Datos completos generados:', datosCompletos)
+        return datosCompletos
+
+    }, [validarDatosDisponibles, clientes, pedidos, detallePedidos, productos])
 
     const obtenerNombreCliente = useCallback((ID_Cliente) => {
         if (!Array.isArray(clientes)) return 'Cargando...'
-        const cliente = clientes.find(c => c.ID_Cliente === ID_Cliente)
-        return cliente ? `${cliente.Nombre} ${cliente.Apellido}` : 'Cliente no encontrado'
+        const cliente = clientes.find(c => String(c.ID_Cliente).trim() === String(ID_Cliente).trim())
+        return cliente ? `${cliente.Nombre} ${cliente.Apellido}` : `Cliente #${ID_Cliente}`
     }, [clientes])
-
+    
     const obtenerTelefonoCliente = useCallback((ID_Cliente) => {
         if (!Array.isArray(clientes)) return null
-        const cliente = clientes.find(c => c.ID_Cliente === ID_Cliente)
+        const cliente = clientes.find(c => String(c.ID_Cliente).trim() === String(ID_Cliente).trim())
         return cliente?.NumCelular || null
     }, [clientes])
-
-    // Función mejorada para generar y descargar PDF directamente
+    
     const generarYDescargarPDF = async (factura) => {
         console.log('Intentando generar PDF para factura:', factura)
         
@@ -235,48 +320,25 @@ const Factura = () => {
             mostrarMensaje("Los datos aún se están cargando", 'error')
             return
         }
-
+        if (!factura.ID_Cliente || !factura.ID_Pedido) {
+            console.error("Factura incompleta, falta ID_Cliente o ID_Pedido:", factura);
+            return;
+        }
         try {
             setLoading(true)
             mostrarMensaje("Generando PDF...", 'info')
             
-            const datosCompletos = obtenerDatosCompletosFactura(factura)
+            const datosCompletos = await obtenerDatosCompletosFactura(factura)
             console.log('Datos completos obtenidos:', datosCompletos)
             
             if (!datosCompletos) {
                 throw new Error('No se pudieron obtener los datos completos de la factura')
             }
             
-            // Generar PDF incluso sin detalles completos
-            if (!datosCompletos.cliente) {
-                console.warn('Cliente no encontrado, usando datos básicos')
-                datosCompletos.cliente = {
-                    Nombre: 'Cliente',
-                    Apellido: `#${factura.ID_Cliente}`,
-                    NumCelular: '',
-                    Email: '',
-                    Direccion: ''
-                }
-            }
 
-            if (!datosCompletos.pedido) {
-                console.warn('Pedido no encontrado, usando datos básicos')
-                datosCompletos.pedido = {
-                    ID_Pedido: factura.ID_Pedido,
-                    Fecha_Pedido: new Date(factura.Fecha).toLocaleDateString('es-ES'),
-                    Fecha_Entrega: '',
-                    Observaciones: ''
-                }
-            }
-
-            if (!datosCompletos.detalles?.length) {
-                console.warn('Detalles no encontrados, usando datos básicos')
-                datosCompletos.detalles = [{
-                    Nombre_Producto: 'Producto/Servicio',
-                    Cantidad: 1,
-                    Precio_Unitario: datosCompletos.total,
-                    Subtotal: datosCompletos.total
-                }]
+            // Verificar que los datos esenciales estén presentes
+            if (!datosCompletos.cliente || !datosCompletos.factura) {
+                throw new Error('Datos de cliente o factura incompletos')
             }
 
             // Llamar al generador de PDF
@@ -315,7 +377,6 @@ const Factura = () => {
         }
     }
 
-    // Función simplificada para enviar por WhatsApp
     const enviarPorWhatsApp = async (factura) => {
         if (!validarDatosDisponibles()) {
             mostrarMensaje("Los datos aún se están cargando", 'error')
@@ -325,8 +386,8 @@ const Factura = () => {
         try {
             const datosCompletos = obtenerDatosCompletosFactura(factura)
             
-            if (!datosCompletos?.cliente) {
-                mostrarMensaje("No se encontraron datos del cliente", 'error')
+            if (!datosCompletos) {
+                mostrarMensaje("No se pudieron obtener los datos completos de la factura", 'error')
                 return
             }
 
@@ -385,7 +446,9 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
     }
 
     // Render functions
-    const renderFacturaCard = (factura) => (
+    const renderFacturaCard = (factura) => {
+        console.log("Recibida en generarYDescargarPDF:", factura);
+        return(
         <div key={factura.ID_Factura} className={styles.facturaCard}>
             <div className={styles.facturaInfo}>
                 <div className={styles.facturaHeader}>
@@ -449,7 +512,7 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
                 </button>
             </div>
         </div>
-    )
+    )}
 
     const renderViewModal = () => {
         if (!viewingFactura) return null
@@ -473,34 +536,24 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
                         {/* Cliente */}
                         <div className={styles.seccion}>
                             <h4>Cliente</h4>
-                            {viewingFactura.cliente ? (
-                                <div>
-                                    <p><strong>{viewingFactura.cliente.Nombre} {viewingFactura.cliente.Apellido}</strong></p>
-                                    <p><Phone size={14} /> {viewingFactura.cliente.NumCelular}</p>
-                                    {viewingFactura.cliente.Email && <p>📧 {viewingFactura.cliente.Email}</p>}
-                                    {viewingFactura.cliente.Direccion && <p>📍 {viewingFactura.cliente.Direccion}</p>}
-                                </div>
-                            ) : (
-                                <p>Cliente no encontrado</p>
-                            )}
+                            <div>
+                                <p><strong>{viewingFactura.cliente.Nombre} {viewingFactura.cliente.Apellido}</strong></p>
+                                {viewingFactura.cliente.NumCelular && <p><Phone size={14} /> {viewingFactura.cliente.NumCelular}</p>}
+                            </div>
                         </div>
 
                         {/* Pedido */}
                         <div className={styles.seccion}>
-                            <h4>Pedido #{viewingFactura.pedido?.ID_Pedido}</h4>
-                            {viewingFactura.pedido ? (
-                                <div>
-                                    <p>Fecha del pedido: {viewingFactura.pedido.Fecha_Pedido}</p>
-                                    {viewingFactura.pedido.Fecha_Entrega && (
-                                        <p>Fecha de entrega: {viewingFactura.pedido.Fecha_Entrega}</p>
-                                    )}
-                                    {viewingFactura.pedido.Observaciones && (
-                                        <p>Observaciones: {viewingFactura.pedido.Observaciones}</p>
-                                    )}
-                                </div>
-                            ) : (
-                                <p>Información del pedido no encontrada</p>
-                            )}
+                            <h4>Pedido #{viewingFactura.pedido.ID_Pedido}</h4>
+                            <div>
+                                <p>Fecha del pedido: {viewingFactura.pedido.Fecha_Pedido}</p>
+                                {viewingFactura.pedido.Fecha_Entrega && (
+                                    <p>Fecha de entrega: {viewingFactura.pedido.Fecha_Entrega}</p>
+                                )}
+                                {viewingFactura.pedido.Observaciones && (
+                                    <p>Observaciones: {viewingFactura.pedido.Observaciones}</p>
+                                )}
+                            </div>
                         </div>
 
                         {/* Productos */}
@@ -512,8 +565,8 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
                                         <div key={index} className={styles.productoDetalle}>
                                             <span className={styles.nombreProducto}>{detalle.Nombre_Producto}</span>
                                             <span>Cantidad: {detalle.Cantidad}</span>
-                                            <span>Precio: ${detalle.Precio_Unitario}</span>
-                                            <span>Subtotal: ${detalle.Subtotal}</span>
+                                            <span>Precio: ${detalle.Precio_Unitario.toFixed(2)}</span>
+                                            <span>Subtotal: ${detalle.Subtotal.toFixed(2)}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -528,23 +581,17 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
 
                         {/* Acciones del modal */}
                         <div className={styles.accionesModal}>
-                            <button 
-                                onClick={() => generarYDescargarPDF(viewingFactura.factura)}
-                                className={`${styles.button} ${styles.pdfButton}`}
-                                disabled={loading}
-                            >
-                                <Download size={16} />
-                                Descargar PDF
-                            </button>
-                            
-                            <button 
-                                onClick={() => enviarPorWhatsApp(viewingFactura.factura)}
-                                className={`${styles.button} ${styles.whatsappButton}`}
-                                disabled={loading}
-                            >
-                                <Send size={16} />
-                                Enviar WhatsApp
-                            </button>
+
+                            {viewingFactura.cliente.NumCelular && (
+                                <button 
+                                    onClick={() => enviarPorWhatsApp(viewingFactura.factura)}
+                                    className={`${styles.button} ${styles.whatsappButton}`}
+                                    disabled={loading}
+                                >
+                                    <Send size={16} />
+                                    Enviar WhatsApp
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -17,8 +17,10 @@ const usePedidoStore = create((set)=>({
         try {
             const response = await axios.get('http://localhost:3001/pedidos')
             set({pedidos: response.data})
+            return response.data
         } catch (error) {
             console.log("Error fecthing pedidos", error.message)
+            return []
         }
     },
     deletePedido: async(ID_Pedido)=>{
