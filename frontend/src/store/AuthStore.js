@@ -37,7 +37,7 @@ const useAuthStore = create(
         }
         
         // Verificar tiempo de sesión (ejemplo: 24 horas)
-        const SESSION_DURATION = 3 * 60 * 1000; // 24 horas en milisegundos
+        const SESSION_DURATION = 5 * 60 * 1000; // 24 horas en milisegundos
         if (loginTime && Date.now() - loginTime > SESSION_DURATION) {
           set({ user: null, token: null, isAuthenticated: false, loginTime: null });
           return false;
