@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { 
-  ShoppingCart, Phone, Trash2, Plus, Minus, 
-  AlertTriangle, FileText, MapPin, Mail, User
+  ShoppingCart, User, Calendar, Phone, Trash2, Plus, Minus, 
+  UserCheck, AlertTriangle, FileText
 } from "lucide-react";
 import style from './Carrito.module.css';
 import { generateFacturaPDF } from "../../store/generadorFacturasPdf";
@@ -30,15 +30,18 @@ const Carrito = () => {
   const [stockWarnings, setStockWarnings] = useState([]);
   
   // Estados de UI
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [modalActivo, setModalActivo] = useState(null); // 'cliente', 'pedido'
   
-  // Estados de formulario del cliente (usuario final)
-  const [datosCliente, setDatosCliente] = useState({
+  // Estados de formularios
+  const [clienteData, setClienteData] = useState({
     Nombre: "",
     Apellido: "",
-    NumCelular: "",
-    Direccion: "",
-    Email: "",
+    NumCelular: ""
+  });
+  
+  const [pedidoData, setPedidoData] = useState({
+    ID_Cliente: "",
+    Fecha_Pedido: "",
     Fecha_Entrega: "",
     Observaciones: ""
   });
@@ -46,7 +49,15 @@ const Carrito = () => {
   // ========================
   // HOOKS DE STORES
   // ========================
-  const { addCliente } = useClienteStore();
+  const { 
+    addCliente, 
+    clientes, 
+    fetchCliente, 
+    clienteActual,
+    verificarClienteAutenticado,
+    logoutCliente
+  } = useClienteStore();
+  
   const { addPedido } = usePedidoStore();
   const { addDetallePedido } = useDetallePedidoStore();
   const { addFactura } = useFacturaStore();
@@ -78,18 +89,28 @@ const Carrito = () => {
   const initializeComponent = useCallback(async () => {
     try {
       const hoy = new Date().toISOString().slice(0, 10);
-      setDatosCliente(prev => ({ ...prev, Fecha_Entrega: hoy }));
+      setPedidoData(prev => ({ ...prev, Fecha_Pedido: hoy }));
       
       await Promise.all([
         fetchEstadoPedido(),
         fetchAdministrador(),
-        fetchProducto()
+        fetchProducto(),
+        fetchCliente(),
+        verificarClienteAutenticado()
       ]);
+
+      // Si hay cliente actual, configuramos el pedido
+      if (clienteActual) {
+        setPedidoData(prev => ({ 
+          ...prev, 
+          ID_Cliente: clienteActual.ID_Cliente 
+        }));
+      }
     } catch (error) {
       setError("Error al inicializar el componente");
       console.error("Error:", error);
     }
-  }, [fetchEstadoPedido, fetchAdministrador, fetchProducto]);
+  }, [fetchEstadoPedido, fetchAdministrador, fetchProducto, fetchCliente, verificarClienteAutenticado, clienteActual]);
 
   // ========================
   // VERIFICACIÓN DE STOCK
@@ -148,18 +169,21 @@ const Carrito = () => {
     setSuccess("");
   }, []);
 
-  const resetearFormulario = useCallback(() => {
-    setDatosCliente({ 
-      Nombre: "", 
-      Apellido: "", 
-      NumCelular: "", 
-      Direccion: "", 
-      Email: "",
-      Fecha_Entrega: new Date().toISOString().slice(0, 10), 
+  const resetearFormularios = useCallback(() => {
+    setClienteData({ Nombre: "", Apellido: "", NumCelular: "" });
+    setPedidoData({ 
+      ID_Cliente: "", 
+      Fecha_Pedido: new Date().toISOString().slice(0, 10), 
+      Fecha_Entrega: "", 
       Observaciones: "" 
     });
-    setMostrarFormulario(false);
+    setModalActivo(null);
   }, []);
+
+  const cerrarModal = useCallback(() => {
+    setModalActivo(null);
+    limpiarMensajes();
+  }, [limpiarMensajes]);
 
   // ========================
   // GESTIÓN DEL CARRITO
@@ -190,10 +214,31 @@ const Carrito = () => {
   }, [mostrarMensaje]);
 
   // ========================
+  // GESTIÓN DE CLIENTES
+  // ========================
+  const seleccionarCliente = useCallback((cliente) => {
+    setPedidoData(prev => ({
+      ...prev,
+      ID_Cliente: cliente.ID_Cliente
+    }));
+    setModalActivo('pedido');
+    limpiarMensajes();
+  }, [limpiarMensajes]);
+
+  const abrirFormularioCliente = useCallback(() => {
+    setClienteData({
+      Nombre: "",
+      Apellido: "",
+      NumCelular: ""
+    });
+    setModalActivo('cliente');
+  }, []);
+
+  // ========================
   // VALIDACIONES
   // ========================
-  const validarFormulario = useCallback(() => {
-    const { Nombre, Apellido, NumCelular, Fecha_Entrega } = datosCliente;
+  const validarFormularioCliente = useCallback(() => {
+    const { Nombre, Apellido, NumCelular } = clienteData;
     
     if (!Nombre.trim()) {
       mostrarMensaje("El nombre es obligatorio", 'error');
@@ -215,12 +260,22 @@ const Carrito = () => {
       return false;
     }
 
-    if (!Fecha_Entrega) {
+    const clienteExistente = clientes.find(c => c.NumCelular === Number(NumCelular));
+    if (clienteExistente) {
+      mostrarMensaje("Ya existe un cliente con este número de celular", 'error');
+      return false;
+    }
+    
+    return true;
+  }, [clienteData, clientes, mostrarMensaje]);
+
+  const validarFormularioPedido = useCallback(() => {
+    if (!pedidoData.Fecha_Entrega) {
       mostrarMensaje("La fecha de entrega es obligatoria", 'error');
       return false;
     }
     
-    const fechaEntrega = new Date(Fecha_Entrega);
+    const fechaEntrega = new Date(pedidoData.Fecha_Entrega);
     const fechaActual = new Date();
     fechaActual.setHours(0, 0, 0, 0);
     
@@ -235,16 +290,51 @@ const Carrito = () => {
     }
     
     return true;
-  }, [datosCliente, tieneProblemasStock, mostrarMensaje]);
+  }, [pedidoData, tieneProblemasStock, mostrarMensaje]);
 
   // ========================
   // MANEJO DE FORMULARIOS
   // ========================
-  const handleInputChange = useCallback((e) => {
+  const handleInputChangeCliente = useCallback((e) => {
     const { name, value } = e.target;
-    setDatosCliente(prev => ({ ...prev, [name]: value }));
+    setClienteData(prev => ({ ...prev, [name]: value }));
     limpiarMensajes();
   }, [limpiarMensajes]);
+
+  const handleInputChangePedido = useCallback((e) => {
+    const { name, value } = e.target;
+    setPedidoData(prev => ({ ...prev, [name]: value }));
+    limpiarMensajes();
+  }, [limpiarMensajes]);
+
+  const handleSubmitCliente = useCallback(async (e) => {
+    e.preventDefault();
+
+    if (!validarFormularioCliente()) return;
+
+    setLoading(true);
+
+    try {
+      const clienteParaGuardar = {
+        Nombre: clienteData.Nombre.trim(),
+        Apellido: clienteData.Apellido.trim(),
+        NumCelular: Number(clienteData.NumCelular),
+        createdAt: new Date().toISOString()
+      };
+
+      const clienteCreado = await addCliente(clienteParaGuardar);
+
+      setClienteData({ Nombre: "", Apellido: "", NumCelular: "" });
+      seleccionarCliente(clienteCreado);
+      mostrarMensaje("Cliente creado exitosamente");
+
+    } catch (error) {
+      mostrarMensaje("Error al crear cliente. Intente nuevamente.", 'error');
+      console.error("Error al agregar cliente:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [clienteData, validarFormularioCliente, addCliente, seleccionarCliente, mostrarMensaje]);
 
   // ========================
   // FUNCIONES DE NOTIFICACIÓN AUTOMÁTICA
@@ -308,7 +398,7 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
           window.open(urlWhatsAppAdmin, '_blank');
         }, 2000);
         
-        mostrarMensaje("¡Pedido realizado exitosamente! Te contactaremos pronto.");
+        mostrarMensaje("Pedido procesado. Notificaciones enviadas automáticamente.");
       }
     } catch (error) {
       console.error("Error en notificaciones automáticas:", error);
@@ -322,7 +412,11 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
   const handleSubmitPedido = useCallback(async (e) => {
     e.preventDefault();
     
-    if (!validarFormulario()) return;
+    if (!validarFormularioPedido()) return;
+    if (!clienteActual) {
+      mostrarMensaje("No hay cliente seleccionado.", 'error');
+      return;
+    }
     
     setLoading(true);
     
@@ -341,29 +435,14 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
         return;
       }
 
-      // Crear cliente
-      const clienteParaGuardar = {
-        Nombre: datosCliente.Nombre.trim(),
-        Apellido: datosCliente.Apellido.trim(),
-        NumCelular: Number(datosCliente.NumCelular),
-        Direccion: datosCliente.Direccion.trim(),
-        Email: datosCliente.Email.trim(),
-        createdAt: new Date().toISOString()
-      };
-      
-      const clienteCreado = await addCliente(clienteParaGuardar);
-      const idCliente = clienteCreado.ID_Cliente || clienteCreado.id || clienteCreado;
-
       // Crear pedido
       const nuevoPedido = {
-        ID_Cliente: idCliente,
-        Fecha_Pedido: new Date().toISOString().slice(0, 10),
-        Fecha_Entrega: datosCliente.Fecha_Entrega,
-        Observaciones: datosCliente.Observaciones
+        ...pedidoData,
+        ID_Cliente: clienteActual.ID_Cliente
       };
       
       const pedidoCreado = await addPedido(nuevoPedido);
-      const idPedido = pedidoCreado.ID_Pedido || pedidoCreado.id || pedidoCreado;
+      const idPedido = pedidoCreado.ID_Pedido || pedidoCreado;
       
       // Procesar detalles del pedido
       let subtotalTotal = 0;
@@ -391,7 +470,7 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
       // Crear factura
       const nuevaFactura = {
         ID_Pedido: idPedido,
-        ID_Cliente: idCliente,
+        ID_Cliente: clienteActual.ID_Cliente,
         Fecha: new Date().toISOString().slice(0, 10),
         Monto_Total: subtotalTotal
       };
@@ -415,14 +494,11 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
       const datosFactura = {
         pedido: {
           ID_Pedido: idPedido,
-          Fecha_Pedido: nuevoPedido.Fecha_Pedido,
-          Fecha_Entrega: nuevoPedido.Fecha_Entrega,
-          Observaciones: nuevoPedido.Observaciones
+          Fecha_Pedido: pedidoData.Fecha_Pedido,
+          Fecha_Entrega: pedidoData.Fecha_Entrega,
+          Observaciones: pedidoData.Observaciones
         },
-        cliente: {
-          ...clienteParaGuardar,
-          ID_Cliente: idCliente
-        },
+        cliente: clienteActual,
         detalles: detallesPedido.map(detalle => ({
           ...detalle,
           Cantidad: Number(detalle.Cantidad) || 0,
@@ -439,19 +515,19 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
       };
       
       // Limpiar estado
-      resetearFormulario();
+      resetearFormularios();
       limpiarCarrito();
       
       // Enviar notificaciones automáticamente
       await enviarNotificacionesAutomaticas(datosFactura);
       
     } catch (error) {
-      mostrarMensaje("Error al procesar el pedido. Por favor intenta nuevamente.", 'error');
+      mostrarMensaje("Error al procesar el pedido.", 'error');
       console.error("Error al guardar pedido:", error);
     } finally {
       setLoading(false);
     }
-  }, [datosCliente, carrito, validarFormulario, addCliente, addPedido, addDetallePedido, addFactura, addHistorialEstado, estadoPedidos, checkStock, decreaseStock, resetearFormulario, limpiarCarrito, enviarNotificacionesAutomaticas, mostrarMensaje]);
+  }, [pedidoData, clienteActual, carrito, validarFormularioPedido, addPedido, addDetallePedido, addFactura, addHistorialEstado, estadoPedidos, checkStock, decreaseStock, resetearFormularios, limpiarCarrito, enviarNotificacionesAutomaticas, mostrarMensaje]);
 
   // ========================
   // RENDER
@@ -462,7 +538,7 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
       <div className={style.carritoHeader}>
         <h2>
           <ShoppingCart className={style.icon} />
-          Mi Carrito
+          Carrito de Compras
         </h2>
         <div className={style.carritoInfo}>
           <span className={style.cantidadTotal}>
@@ -488,14 +564,31 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
         </div>
       )}
 
+      {/* Indicador de cliente */}
+      {clienteActual && (
+        <div className={style.clienteActivo}>
+          <UserCheck size={16} />
+          <span>Cliente: {clienteActual.Nombre} {clienteActual.Apellido}</span>
+          <button 
+            onClick={() => {
+              logoutCliente();
+              mostrarMensaje("Sesión cerrada correctamente");
+            }}
+            className={style.btnCerrarSesion}
+          >
+            Cerrar Sesión
+          </button>
+        </div>
+      )}
+
       {/* Advertencias de stock */}
       {stockWarnings.length > 0 && (
         <div className={style.stockWarnings}>
-          <h4>⚠️ Productos con stock limitado:</h4>
+          <h4>⚠️ Problemas de Stock:</h4>
           {stockWarnings.map((warning, index) => (
             <div key={index} className={style.stockWarning}>
               <strong>{warning.producto}:</strong> 
-              Solo quedan {warning.disponible} unidades disponibles
+              Solicitado: {warning.solicitado}, Disponible: {warning.disponible}
             </div>
           ))}
         </div>
@@ -507,7 +600,6 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
           <div className={style.carritoVacio}>
             <ShoppingCart className={style.iconGrande} />
             <p>Tu carrito está vacío</p>
-            <p>¡Agrega algunos productos para comenzar!</p>
           </div>
         ) : (
           carrito.map((producto, index) => (
@@ -568,32 +660,114 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
           </button>
           
           <button 
-            onClick={() => setMostrarFormulario(true)}
+            onClick={clienteActual ? () => setModalActivo('pedido') : abrirFormularioCliente}
             className={style.btnPrimario}
             disabled={loading || tieneProblemasStock}
           >
-            <FileText className={style.icon} />
-            Realizar Pedido
+            <User className={style.icon} />
+            {clienteActual ? 'Continuar al Pago' : 'Registrarse y Pagar'}
           </button>
         </div>
       )}
 
-      {/* Formulario de pedido */}
-      {mostrarFormulario && (
-        <div className={style.modalOverlay} onClick={() => setMostrarFormulario(false)}>
+      {/* Modal de nuevo cliente */}
+      {modalActivo === 'cliente' && (
+        <div className={style.modalOverlay} onClick={cerrarModal}>
+          <div className={style.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={style.modalHeader}>
+              <h3>
+                <User className={style.icon} />
+                Nuevo Cliente
+              </h3>
+              <button onClick={cerrarModal} className={style.btnCerrar}>×</button>
+            </div>
+            
+            <form onSubmit={handleSubmitCliente} className={style.modalContent}>
+              <div className={style.formGroup}>
+                <label>Nombre *</label>
+                <input
+                  type="text"
+                  name="Nombre"
+                  value={clienteData.Nombre}
+                  onChange={handleInputChangeCliente}
+                  className={style.input}
+                  required
+                  autoFocus
+                />
+              </div>
+              
+              <div className={style.formGroup}>
+                <label>Apellido *</label>
+                <input
+                  type="text"
+                  name="Apellido"
+                  value={clienteData.Apellido}
+                  onChange={handleInputChangeCliente}
+                  className={style.input}
+                  required
+                />
+              </div>
+              
+              <div className={style.formGroup}>
+                <label>Teléfono *</label>
+                <input
+                  type="tel"
+                  name="NumCelular"
+                  value={clienteData.NumCelular}
+                  onChange={handleInputChangeCliente}
+                  className={style.input}
+                  placeholder="987654321"
+                  required
+                />
+              </div>
+
+              <div className={style.modalAcciones}>
+                <button 
+                  type="button" 
+                  onClick={cerrarModal}
+                  className={style.btnSecundario}
+                  disabled={loading}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  className={style.btnPrimario}
+                  disabled={loading}
+                >
+                  {loading ? 'Creando...' : 'Crear Cliente'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de pedido */}
+      {modalActivo === 'pedido' && clienteActual && (
+        <div className={style.modalOverlay} onClick={cerrarModal}>
           <div className={style.modal} onClick={(e) => e.stopPropagation()}>
             <div className={style.modalHeader}>
               <h3>
                 <FileText className={style.icon} />
-                Completar Pedido
+                Finalizar Pedido
               </h3>
-              <button onClick={() => setMostrarFormulario(false)} className={style.btnCerrar}>×</button>
+              <button onClick={cerrarModal} className={style.btnCerrar}>×</button>
             </div>
             
             <div className={style.modalContent}>
+              {/* Información del cliente */}
+              <div className={style.clienteSeleccionado}>
+                <h4>Cliente Seleccionado:</h4>
+                <div className={style.clienteInfo}>
+                  <p><strong>{clienteActual.Nombre} {clienteActual.Apellido}</strong></p>
+                  <p><Phone className={style.iconSmall} /> {clienteActual.NumCelular}</p>
+                </div>
+              </div>
+
               {/* Resumen del pedido */}
               <div className={style.resumenPedido}>
-                <h4>Resumen de tu pedido:</h4>
+                <h4>Resumen del Pedido:</h4>
                 {carrito.map((producto, index) => (
                   <div key={index} className={style.resumenItem}>
                     <span>{producto.Nombre_Producto}</span>
@@ -606,96 +780,15 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
                 </div>
               </div>
 
-              {/* Formulario de datos del cliente */}
+              {/* Formulario del pedido */}
               <form onSubmit={handleSubmitPedido}>
-                <h4>Tus datos de contacto:</h4>
-                
-                <div className={style.formRow}>
-                  <div className={style.formGroup}>
-                    <label>
-                      <User className={style.iconSmall} />
-                      Nombre *
-                    </label>
-                    <input
-                      type="text"
-                      name="Nombre"
-                      value={datosCliente.Nombre}
-                      onChange={handleInputChange}
-                      className={style.input}
-                      required
-                      autoFocus
-                    />
-                  </div>
-                  
-                  <div className={style.formGroup}>
-                    <label>
-                      <User className={style.iconSmall} />
-                      Apellido *
-                    </label>
-                    <input
-                      type="text"
-                      name="Apellido"
-                      value={datosCliente.Apellido}
-                      onChange={handleInputChange}
-                      className={style.input}
-                      required
-                    />
-                  </div>
-                </div>
-                
                 <div className={style.formGroup}>
-                  <label>
-                    <Phone className={style.iconSmall} />
-                    Teléfono *
-                  </label>
-                  <input
-                    type="tel"
-                    name="NumCelular"
-                    value={datosCliente.NumCelular}
-                    onChange={handleInputChange}
-                    className={style.input}
-                    placeholder="987654321"
-                    required
-                  />
-                </div>
-
-                <div className={style.formGroup}>
-                  <label>
-                    <Mail className={style.iconSmall} />
-                    Email (opcional)
-                  </label>
-                  <input
-                    type="email"
-                    name="Email"
-                    value={datosCliente.Email}
-                    onChange={handleInputChange}
-                    className={style.input}
-                    placeholder="tu@email.com"
-                  />
-                </div>
-                
-                <div className={style.formGroup}>
-                  <label>
-                    <MapPin className={style.iconSmall} />
-                    Dirección de entrega (opcional)
-                  </label>
-                  <input
-                    type="text"
-                    name="Direccion"
-                    value={datosCliente.Direccion}
-                    onChange={handleInputChange}
-                    className={style.input}
-                    placeholder="Calle, número, distrito"
-                  />
-                </div>
-                
-                <div className={style.formGroup}>
-                  <label>Fecha de entrega deseada *</label>
+                  <label>Fecha de Entrega *</label>
                   <input
                     type="date"
                     name="Fecha_Entrega"
-                    value={datosCliente.Fecha_Entrega}
-                    onChange={handleInputChange}
+                    value={pedidoData.Fecha_Entrega}
+                    onChange={handleInputChangePedido}
                     className={style.input}
                     min={new Date().toISOString().slice(0, 10)}
                     required
@@ -703,24 +796,25 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
                 </div>
                 
                 <div className={style.formGroup}>
-                  <label>Observaciones adicionales</label>
+                  <label>Observaciones</label>
                   <textarea
                     name="Observaciones"
-                    value={datosCliente.Observaciones}
-                    onChange={handleInputChange}
+                    value={pedidoData.Observaciones}
+                    onChange={handleInputChangePedido}
                     className={style.textarea}
                     rows="3"
-                    placeholder="Alguna indicación especial para tu pedido..."
+                    placeholder="Observaciones adicionales del pedido..."
                   />
                 </div>
                 
                 <div className={style.modalAcciones}>
                   <button 
                     type="button" 
-                    onClick={() => setMostrarFormulario(false)}
+                    onClick={cerrarModal}
                     className={style.btnSecundario}
                     disabled={loading}
                   >
+                    <Calendar className={style.icon} />
                     Volver
                   </button>
                   <button 

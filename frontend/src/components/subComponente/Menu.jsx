@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import useProductoStore from "../../store/ProductoStore";
 import useBusquedaStore from "../../store/BusquedaStore";
+import useClienteStore from "../../store/ClienteStore";
 import useCategoriaStore from "../../store/CategoriaStore";
 import styles from './Menu.module.css';
 
@@ -23,6 +24,8 @@ const Menu = () => {
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [searchHistory, setSearchHistory] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [mostrarPrecios, setMostrarPrecios] = useState(false);
+
     
     // Referencias
     const searchInputRef = useRef(null);
@@ -32,6 +35,7 @@ const Menu = () => {
     // Hooks de stores
     const { productos, fetchProducto } = useProductoStore();
     const { categorias, fetchCategoria } = useCategoriaStore();
+    const { verificarClienteAutenticado } = useClienteStore();
 
     // Efectos
     useEffect(() => {
@@ -80,6 +84,16 @@ const Menu = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useEffect(() => {
+      const verificarToken = async () => {
+        const esValido = await verificarClienteAutenticado();
+        console.log("¿Cliente autenticado?", esValido);
+        setMostrarPrecios(esValido);
+      };
+    
+      verificarToken();
+    }, [verificarClienteAutenticado]);
 
     // Memoización de productos filtrados
     const productosFiltrados = useMemo(() => {
@@ -394,9 +408,15 @@ const Menu = () => {
                     <h3 className={styles.product__name}>
                         {producto.Nombre_Producto}
                     </h3>
-                    <p className={styles.product__price}>
+                    {mostrarPrecios ? (
+                      <p className={styles.product__price}>
                         {precioFormateado}
-                    </p>
+                      </p>
+                    ) : (
+                      <p className={styles.product__price}>
+                        🔒 haz un pedido para ver precios
+                      </p>
+                    )}
                     <p className={styles.product__stock}>
                         Stock: {producto.cantidad_Disponible} unidades
                     </p>

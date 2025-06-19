@@ -3,17 +3,51 @@ import axios from 'axios'
 
 const useClienteStore = create((set)=>({
     clientes: [],
+    clienteActual: null,
+    
     addCliente: async (cliente) => {
       try {
-        const response = await axios.post('http://localhost:3001/clientes', cliente);
-        set((state) => ({ clientes: [...state.clientes, response.data] }));
-        return response.data; // <--- Aquí retornamos el cliente creado
+        const response = await axios.post('http://localhost:3001/clientes', cliente, {
+          withCredentials: true // ✅ necesario para que se envíe/reciba la cookie
+        });
+        set((state) => ({
+          clientes: [...state.clientes, response.data],
+          clienteActual: response.data // guarda al cliente logueado
+        }));
+        return response.data;
       } catch (error) {
         console.log("Error adding cliente", error.message);
-        throw error; // para que el error se propague al componente
+        throw error;
       }
     },
 
+    verificarClienteAutenticado: async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/clientes/validar-token', {
+          withCredentials: true // ✅ para enviar la cookie al backend
+        });
+        set({ clienteActual: response.data.cliente }); // guarda cliente actual
+        return true;
+      } catch (error) {
+        console.log("Cliente no autenticado:", error.message);
+        set({ clienteActual: null });
+        return false;
+      }
+    },
+    verificarClienteAutenticadoId : async () => {
+      const idCliente = localStorage.getItem("cliente_token");
+      if (!idCliente) return null;
+    
+      const { clientes, fetchCliente } = useClienteStore.getState();
+      
+      // Si aún no se ha cargado la lista de clientes, la cargamos
+      if (clientes.length === 0) {
+        await fetchCliente();
+      }
+    
+      return clientes.find(c => c.ID_Cliente === Number(idCliente)) || null;
+    },
+  
     fetchCliente: async()=>{
         try {
             const response = await axios.get('http://localhost:3001/clientes')

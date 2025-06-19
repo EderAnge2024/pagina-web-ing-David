@@ -1,13 +1,17 @@
 import { useState } from 'react'
 import useAdministradorStore from '../store/AdministradorStore'
-import styles from './AgregarAdministradorPrimer.module.css'
+import useAuthStore from '../store/AuthStore'
+import styles from './primerAdmin.module.css'
 
 const AgregarAdministradorPrimer = () => {
   const { addAdministrador } = useAdministradorStore()
+  const { logout } = useAuthStore()
+
   const [administradorData, setAdministradorData] = useState({
     Nombre_Administrador: '',
     Usuario: '',
-    Contrasena: ''
+    Contrasena: '',
+    NumAdministrador:''
   })
 
   const handleInputChange = (e) => {
@@ -26,10 +30,10 @@ const AgregarAdministradorPrimer = () => {
       setAdministradorData({ 
         Nombre_Administrador: '', 
         Usuario: '', 
-        Contrasena: '' 
+        Contrasena: '',
+        NumAdministrador:''
       })
       alert('Administrador registrado exitosamente!')
-      // Recargar la página para que App.js redirija adecuadamente
       window.location.href = '/'
     } catch (error) {
       console.error('Error al agregar administrador:', error)
@@ -38,17 +42,15 @@ const AgregarAdministradorPrimer = () => {
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <h2 className={styles.title}>Registro del Primer Administrador</h2>
-        
-        <div className={styles.infoText}>
-          Bienvenido! Por favor registre el primer administrador del sistema.
-        </div>
-        
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.formGroup}>
-            <label htmlFor="Nombre_Administrador">Nombre Completo</label>
+    <div className={styles.adminContainer}>
+      <div className={styles.adminCard}>
+        <h2 className={styles.adminTitle}>🎯 Registro del Primer Administrador</h2>
+        <p className={styles.adminSubtitle}>
+          Bienvenido! Registra al primer administrador para habilitar el sistema.
+        </p>
+        <form className={styles.adminForm} onSubmit={handleSubmit}>
+          <div className={styles.adminFormGroup}>
+            <label htmlFor="Nombre_Administrador" className={styles.adminLabel}>Nombre Completo</label>
             <input
               type="text"
               name="Nombre_Administrador"
@@ -56,10 +58,11 @@ const AgregarAdministradorPrimer = () => {
               onChange={handleInputChange}
               required
               placeholder="Ej: Juan Pérez"
+              className={styles.adminInput}
             />
           </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="Usuario">Nombre de Usuario</label>
+          <div className={styles.adminFormGroup}>
+            <label htmlFor="Usuario" className={styles.adminLabel}>Nombre de Usuario</label>
             <input
               type="text"
               name="Usuario"
@@ -67,10 +70,11 @@ const AgregarAdministradorPrimer = () => {
               onChange={handleInputChange}
               required
               placeholder="Ej: juan.admin"
+              className={styles.adminInput}
             />
           </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="Contrasena">Contraseña</label>
+          <div className={styles.adminFormGroup}>
+            <label htmlFor="Contrasena" className={styles.adminLabel}>Contraseña</label>
             <input
               type="password"
               name="Contrasena"
@@ -79,9 +83,23 @@ const AgregarAdministradorPrimer = () => {
               required
               placeholder="Mínimo 8 caracteres"
               minLength="8"
+              className={styles.adminInput}
             />
           </div>
-          <button className={styles.submitButton} type="submit">
+          <div className={styles.adminFormGroup}>
+            <label htmlFor="NumAdministrador" className={styles.adminLabel}>Telefono</label>
+            <input
+              type="text"
+              name="NumAdministrador"
+              value={administradorData.NumAdministrador}
+              onChange={handleInputChange}
+              required
+              placeholder="Mumero del Administrador"
+              minLength="9"
+              className={styles.adminInput}
+            />
+          </div>
+          <button className={styles.adminButton} type="submit">
             Registrar Administrador
           </button>
         </form>
