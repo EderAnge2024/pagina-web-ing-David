@@ -8,7 +8,8 @@ const ClienteForm = () => {
         fetchCliente, 
         clientes, 
         deleteCliente, 
-        updateCliente 
+        updateCliente, 
+        verificarClienteAutenticado,
     } = useClienteStore()
     
     const [editingCliente, setEditingCliente] = useState(null)
@@ -21,7 +22,8 @@ const ClienteForm = () => {
     // Cargar clientes al montar el componente
     useEffect(() => {
         fetchCliente()
-    }, [fetchCliente])
+        verificarClienteAutenticado()
+    }, [verificarClienteAutenticado, fetchCliente])
 
     // Manejar cambios en el formulario
     const handleInputChange = useCallback((e) => {

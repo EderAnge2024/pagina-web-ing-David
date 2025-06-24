@@ -113,7 +113,6 @@ const Administrador = () => {
                     <button className={style.saveBtn}>Guardar Datos</button>
                 </form>
             </div>
-            
             <div className={style.listContainer}>
                 <h1>Lista de administradores</h1>
                 <div>

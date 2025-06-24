@@ -1,14 +1,24 @@
 const Cliente= require('../models/Clientes')
 const bcrypt = require('bcrypt')
+const crypto = require('crypto'); 
 
-const createClienteController = async({ID_Cliente, Nombre, Apellido, NumCelular})=>{
+const createClienteController = async ({ ID_Cliente, Nombre, Apellido, NumCelular }) => {
     try {
-        const newCliente = await Cliente.create({ID_Cliente, Nombre, Apellido, NumCelular})
-        return newCliente
+        const token = crypto.randomUUID(); // generar token único
+
+        const newCliente = await Cliente.create({
+            ID_Cliente,
+            Nombre,
+            Apellido,
+            NumCelular,
+            token // guardar token en BD
+        });
+
+        return newCliente;
     } catch (error) {
-        throw new Error (error.message)
+        throw new Error(error.message);
     }
-}
+};
 
 const getAllClienteController = async ()=>{
     try {

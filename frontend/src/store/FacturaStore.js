@@ -15,8 +15,10 @@ const useFacturaStore = create((set)=>({
         try {
             const response = await axios.get('http://localhost:3001/factura')
             set({facturas: response.data})
+            return response.data
         } catch (error) {
             console.log("Error fecthing facturas", error.message)
+            return []
         }
     },
     deleteFactura: async(ID_Factura)=>{

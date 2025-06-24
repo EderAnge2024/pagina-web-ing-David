@@ -167,3 +167,261 @@
   gap: 10px;
   margin-top: 20px;
 }
+/* Agregar estos estilos a tu archivo Empleado.module.css existente */
+
+/* Alerta de configuración */
+.configAlert {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  color: #856404;
+}
+
+.configAlert p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+/* Sección de subida de archivos */
+.fileUploadSection {
+  margin-bottom: 15px;
+}
+
+.fileLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.fileInput {
+  width: 100%;
+  padding: 10px;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.fileInput:hover {
+  border-color: #007bff;
+}
+
+.fileInput:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.fileHint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+/* Vista previa de imagen */
+.previewContainer {
+  margin-bottom: 15px;
+}
+
+.previewContainer label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.imagePreviewWrapper {
+  position: relative;
+  display: inline-block;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.imagePreview {
+  max-width: 200px;
+  max-height: 200px;
+  width: auto;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+}
+
+.removePreviewBtn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.removePreviewBtn:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+.removePreviewBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Separador */
+.separator {
+  text-align: center;
+  margin: 20px 0;
+  position: relative;
+}
+
+.separator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #ddd;
+}
+
+.separator span {
+  background-color: #fff;
+  padding: 0 15px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Hint para URL */
+.urlHint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+/* Barra de progreso */
+.uploadProgress {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.uploadProgress p {
+  margin-bottom: 10px;
+  color: #007bff;
+  font-weight: 500;
+}
+
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background-color: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  border-radius: 3px;
+  animation: progressAnimation 2s ease-in-out infinite;
+}
+
+@keyframes progressAnimation {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
+}
+
+/* Contenedor de imagen del empleado en la lista */
+.empleadoImageContainer {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.empleadoImage {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Información del empleado */
+.empleadoInfo {
+  flex-grow: 1;
+}
+
+/* Reorganizar el item del empleado para mostrar imagen */
+.empleadoItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Imagen actual en modal */
+.currentImageContainer {
+  margin-bottom: 15px;
+}
+
+.currentImageContainer label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.currentImage {
+  max-width: 200px;
+  max-height: 200px;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Mejoras responsive */
+@media (min-width: 768px) {
+  .empleadoItem {
+    flex-direction: row;
+    text-align: left;
+  }
+  
+  .empleadoInfo {
+    margin-left: 20px;
+  }
+  
+  .actions {
+    margin-left: auto;
+  }
+}
+
+/* Estados de botones */
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: #6c757d;
+}
+
+.button:disabled:hover {
+  background-color: #6c757d;
+  transform: none;
+}

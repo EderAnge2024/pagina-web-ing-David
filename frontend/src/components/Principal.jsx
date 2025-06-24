@@ -16,11 +16,8 @@ import servicio from '../img/servicio.png';
 // Estilos y stores
 import styles from './principal.module.css';
 import useImagenStore from "../store/ImagenStore";
+import { useColorStore } from "../store/colorStore";
 
-// **Importa también el store de colores Zustand**
-import { useColorStore } from '../store/colorStore';  // <-- Aquí
-
-// Constantes
 const NAVIGATION_ITEMS = [
   { key: 'inicio', icon: casa, label: 'Inicio', alt: 'Inicio' },
   { key: 'menu', icon: menu, label: 'Menú', alt: 'Menú' },
@@ -35,42 +32,93 @@ const COMPANY_INFO = {
   services: '57525-8625'
 };
 
-// **Función para calcular color de texto según fondo**
-const getTextColor = (bgColor) => {
-  if (!bgColor) return 'inherit';
-  const c = bgColor.substring(1); // quitar '#'
-  const rgb = parseInt(c, 16);
-  const r = (rgb >> 16) & 0xff;
-  const g = (rgb >> 8) & 0xff;
-  const b = rgb & 0xff;
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness > 125 ? 'black' : 'white';
-};
-
 const Principal = () => {
-  // Hooks de estado
   const [activateComponent, setActivateComponent] = useState('inicio');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
-  // Hooks de navegación y stores
+  const [logoUpdateTrigger, setLogoUpdateTrigger] = useState(0);
+
   const navigate = useNavigate();
   const { fetchImagen, imagenes, getLogoPrincipal } = useImagenStore();
 
-  // **Obtén los colores de header y footer desde la store Zustand**
-  const headerColor = useColorStore(state => state.headerColor);
-  const footerColor = useColorStore(state => state.footerColor);
-
-  // Efectos
-  useEffect(() => {
-    fetchImagen();
-  }, [fetchImagen]);
+  const forceLogoUpdate = useCallback(() => {
+    setLogoUpdateTrigger(prev => prev + 1);
+    console.log('🔄 Forzando actualización del logo');
+  }, []);
 
   useEffect(() => {
-    console.log('Imágenes actualizadas en Principal:', imagenes);
-    console.log('Logo principal:', getLogoPrincipal());
-  }, [imagenes, getLogoPrincipal]);
+    const loadInitialData = async () => {
+      try {
+        console.log('📥 Cargando datos iniciales...');
+        await fetchImagen();
+        forceLogoUpdate();
+        console.log('✅ Datos iniciales cargados correctamente');
+      } catch (error) {
+        console.error('❌ Error cargando datos iniciales:', error);
+      }
+    };
+    loadInitialData();
+  }, [fetchImagen, forceLogoUpdate]);
 
-  // Handlers
+  useEffect(() => {
+    console.log('🔍 Cambio detectado en imágenes, total:', imagenes.length);
+    const logos = imagenes.filter(img => img.Tipo_Imagen === "Logo");
+    const logoPrincipal = logos.find(logo => logo.es_principal === true);
+    console.log('📊 Logos disponibles:', logos.length);
+    console.log('⭐ Logo principal actual:', logoPrincipal ? logoPrincipal.ID_Imagen : 'ninguno');
+    forceLogoUpdate();
+  }, [imagenes, forceLogoUpdate]);
+
+  useEffect(() => {
+    const handleLogoChange = async (event) => {
+      console.log('🎯 Evento logoChanged recibido:', event.detail);
+      try {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await fetchImagen();
+        forceLogoUpdate();
+        console.log('✅ Logo actualizado después del evento personalizado');
+      } catch (error) {
+        console.error('❌ Error actualizando logo después del evento:', error);
+      }
+    };
+    window.addEventListener('logoChanged', handleLogoChange);
+    return () => {
+      window.removeEventListener('logoChanged', handleLogoChange);
+    };
+  }, [fetchImagen, forceLogoUpdate]);
+
+  useEffect(() => {
+    let intervalId;
+    const setupPolling = () => {
+      intervalId = setInterval(async () => {
+        try {
+          const currentLogoPrincipal = getLogoPrincipal();
+          const currentLogoId = currentLogoPrincipal?.ID_Imagen;
+
+          await fetchImagen();
+
+          const newLogoPrincipal = getLogoPrincipal();
+          const newLogoId = newLogoPrincipal?.ID_Imagen;
+
+          if (currentLogoId !== newLogoId) {
+            console.log('🔄 Cambio de logo detectado en polling:', {
+              anterior: currentLogoId,
+              nuevo: newLogoId
+            });
+            forceLogoUpdate();
+          }
+        } catch (error) {
+          console.error('❌ Error en polling:', error);
+        }
+      }, 2000);
+    };
+    setupPolling();
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [fetchImagen, getLogoPrincipal, forceLogoUpdate]);
+
   const handleNavClick = useCallback((component) => {
     setActivateComponent(component);
     setIsMenuOpen(false);
@@ -84,53 +132,65 @@ const Principal = () => {
     setIsMenuOpen(prev => !prev);
   }, []);
 
-  // Componentes auxiliares
-  const renderLogo = () => {
+  const getTextColor = (bgColor) => {
+    if (!bgColor) return 'inherit';
+    const hex = bgColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 125 ? 'black' : 'white';
+  };
+  
+  const headerColor = useColorStore(state => state.headerColor);
+  const footerColor = useColorStore(state => state.footerColor);
+  const buttonColor = useColorStore(state => state.buttonColor);
+
+  const renderLogo = useCallback(() => {
     const logoPrincipal = getLogoPrincipal();
-    
-    if (!logoPrincipal) {
-      const primerLogo = imagenes.find(img => img.Tipo_Imagen === "Logo");
-      if (primerLogo) {
-        return (
-          <div className={styles.logo_container}>
-            <div 
-              className={styles.logo}
-              onClick={() => window.location.href = "/"}
-            >
-              <img src={primerLogo.URL} alt="Logo de la empresa" />
-            </div>
-          </div>
-        );
-      }
-      
+    if (logoPrincipal && logoPrincipal.URL) {
       return (
         <div className={styles.logo_container}>
-          <div className={styles.logo}>
-            <span>Sin Logo</span>
+          <div className={styles.logo} onClick={() => window.location.href = "/"}>
+            <img 
+              src={logoPrincipal.URL}
+              alt="Logo Principal de la empresa"
+              key={`logo-principal-${logoPrincipal.ID_Imagen}-${logoUpdateTrigger}`}
+              style={{ maxHeight: '50px', maxWidth: '200px', objectFit: 'contain', display: 'block' }}
+            />
           </div>
         </div>
       );
     }
-
+    const primerLogo = imagenes.find(img => img.Tipo_Imagen === "Logo" && img.URL);
+    if (primerLogo) {
+      return (
+        <div className={styles.logo_container}>
+          <div className={styles.logo} onClick={() => window.location.href = "/"}>
+            <img 
+              src={primerLogo.URL}
+              alt="Logo de la empresa"
+              key={`logo-fallback-${primerLogo.ID_Imagen}-${logoUpdateTrigger}`}
+              style={{ maxHeight: '50px', maxWidth: '200px', objectFit: 'contain', display: 'block' }}
+            />
+          </div>
+        </div>
+      );
+    }
     return (
       <div className={styles.logo_container}>
-        <div 
-          className={styles.logo}
-          onClick={() => window.location.href = "/"}
-        >
-          <img 
-            src={logoPrincipal.URL} 
-            alt="Logo de la empresa"
-            key={logoPrincipal.ID_Imagen}
-          />
+        <div className={styles.logo}>
+          <span style={{ color: 'inherit', fontWeight: 'bold', fontSize: '1.2rem' }}>
+            Tu Empresa
+          </span>
         </div>
       </div>
     );
-  };
+  }, [logoUpdateTrigger, imagenes, getLogoPrincipal]);
 
   const renderHamburgerMenu = () => (
     <button 
-      className={styles.hamburger_menu} 
+      className={styles.hamburger_menu}
       onClick={toggleMenu}
       aria-label="Menú de navegación"
       aria-expanded={isMenuOpen}
@@ -142,17 +202,22 @@ const Principal = () => {
   );
 
   const renderNavigation = () => (
-    <nav className={`${styles.main_nav} ${isMenuOpen ? styles.open : ''}`}>
+    <nav className={`${styles.main_nav} ${isMenuOpen ? styles.open : ''}`} >
       {NAVIGATION_ITEMS.map(({ key, icon, label, alt }) => (
-        <button 
+        <button
           key={key}
-          onClick={() => handleNavClick(key)} 
+          onClick={() => handleNavClick(key)}
           className={activateComponent === key ? styles.active : ''}
           aria-label={`Navegar a ${label}`}
-          // **Aplica color de texto según headerColor**
-          style={{ color: headerColor ? getTextColor(headerColor) : undefined }}
+          style={{ color: getTextColor(headerColor) }}
         >
-          <img src={icon} alt={alt} />
+          <img 
+            src={icon}
+            alt={alt}
+            style={{
+              filter: getTextColor(headerColor) === 'white' ? 'invert(100%)' : 'none'
+            }}
+          />
           <span>{label}</span>
         </button>
       ))}
@@ -166,14 +231,13 @@ const Principal = () => {
       servicio: <Servicio />,
       carrito: <Carrito />
     };
-
     return (
       <main className={styles.main_content}>
         {components[activateComponent]}
       </main>
     );
   };
-
+  
   const renderContactInfo = () => (
     <>
       <div className={styles.info_item}>
@@ -186,7 +250,7 @@ const Principal = () => {
       </div>
     </>
   );
-
+  
   const renderAddressInfo = () => (
     <>
       <div className={styles.info_item}>
@@ -199,11 +263,10 @@ const Principal = () => {
       </div>
     </>
   );
-
+  
   const renderFooter = () => (
-    <footer 
+    <footer
       className={styles.modern_footer}
-      // **Aplica color de fondo y texto según footerColor**
       style={{
         backgroundColor: footerColor || undefined,
         color: getTextColor(footerColor),
@@ -213,8 +276,12 @@ const Principal = () => {
         <div className={styles.footer_section}>
           {renderContactInfo()}
           <button 
-            onClick={goToLogin} 
+            onClick={goToLogin}
             className={styles.admin_button}
+            style={{
+              backgroundColor: buttonColor || undefined,
+              color: getTextColor(buttonColor),
+            }}
             aria-label="Acceder al área de administrador"
           >
             Área de Administrador
@@ -232,9 +299,8 @@ const Principal = () => {
 
   return (
     <div className={styles.principal_container}>
-      <header 
+      <header
         className={styles.modern_header}
-        // **Aplica color de fondo y texto según headerColor**
         style={{
           backgroundColor: headerColor || undefined,
           color: getTextColor(headerColor),
@@ -244,7 +310,6 @@ const Principal = () => {
         {renderHamburgerMenu()}
         {renderNavigation()}
       </header>
-      
       {renderMainContent()}
       {renderFooter()}
     </div>
@@ -252,3 +317,4 @@ const Principal = () => {
 };
 
 export default Principal;
+

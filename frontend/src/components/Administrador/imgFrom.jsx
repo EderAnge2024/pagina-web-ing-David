@@ -6,12 +6,12 @@ const ImagenForm = () => {
     const { 
         addImagen, 
         fetchImagen, 
-        imagenes, 
+        imagenes,  
         deleteImagen, 
         updateImagen,
-        setLogoPrincipal,    // 🆕 Nueva función
-        getLogoPrincipal,    // 🆕 Helper
-        getLogos            // 🆕 Helper
+        setLogoPrincipal,
+        getLogoPrincipal,
+        getLogos
     } = useImagenStore()
     const [editingImagen, setEditingImagen] = useState(null)
     const [imagenData, setImagenData] = useState({ Tipo_Imagen: "", URL: "", es_principal: false })
@@ -22,11 +22,11 @@ const ImagenForm = () => {
     const [previewUrl, setPreviewUrl] = useState("")
     const [editingFile, setEditingFile] = useState(null)
     const [editingPreview, setEditingPreview] = useState("")
-    const [activeTab, setActiveTab] = useState("logos") // Tab para separar logos y banners
+    const [activeTab, setActiveTab] = useState("logos")
 
-    // Configuración de Cloudinary - Reemplaza con tus credenciales
-    const CLOUDINARY_UPLOAD_PRESET = 'bradatec' // Reemplaza con tu upload preset
-    const CLOUDINARY_CLOUD_NAME = 'davbpytad' // Reemplaza con tu cloud name
+    // Configuración de Cloudinary
+    const CLOUDINARY_UPLOAD_PRESET = 'bradatec'
+    const CLOUDINARY_CLOUD_NAME = 'davbpytad'
 
     useEffect(() => {
         fetchImagen()
@@ -42,7 +42,6 @@ const ImagenForm = () => {
         const file = e.target.files[0]
         if (file) {
             setSelectedFile(file)
-            // Crear preview local
             const reader = new FileReader()
             reader.onload = (e) => setPreviewUrl(e.target.result)
             reader.readAsDataURL(file)
@@ -54,7 +53,6 @@ const ImagenForm = () => {
         const file = e.target.files[0]
         if (file) {
             setEditingFile(file)
-            // Crear preview local
             const reader = new FileReader()
             reader.onload = (e) => setEditingPreview(e.target.result)
             reader.readAsDataURL(file)
@@ -104,16 +102,9 @@ const ImagenForm = () => {
         try {
             let finalImagenData = { ...imagenData }
             
-            // Si hay un archivo seleccionado, subirlo a Cloudinary
             if (selectedFile) {
                 const uploadedUrl = await uploadToCloudinary(selectedFile)
                 finalImagenData.URL = uploadedUrl
-            }
-
-            // Si es un logo y se marca como principal, desmarcar otros logos principales
-            if (finalImagenData.Tipo_Imagen === "Logo" && finalImagenData.es_principal) {
-                // Aquí deberías implementar la lógica para desmarcar otros logos principales
-                // Por ahora solo agregamos la imagen
             }
             
             await addImagen(finalImagenData)
@@ -123,11 +114,12 @@ const ImagenForm = () => {
             setSelectedFile(null)
             setPreviewUrl("")
             
-            // Limpiar input file
             const fileInput = document.querySelector('input[type="file"]')
             if (fileInput) fileInput.value = ""
             
-            fetchImagen()
+            // 🔥 FORZAR ACTUALIZACIÓN COMPLETA
+            await fetchImagen()
+            
         } catch (error) {
             console.error('Error al agregar imagen:', error)
             alert('Error al subir la imagen. Por favor, verifica tu configuración de Cloudinary.')
@@ -141,7 +133,7 @@ const ImagenForm = () => {
         if(window.confirm("¿Estás seguro de eliminar esta imagen?")) {
             try {
                 await deleteImagen(ID_Imagen)
-                fetchImagen()
+                await fetchImagen() // 🔥 FORZAR ACTUALIZACIÓN
             } catch (error) {
                 console.error('Error al eliminar imagen:', error)
             }
@@ -173,14 +165,13 @@ const ImagenForm = () => {
         try {
             let finalFormData = { ...formData }
             
-            // Si hay un nuevo archivo, subirlo a Cloudinary
             if (editingFile) {
                 const uploadedUrl = await uploadToCloudinary(editingFile)
                 finalFormData.URL = uploadedUrl
             }
             
             await updateImagen(editingImagen.ID_Imagen, finalFormData)
-            fetchImagen()
+            await fetchImagen() // 🔥 FORZAR ACTUALIZACIÓN
             setEditingImagen(null)
             setEditingFile(null)
             setEditingPreview("")
@@ -211,23 +202,52 @@ const ImagenForm = () => {
         setEditingPreview("")
     }
 
-    // Función para marcar logo como principal
-    const handleSetLogoPrincipal = async (logoId) => {
-        if (!window.confirm('¿Deseas cambiar el logo principal?')) {
-            return;
-        }
-        
-        try {
-            setUploading(true)
-            await setLogoPrincipal(logoId) // Usar la función del store
-            alert('Logo principal actualizado correctamente')
-        } catch (error) {
-            console.error('Error al cambiar logo principal:', error)
-            alert('Error al cambiar logo principal: ' + error.message)
-        } finally {
-            setUploading(false)
-        }
+    // 🔥 FUNCIÓN MEJORADA PARA CAMBIAR LOGO PRINCIPAL
+const handleSetLogoPrincipal = async (logoId) => {
+    if (!window.confirm('¿Deseas cambiar el logo principal?')) {
+        return;
     }
+    
+    try {
+        setUploading(true)
+        
+        console.log('🎯 Iniciando cambio de logo principal desde ImagenForm:', logoId)
+        
+        // 1. Llamar a la función del store
+        await setLogoPrincipal(logoId)
+        
+        // 2. Esperar un momento para que se complete la actualización en el servidor
+        await new Promise(resolve => setTimeout(resolve, 300))
+        
+        // 3. Forzar actualización inmediata
+        await fetchImagen()
+        
+        // 4. Disparar evento personalizado para notificar a otros componentes
+        const event = new CustomEvent('logoChanged', { 
+            detail: { 
+                logoId,
+                timestamp: Date.now()
+            } 
+        })
+        
+        window.dispatchEvent(event)
+        console.log('📢 Evento logoChanged disparado:', event.detail)
+        
+        // 5. Forzar re-render adicional con un pequeño delay
+        setTimeout(async () => {
+            await fetchImagen()
+            console.log('🔄 Segunda actualización completada')
+        }, 500)
+        
+        alert('Logo principal actualizado correctamente')
+        
+    } catch (error) {
+        console.error('❌ Error al cambiar logo principal:', error)
+        alert('Error al cambiar logo principal: ' + error.message)
+    } finally {
+        setUploading(false)
+    }
+}
 
     const renderImageCard = (imagen, showPrincipalOption = false) => (
         <div key={imagen.ID_Imagen} className={`${styles.imageCard} ${imagen.es_principal ? styles.principalCard : ''}`}>
@@ -256,7 +276,7 @@ const ImagenForm = () => {
             <div className={styles.actions}>
                 {showPrincipalOption && !imagen.es_principal && (
                     <button 
-                        onClick={() => handleSetLogoPrincipal(imagen.ID_Imagen)} // ✅ Usar la nueva función
+                        onClick={() => handleSetLogoPrincipal(imagen.ID_Imagen)}
                         className={styles.principalButton}
                         disabled={uploading}
                     >
@@ -296,6 +316,7 @@ const ImagenForm = () => {
                                     src={logoPrincipal.URL} 
                                     alt="Logo Principal"
                                     className={styles.currentLogo}
+                                    key={`logo-${logoPrincipal.ID_Imagen}-${Date.now()}`} // 🔥 Key único
                                 />
                                 <p>{logoPrincipal.Tipo_Imagen}</p>
                             </div>
@@ -473,7 +494,7 @@ const ImagenForm = () => {
                     </div>
                 </div>
 
-                {/* Modal de edición mejorado */}
+                {/* Modal de edición */}
                 {editingImagen && (
                     <div className={styles.modalOverlay}>
                         <div className={styles.modalContent}>

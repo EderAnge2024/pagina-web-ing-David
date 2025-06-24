@@ -5,10 +5,22 @@ const useHistorialEstadoStore = create((set)=>({
     historialEstados: [],
     addHistorialEstado: async(historialEstado)=>{
         try {
-            const response = await axios.post('http://localhost:3001/historialEstado',historialEstado)
+            // CORRECCIÓN: Validar y formatear los datos antes de enviar
+            const dataToSend = {
+                ID_EstadoPedido: historialEstado.ID_EstadoPedido,
+                ID_Pedido: historialEstado.ID_Pedido,
+                Fecha: new Date(historialEstado.Fecha).toISOString()
+            };
+            
+            console.log('Enviando historialEstado:', dataToSend); // Para debug
+            
+            const response = await axios.post('http://localhost:3001/historialEstado', dataToSend)
             set((state)=>({historialEstados: [...state.historialEstados, response.data]}))
+            return response.data; // Devolver la respuesta para uso posterior
         } catch (error) {
-            console.log("Error adding historialEstado", error.message)
+            console.log("Error adding historialEstado:", error.message)
+            console.log("Error details:", error.response?.data); // Más información del error
+            throw error; // Re-lanzar el error para que se maneje en el componente
         }
     },
     fetchHistorialEstado: async()=>{
@@ -16,7 +28,7 @@ const useHistorialEstadoStore = create((set)=>({
             const response = await axios.get('http://localhost:3001/historialEstado')
             set({historialEstados: response.data})
         } catch (error) {
-            console.log("Error fecthing historialEstados", error.message)
+            console.log("Error fetching historialEstados:", error.message)
         }
     },
     deleteHistorialEstado: async(ID_Historial)=>{
@@ -32,7 +44,7 @@ const useHistorialEstadoStore = create((set)=>({
         try {  
             const response = await axios.put(`http://localhost:3001/historialEstado/${ID_Historial}`, updatedData)
             console.log("historialEstado updated:", response.data)
-            set((state) => ({historialEstados: state.historialEstados.map((historialEstado)=> historialEstado.ID_Historial === ID_Historial ? {...historialEstado, ...response.data} : historialEstado)})) // actualiza el estudiante en el estado
+            set((state) => ({historialEstados: state.historialEstados.map((historialEstado)=> historialEstado.ID_Historial === ID_Historial ? {...historialEstado, ...response.data} : historialEstado)}))
         } catch (error) {
             console.log("Error updating historialEstado:", error.message)
         }

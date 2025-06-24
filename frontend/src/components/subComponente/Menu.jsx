@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import useProductoStore from "../../store/ProductoStore";
 import useBusquedaStore from "../../store/BusquedaStore";
+import useClienteStore from "../../store/ClienteStore";
 import useCategoriaStore from "../../store/CategoriaStore";
 import styles from './Menu.module.css';
 
@@ -18,20 +19,26 @@ const Menu = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     
+    // Estados del sidebar estilo YouTube
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [mostrarPrecios, setMostrarPrecios] = useState(false);
+    
     // Estados del buscador
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [searchHistory, setSearchHistory] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+
     
     // Referencias
     const searchInputRef = useRef(null);
     const searchContainerRef = useRef(null);
-    const debounceRef = useRef(null);
+    const sidebarRef = useRef(null);
 
     // Hooks de stores
     const { productos, fetchProducto } = useProductoStore();
     const { categorias, fetchCategoria } = useCategoriaStore();
+    const { verificarClienteAutenticado } = useClienteStore();
 
     // Efectos
     useEffect(() => {
@@ -80,6 +87,28 @@ const Menu = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useEffect(() => {
+      const verificarToken = async () => {
+        const esValido = await verificarClienteAutenticado();
+        console.log("¿Cliente autenticado?", esValido);
+        setMostrarPrecios(esValido);
+      };
+    
+      verificarToken();
+    }, [verificarClienteAutenticado]);
+
+    // Cerrar sidebar con Escape
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === 'Escape' && sidebarOpen) {
+                setSidebarOpen(false);
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [sidebarOpen]);
 
     // Memoización de productos filtrados
     const productosFiltrados = useMemo(() => {
@@ -143,6 +172,10 @@ const Menu = () => {
         setCategoriaSeleccionada(prev => 
             prev === categoriaId ? null : categoriaId
         );
+        // Cerrar sidebar en móviles después de seleccionar
+        if (window.innerWidth <= 1024) {
+            setSidebarOpen(false);
+        }
     }, []);
 
     const mostrarMensaje = useCallback((texto) => {
@@ -241,6 +274,31 @@ const Menu = () => {
         searchInputRef.current?.focus();
     }, []);
 
+    // Handlers del sidebar
+    const toggleSidebar = useCallback(() => {
+        setSidebarOpen(prev => !prev);
+    }, []);
+
+    const closeSidebar = useCallback(() => {
+        setSidebarOpen(false);
+    }, []);
+
+    // Calcular conteo de productos por categoría
+    const categoriasConConteo = useMemo(() => {
+        if (!categorias || !productos) return [];
+        
+        return categorias.map(categoria => {
+            const conteo = productos.filter(producto => 
+                producto.ID_Categoria === categoria.ID_Categoria
+            ).length;
+            
+            return {
+                ...categoria,
+                conteo
+            };
+        });
+    }, [categorias, productos]);
+
     // Componentes auxiliares
     const renderMensaje = () => {
         if (!mensaje) return null;
@@ -254,6 +312,96 @@ const Menu = () => {
         );
     };
 
+    const renderSidebar = () => {
+        if (!categorias || categorias.length === 0) return null;
+        
+        return (
+            <>
+                {/* Overlay */}
+                <div 
+                    className={`${styles.sidebar__overlay} ${
+                        sidebarOpen ? styles['sidebar__overlay--visible'] : ''
+                    }`}
+                    onClick={closeSidebar}
+                />
+                
+                {/* Botón toggle */}
+                <button 
+                    className={styles.menu__sidebarToggle}
+                    onClick={toggleSidebar}
+                    aria-label="Abrir menú de categorías"
+                >
+                    ☰
+                </button>
+                
+                {/* Sidebar */}
+                <aside 
+                    ref={sidebarRef}
+                    className={`${styles.sidebar} ${
+                        sidebarOpen ? styles['sidebar--open'] : ''
+                    }`}
+                >
+                    <header className={styles.sidebar__header}>
+                        <h3 className={styles.sidebar__title}>Categorías</h3>
+                        <button 
+                            className={styles.sidebar__close}
+                            onClick={closeSidebar}
+                            aria-label="Cerrar menú"
+                        >
+                            ✕
+                        </button>
+                    </header>
+                    
+                    <div className={styles.sidebar__content}>
+                        <div className={styles.sidebar__categories}>
+                            {/* Categoría "Todas" */}
+                            <button
+                                onClick={() => manejarSeleccionCategoria(null)}
+                                className={`${styles.sidebar__category} ${
+                                    categoriaSeleccionada === null ? styles['sidebar__category--active'] : ''
+                                }`}
+                                aria-pressed={categoriaSeleccionada === null}
+                            >
+                                <span className={styles.sidebar__categoryIcon}>🏠</span>
+                                <span className={styles.sidebar__categoryText}>Todas las categorías</span>
+                                <span className={styles.sidebar__categoryCount}>
+                                    {productos ? productos.length : 0}
+                                </span>
+                            </button>
+                            
+                            {/* Categorías individuales */}
+                            {categoriasConConteo.map((categoria) => (
+                                <button
+                                    key={categoria.ID_Categoria}
+                                    onClick={() => manejarSeleccionCategoria(categoria.ID_Categoria)}
+                                    className={`${styles.sidebar__category} ${
+                                        categoriaSeleccionada === categoria.ID_Categoria ? 
+                                        styles['sidebar__category--active'] : ''
+                                    }`}
+                                    aria-pressed={categoriaSeleccionada === categoria.ID_Categoria}
+                                >
+                                    <span className={styles.sidebar__categoryIcon}>
+                                        {categoria.Tipo_Producto === 'Bebidas' ? '🥤' :
+                                         categoria.Tipo_Producto === 'Platos Principales' ? '🍽️' :
+                                         categoria.Tipo_Producto === 'Postres' ? '🍰' :
+                                         categoria.Tipo_Producto === 'Entradas' ? '🥗' :
+                                         categoria.Tipo_Producto === 'Sopas' ? '🍲' : '🍴'}
+                                    </span>
+                                    <span className={styles.sidebar__categoryText}>
+                                        {categoria.Tipo_Producto}
+                                    </span>
+                                    <span className={styles.sidebar__categoryCount}>
+                                        {categoria.conteo}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </aside>
+            </>
+        );
+    };
+
     const renderSearchBar = () => (
         <div className={styles.search_menu} ref={searchContainerRef}>
             <form className={styles.search__container_menu} onSubmit={handleSearchSubmit}>
@@ -263,7 +411,7 @@ const Menu = () => {
                     <input 
                         ref={searchInputRef}
                         type="text" 
-                        placeholder="Buscar en el menú..." 
+                        placeholder="Buscar en las categorias..." 
                         className={styles.search__input}
                         value={searchQuery}
                         onChange={handleSearchChange}
@@ -327,34 +475,26 @@ const Menu = () => {
         </div>
     );
 
-    const renderCategoriasFilter = () => {
-        if (!categorias || categorias.length === 0) return null;
-
+    const renderResultsInfo = () => {
+        if (!searchQuery) return null;
+        
+        const totalResults = productosFiltrados.length;
         return (
-            <div className={styles.filters}>
-                <button
-                    onClick={() => manejarSeleccionCategoria(null)}
-                    className={`${styles.filters__category} ${
-                        categoriaSeleccionada === null ? styles['filters__category--active'] : ''
-                    }`}
-                    aria-pressed={categoriaSeleccionada === null}
-                >
-                    Todas las categorías
-                </button>
-                {categorias.map((categoria) => (
-                    <div key={categoria.ID_Categoria} className={styles.filters__categoryWrapper}>
-                        <button
-                            onClick={() => manejarSeleccionCategoria(categoria.ID_Categoria)}
-                            className={`${styles.filters__category} ${
-                                categoriaSeleccionada === categoria.ID_Categoria ? 
-                                styles['filters__category--active'] : ''
-                            }`}
-                            aria-pressed={categoriaSeleccionada === categoria.ID_Categoria}
-                        >
-                            {categoria.Tipo_Producto}
-                        </button>
-                    </div>
-                ))}
+            <div className={styles.resultsInfo}>
+                <p>
+                    {totalResults === 0 
+                        ? `No se encontraron productos para "${searchQuery}"`
+                        : `${totalResults} producto${totalResults !== 1 ? 's' : ''} encontrado${totalResults !== 1 ? 's' : ''} para "${searchQuery}"`
+                    }
+                </p>
+                {searchQuery && (
+                    <button 
+                        onClick={clearSearch}
+                        className={styles.resultsInfo__clear}
+                    >
+                        Limpiar búsqueda
+                    </button>
+                )}
             </div>
         );
     };
@@ -394,9 +534,15 @@ const Menu = () => {
                     <h3 className={styles.product__name}>
                         {producto.Nombre_Producto}
                     </h3>
-                    <p className={styles.product__price}>
+                    {mostrarPrecios ? (
+                      <p className={styles.product__price}>
                         {precioFormateado}
-                    </p>
+                      </p>
+                    ) : (
+                      <p className={styles.product__price}>
+                        🔒 haz un pedido para ver precios
+                      </p>
+                    )}
                     <p className={styles.product__stock}>
                         Stock: {producto.cantidad_Disponible} unidades
                     </p>
@@ -412,30 +558,6 @@ const Menu = () => {
                         {isOutOfStock ? 'Sin stock' : 'Agregar al carrito'}
                     </button>
                 </div>
-            </div>
-        );
-    };
-
-    const renderResultsInfo = () => {
-        if (!searchQuery) return null;
-        
-        const totalResults = productosFiltrados.length;
-        return (
-            <div className={styles.resultsInfo}>
-                <p>
-                    {totalResults === 0 
-                        ? `No se encontraron productos para "${searchQuery}"`
-                        : `${totalResults} producto${totalResults !== 1 ? 's' : ''} encontrado${totalResults !== 1 ? 's' : ''} para "${searchQuery}"`
-                    }
-                </p>
-                {searchQuery && (
-                    <button 
-                        onClick={clearSearch}
-                        className={styles.resultsInfo__clear}
-                    >
-                        Limpiar búsqueda
-                    </button>
-                )}
             </div>
         );
     };
@@ -484,26 +606,25 @@ const Menu = () => {
         }
 
         return (
-            <>
-                {renderSearchBar()}
-                {renderResultsInfo()}
-                {renderCategoriasFilter()}
-                {renderProductos()}
-            </>
+            <div className={styles.menu__main}>
+                <div className={styles.menu__content}>
+                    <header className={styles.menu__header}>
+                        <h2 className={styles.menu__title}>Nuestros Productos</h2>
+                    </header>
+                    
+                    {renderSearchBar()}
+                    {renderResultsInfo()}
+                    {renderProductos()}
+                </div>
+            </div>
         );
     };
 
     return (
         <div className={styles.menu}>
             {renderMensaje()}
-            
-            <div className={styles.menu__content}>
-                <header className={styles.menu__header}>
-                    <h2 className={styles.menu__title}>Nuestro Menú</h2>
-                </header>
-                
-                {renderContent()}
-            </div>
+            {renderSidebar()}
+            {renderContent()}
         </div>
     );
 };

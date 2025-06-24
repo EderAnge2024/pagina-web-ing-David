@@ -18,6 +18,10 @@ const Cliente = sequelize.define('Cliente', {
   NumCelular: {
     type: DataTypes.INTEGER,
     allowNull: false
+  },
+  token:{
+    type: DataTypes.STRING,
+    allowNull:false
   }
 
 })

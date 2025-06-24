@@ -56,6 +56,7 @@ const CategoriaForm = () => {
 
   const handleCancelEdit = () => {
     setEditingCategoria(null);
+    
   };
 
   return (

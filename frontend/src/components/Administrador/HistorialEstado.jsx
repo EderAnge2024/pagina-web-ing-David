@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import useHistorialEstadoStore from '../../store/HistorialEstadoStore'
+import useEstadoPedidoStore from '../../store/EstadoPedidoStore'
+import useClienteStore from '../../store/ClienteStore'
+import usePedidoStore from '../../store/PedidoStore'
 import styles from './HistorialEstado.module.css'
 
 const HistorialEstado = () => {
@@ -12,43 +15,64 @@ const HistorialEstado = () => {
     } = useHistorialEstadoStore() 
     
     const [editingHistorialEstado, setEditingHistorialEstado] = useState(null)
+    const { estadoPedidos, fetchEstadoPedido } = useEstadoPedidoStore()
+    const { pedidos, fetchPedido } = usePedidoStore()
+    const { clientes, fetchCliente } = useClienteStore()
+    
     const [historialEstadoData, setHistorialEstadoData] = useState({
         ID_EstadoPedido: "",
         ID_Pedido: "",
         Fecha: ""
     })
+    
     const [formData, setFormData] = useState({
         ID_EstadoPedido: "",
         ID_Pedido: "",
         Fecha: ""
     })
 
+    // Cargar todos los datos necesarios al inicio
     useEffect(() => {
         fetchHistorialEstado()
+        fetchEstadoPedido()
+        fetchPedido()
+        fetchCliente()
     }, [])
 
+    // Función optimizada para obtener el nombre del cliente
+    const getNombreCliente = (ID_Pedido) => {
+        if (!ID_Pedido) return "No asignado"
+        
+        const pedido = pedidos.find(p => p.ID_Pedido === ID_Pedido)
+        if (!pedido) return "Pedido no encontrado"
+        
+        const cliente = clientes.find(c => c.ID_Cliente === pedido.ID_Cliente)
+        return cliente ?`${cliente.Nombre} ${cliente.Apellido}`: "Cliente desconocido"
+    }
+
     const handleInputChange = (e) => {
-       const {name, value} = e.target 
-       setHistorialEstadoData({
-        ...historialEstadoData,
-        [name]: value
-       })
+        const { name, value } = e.target 
+        setHistorialEstadoData({
+            ...historialEstadoData,
+            [name]: value
+        })
     }
 
     const handelSubmit = async(e) => {
         e.preventDefault()
-        addHistorialEstado(historialEstadoData)
+        await addHistorialEstado(historialEstadoData)
         setHistorialEstadoData({
             ID_EstadoPedido: "",
             ID_Pedido: "",
             Fecha: ""
         })
         alert("Se agregó un nuevo historial de pedidos")
+        fetchHistorialEstado()
     }
 
-    const handleDelete = (ID_Historial) => {
+    const handleDelete = async(ID_Historial) => {
         if(window.confirm("¿Estás seguro de eliminar este historial?")) {
-            deleteHistorialEstado(ID_Historial)
+            await deleteHistorialEstado(ID_Historial)
             fetchHistorialEstado()
         }
     }
@@ -70,7 +94,7 @@ const HistorialEstado = () => {
     }
 
     const handleUpdate = async() => {
-        updateHistorialEstado(editingHistorialEstado.ID_Historial, formData)
+        await updateHistorialEstado(editingHistorialEstado.ID_Historial, formData)
         fetchHistorialEstado()
         setEditingHistorialEstado(null)
     }
@@ -84,15 +108,20 @@ const HistorialEstado = () => {
             <div className={styles.formContainer}>
                 <h1 className={styles.formTitle}>Agregar Historial de Estados</h1>
                 <form onSubmit={handelSubmit} className={styles.form}>
-                    <input
-                        className={styles.input}
-                        type="text"
-                        placeholder="ID Estado Pedido"
-                        required
+                    <select
                         name="ID_EstadoPedido"
                         value={historialEstadoData.ID_EstadoPedido}
                         onChange={handleInputChange}
-                    />
+                        required
+                        className={styles.selecthistorial}
+                    >
+                        <option value="">-- Seleccionar estado --</option>
+                        {estadoPedidos.map((cat) => (
+                            <option key={cat.ID_EstadoPedido} value={cat.ID_EstadoPedido}>
+                                {cat.Estado}
+                            </option>
+                        ))}
+                    </select>
                     <input
                         className={styles.input}
                         type="text"
@@ -104,7 +133,7 @@ const HistorialEstado = () => {
                     />
                     <input
                         className={styles.input}
-                        type="text"
+                        type="date"  // Cambiado a type="date" para mejor usabilidad
                         placeholder="Fecha"
                         required
                         name="Fecha"
@@ -118,30 +147,34 @@ const HistorialEstado = () => {
             <div className={styles.listContainer}>
                 <h1 className={styles.listTitle}>Lista de Historiales</h1>
                 <div>
-                    {historialEstados.map((historial) => (
-                        <div key={historial.ID_Historial} className={styles.historialCard}>
-                            <p className={styles.historialInfo}>
-                                <span className={`${styles.statusIndicator} ${styles['status-active']}`}></span>
-                                ID Estado Pedido: {historial.ID_EstadoPedido}
-                            </p>
-                            <p className={styles.historialInfo}>ID Pedido: {historial.ID_Pedido}</p>
-                            <p className={styles.historialInfo}>Fecha: {historial.Fecha}</p>
-                            <div className={styles.actions}>
-                                <button 
-                                    onClick={() => handleDelete(historial.ID_Historial)}
-                                    className={`${styles.button} ${styles.deleteButton}`}
-                                >
-                                    Eliminar
-                                </button>
-                                <button 
-                                    onClick={() => handleEditClick(historial)}
-                                    className={`${styles.button} ${styles.editButton}`}
-                                >
-                                    Editar
-                                </button>
+                    {historialEstados.map((historial) => {
+                        const estado = estadoPedidos.find(e => e.ID_EstadoPedido === historial.ID_EstadoPedido)
+                        return (
+                            <div key={historial.ID_Historial} className={styles.historialCard}>
+                                <p className={styles.historialInfo}>
+                                    <span className={`${styles.statusIndicator} ${styles['status-active']}`}></span>
+                                    Estado: {estado?.Estado || "Desconocido"}
+                                </p>
+                                <p className={styles.historialInfo}>Pedido: {historial.ID_Pedido}</p>
+                                <p className={styles.historialInfo}>Cliente: {getNombreCliente(historial.ID_Pedido)}</p>
+                                <p className={styles.historialInfo}>Fecha: {new Date(historial.Fecha).toLocaleDateString()}</p>
+                                <div className={styles.actions}>
+                                    <button 
+                                        onClick={() => handleDelete(historial.ID_Historial)}
+                                        className={`${styles.button} ${styles.deleteButton}`}
+                                    >
+                                        Eliminar
+                                    </button>
+                                    <button 
+                                        onClick={() => handleEditClick(historial)}
+                                        className={`${styles.button} ${styles.editButton}`}
+                                    >
+                                        Editar
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
                 
                 {editingHistorialEstado && (
@@ -150,33 +183,55 @@ const HistorialEstado = () => {
                             <span className={styles.modalClose} onClick={handleCancelEdit}>&times;</span>
                             <h3 className={styles.modalTitle}>Editar Historial</h3>
                             <div className={styles.modalForm}>
-                                <input 
-                                    className={styles.input}
-                                    type="text"
+                                <select
                                     name="ID_EstadoPedido"
                                     value={formData.ID_EstadoPedido}
                                     onChange={handleInputChangeUpdate}
-                                    placeholder="ID Estado Pedido"
+                                    required
+                                    className={styles.selecthistorial}
+                                >
+                                    <option value="">-- Seleccionar estado --</option>
+                                    {estadoPedidos.map((cat) => (
+                                        <option key={cat.ID_EstadoPedido} value={cat.ID_EstadoPedido}>
+                                            {cat.Estado}
+                                        </option>
+                                    ))}
+                                </select>
+                                
+                                {/* Mostrar nombre del cliente (solo lectura) */}
+
+                                <input 
+                                  className={styles.input}
+                                  type="text"
+                                  name="ID_Pedido"
+                                  value={getNombreCliente(formData.ID_Pedido)}  // Muestra el nombre del cliente
+                                  readOnly              // Hace el input no editable
+                                  placeholder={getNombreCliente}
                                 />
+                                
                                 <input 
                                     className={styles.input}
-                                    type="text"
-                                    name="ID_Pedido"
-                                    value={formData.ID_Pedido}
-                                    onChange={handleInputChangeUpdate}
-                                    placeholder="ID Pedido"
-                                />
-                                <input 
-                                    className={styles.input}
-                                    type="text"
+                                    type="date"
                                     name="Fecha"
                                     value={formData.Fecha}
                                     onChange={handleInputChangeUpdate}
-                                    placeholder="Fecha"
+                                    required
                                 />
                                 <div className={styles.botones}>
-                                    <button onClick={handleUpdate} className={styles.button}>Guardar</button>
-                                    <button onClick={handleCancelEdit} className={styles.button}>Cancelar</button>
+                                    <button 
+                                        type="button" 
+                                        onClick={handleUpdate} 
+                                        className={styles.button}
+                                    >
+                                        Guardar
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={handleCancelEdit} 
+                                        className={styles.button}
+                                    >
+                                        Cancelar
+                                    </button>
                                 </div>
                             </div>
                         </div>

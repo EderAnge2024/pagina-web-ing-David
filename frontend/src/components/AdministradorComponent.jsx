@@ -53,7 +53,6 @@ const LazyPedido = lazy(() => import("./Administrador/Pedido"));
 const LazyProyecto = lazy(() => import("./Administrador/Proyecto"));
 const Lazycolors = lazy(() => import("./PaletaColores"));
 
-
 const LoadingSpinner = () => (
     <div className={stiloAdmin.componentLoading}>
         <div className={stiloAdmin.loadingSpinner}></div>
@@ -228,7 +227,6 @@ const Administrador = () => {
         }
     }, [handleNavClick]);
 
-
     const goToPaleta = useCallback(() => {
         try {
             handleNavClick('colors');
@@ -237,7 +235,6 @@ const Administrador = () => {
             setError('Error al cargar la Paleta');
         }
     }, [handleNavClick]);
-
 
     const openMenuInNewTab = useCallback(() => {
         try {
@@ -360,7 +357,7 @@ const Administrador = () => {
                         <span className={stiloAdmin.actionIcon}>📊</span>
                         {!sidebarCollapsed && <span>Dashboard</span>}
                     </button>
-                     {/* Paleta de colores, Raaa */}
+                    {/* Paleta de colores, Raaa */}
                     <button 
                         onClick={goToPaleta}
                         className={stiloAdmin.actionButton}
@@ -368,7 +365,6 @@ const Administrador = () => {
                     >
                         <span className={stiloAdmin.actionIcon}>🎨 Paleta Colores</span>
                     </button>
-
                     <button 
                         onClick={openMenuInNewTab}
                         className={stiloAdmin.actionButton}
