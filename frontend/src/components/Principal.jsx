@@ -6,24 +6,28 @@ import Carrito from "./subComponente/Carrito";
 import Inicio from "./subComponente/Inicio";
 import Menu from "./subComponente/Menu";
 import Servicio from "./subComponente/Servicio";
+import PrefilFrom from "./subComponente/Perfil";
 
 // Imágenes
 import carrito from '../img/carrito.png';
 import casa from '../img/casa.png';
 import menu from '../img/menu.png';
 import servicio from '../img/servicio.png';
+import perfil from '../img/perfil.png'
 
 // Estilos y stores
 import styles from './principal.module.css';
 import useImagenStore from "../store/ImagenStore";
 import {useColorStore} from "../store/colorStore";
+import PerfilFrom from "./subComponente/Perfil";
 
 // Constantes
 const NAVIGATION_ITEMS = [
   { key: 'inicio', icon: casa, label: 'Inicio', alt: 'Inicio' },
   { key: 'menu', icon: menu, label: 'Menú', alt: 'Menú' },
   { key: 'servicio', icon: servicio, label: 'Servicios', alt: 'Servicio' },
-  { key: 'carrito', icon: carrito, label: 'Carrito', alt: 'Carrito' }
+  { key: 'carrito', icon: carrito, label: 'Carrito', alt: 'Carrito' },
+  { key: 'perfil', icon: perfil, label: 'Perfil', alt: 'Perfil' }
 ];
 
 const COMPANY_INFO = {
@@ -297,7 +301,8 @@ const Principal = () => {
       inicio: <Inicio />,
       menu: <Menu />,
       servicio: <Servicio />,
-      carrito: <Carrito />
+      carrito: <Carrito />,
+      perfil: <PerfilFrom />
     };
 
     return (

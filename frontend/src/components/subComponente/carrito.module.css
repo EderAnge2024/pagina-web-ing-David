@@ -412,6 +412,9 @@
 }
 
 /* Modales */
+.modalOverlayy{
+  z-index: 1001;
+}
 .modalOverlay {
   position: fixed;
   top: 0;

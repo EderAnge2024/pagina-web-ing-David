@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { 
   ShoppingCart, User, Calendar, Phone, Trash2, Plus, Minus, 
-  UserCheck, AlertTriangle, FileText
+  UserCheck, AlertTriangle, FileText, Lock
 } from "lucide-react";
 import style from './Carrito.module.css';
 import { generateFacturaPDF } from "../../store/generadorFacturasPdf";
@@ -16,8 +16,23 @@ import useAdministradorStore from "../../store/AdministradorStore";
 
 const Carrito = () => {
   // ========================
+  // ESTADOS DE AUTENTICACIÓN
+  // ========================
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authData, setAuthData] = useState({
+    Usuario: "",
+    Contrasena: ""
+  });
+  const [authError, setAuthError] = useState("");
+
+  // ========================
   // ESTADOS PRINCIPALES
   // ========================
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginData, setLoginData] = useState({
+    Usuario: "",
+    Contrasena: ""
+  });
   const [carrito, setCarrito] = useState(() => {
     const carritoGuardado = typeof window !== 'undefined' ? 
       JSON.parse(localStorage.getItem("carrito")) || [] : [];
@@ -28,11 +43,8 @@ const Carrito = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [stockWarnings, setStockWarnings] = useState([]);
+  const [modalActivo, setModalActivo] = useState(null);
   
-  // Estados de UI
-  const [modalActivo, setModalActivo] = useState(null); // 'cliente', 'pedido'
-  
-  // Estados de formularios
   const [clienteData, setClienteData] = useState({
     Nombre: "",
     Apellido: "",
@@ -66,9 +78,25 @@ const Carrito = () => {
   const { administradors, fetchAdministrador } = useAdministradorStore();
   const { decreaseStock, checkStock, productos, fetchProducto } = useProductoStore();
 
+  const mostrarMensaje = useCallback((mensaje, tipo = 'success') => {
+    if (tipo === 'success') {
+      setSuccess(mensaje);
+      setError("");
+      setTimeout(() => setSuccess(""), 5000);
+    } else {
+      setError(mensaje);
+      setSuccess("");
+    }
+  }, []);
+  
+  const tieneProblemasStock = useMemo(() => {
+    return stockWarnings.length > 0;
+  }, [stockWarnings]);
+
   // ========================
   // EFECTOS
   // ========================
+  // mostar mensaje
   useEffect(() => {
     initializeComponent();
   }, []);
@@ -84,7 +112,7 @@ const Carrito = () => {
   }, [carrito, productos]);
 
   // ========================
-  // INICIALIZACIÓN
+  // FUNCIONES DE INICIALIZACIÓN
   // ========================
   const initializeComponent = useCallback(async () => {
     try {
@@ -99,7 +127,6 @@ const Carrito = () => {
         verificarClienteAutenticado()
       ]);
 
-      // Si hay cliente actual, configuramos el pedido
       if (clienteActual) {
         setPedidoData(prev => ({ 
           ...prev, 
@@ -113,7 +140,39 @@ const Carrito = () => {
   }, [fetchEstadoPedido, fetchAdministrador, fetchProducto, fetchCliente, verificarClienteAutenticado, clienteActual]);
 
   // ========================
-  // VERIFICACIÓN DE STOCK
+  // FUNCIONES DE AUTENTICACIÓN
+  // ========================
+  const validarCredenciales = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:3001/clientes/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(authData)
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        return true;
+      } else {
+        setAuthError(data.mensaje || "Credenciales incorrectas");
+        return false;
+      }
+    } catch (error) {
+      setAuthError("Error al verificar credenciales");
+      console.error("Error:", error);
+      return false;
+    }
+  }, [authData]);
+
+  const handleAuthChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setAuthData(prev => ({ ...prev, [name]: value }));
+    setAuthError("");
+  }, []);
+
+  // ========================
+  // FUNCIONES DEL CARRITO
   // ========================
   const verificarStockCarrito = useCallback(() => {
     const warnings = [];
@@ -135,59 +194,6 @@ const Carrito = () => {
     setStockWarnings(warnings);
   }, [carrito, checkStock]);
 
-  // ========================
-  // CÁLCULOS MEMOIZADOS
-  // ========================
-  const totalCarrito = useMemo(() => {
-    return carrito.reduce((total, producto) => total + (producto.Precio_Final * producto.cantidad), 0);
-  }, [carrito]);
-
-  const cantidadTotalProductos = useMemo(() => {
-    return carrito.reduce((total, producto) => total + producto.cantidad, 0);
-  }, [carrito]);
-
-  const tieneProblemasStock = useMemo(() => {
-    return stockWarnings.length > 0;
-  }, [stockWarnings]);
-
-  // ========================
-  // UTILIDADES
-  // ========================
-  const mostrarMensaje = useCallback((mensaje, tipo = 'success') => {
-    if (tipo === 'success') {
-      setSuccess(mensaje);
-      setError("");
-      setTimeout(() => setSuccess(""), 5000);
-    } else {
-      setError(mensaje);
-      setSuccess("");
-    }
-  }, []);
-
-  const limpiarMensajes = useCallback(() => {
-    setError("");
-    setSuccess("");
-  }, []);
-
-  const resetearFormularios = useCallback(() => {
-    setClienteData({ Nombre: "", Apellido: "", NumCelular: "" });
-    setPedidoData({ 
-      ID_Cliente: "", 
-      Fecha_Pedido: new Date().toISOString().slice(0, 10), 
-      Fecha_Entrega: "", 
-      Observaciones: "" 
-    });
-    setModalActivo(null);
-  }, []);
-
-  const cerrarModal = useCallback(() => {
-    setModalActivo(null);
-    limpiarMensajes();
-  }, [limpiarMensajes]);
-
-  // ========================
-  // GESTIÓN DEL CARRITO
-  // ========================
   const actualizarCantidadProducto = useCallback((index, nuevaCantidad) => {
     if (nuevaCantidad <= 0) {
       eliminarProducto(index);
@@ -214,7 +220,52 @@ const Carrito = () => {
   }, [mostrarMensaje]);
 
   // ========================
-  // GESTIÓN DE CLIENTES
+  // FUNCIONES DE MENSAJES
+  // ========================
+
+  const limpiarMensajes = useCallback(() => {
+    setError("");
+    setSuccess("");
+  }, []);
+
+  // ========================
+  // FUNCIONES DE FORMULARIOS
+  // ========================
+  const resetearFormularios = useCallback(() => {
+    setClienteData({ Nombre: "", Apellido: "", NumCelular: "" });
+    setPedidoData({ 
+      ID_Cliente: "", 
+      Fecha_Pedido: new Date().toISOString().slice(0, 10), 
+      Fecha_Entrega: "", 
+      Observaciones: "" 
+    });
+    setModalActivo(null);
+  }, []);
+
+  const cerrarModal = useCallback(() => {
+    setModalActivo(null);
+    limpiarMensajes();
+  }, [limpiarMensajes]);
+
+  const handleInputChangeCliente = useCallback((e) => {
+    const { name, value } = e.target;
+    setClienteData(prev => ({ ...prev, [name]: value }));
+    limpiarMensajes();
+  }, [limpiarMensajes]);
+
+  const handleInputChangePedido = useCallback((e) => {
+    const { name, value } = e.target;
+    setPedidoData(prev => ({ ...prev, [name]: value }));
+    limpiarMensajes();
+  }, [limpiarMensajes]);
+
+  const handleLoginChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setLoginData(prev => ({ ...prev, [name]: value }));
+  }, []);
+
+  // ========================
+  // FUNCIONES DE CLIENTES
   // ========================
   const seleccionarCliente = useCallback((cliente) => {
     setPedidoData(prev => ({
@@ -293,19 +344,35 @@ const Carrito = () => {
   }, [pedidoData, tieneProblemasStock, mostrarMensaje]);
 
   // ========================
-  // MANEJO DE FORMULARIOS
+  // FUNCIONES DE PEDIDOS
   // ========================
-  const handleInputChangeCliente = useCallback((e) => {
-    const { name, value } = e.target;
-    setClienteData(prev => ({ ...prev, [name]: value }));
-    limpiarMensajes();
-  }, [limpiarMensajes]);
-
-  const handleInputChangePedido = useCallback((e) => {
-    const { name, value } = e.target;
-    setPedidoData(prev => ({ ...prev, [name]: value }));
-    limpiarMensajes();
-  }, [limpiarMensajes]);
+  const handleLogin = useCallback(async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const response = await fetch('http://localhost:3001/clientes/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginData)
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        mostrarMensaje("Inicio de sesión exitoso");
+        setShowLoginModal(false);
+        verificarClienteAutenticado();
+      } else {
+        mostrarMensaje(data.mensaje || "Error al iniciar sesión", 'error');
+      }
+    } catch (error) {
+      mostrarMensaje("Error del servidor", 'error');
+      console.error("Error en login:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [loginData, verificarClienteAutenticado, mostrarMensaje]);
 
   const handleSubmitCliente = useCallback(async (e) => {
     e.preventDefault();
@@ -336,18 +403,32 @@ const Carrito = () => {
     }
   }, [clienteData, validarFormularioCliente, addCliente, seleccionarCliente, mostrarMensaje]);
 
-  // ========================
-  // FUNCIONES DE NOTIFICACIÓN AUTOMÁTICA
-  // ========================
-  const enviarNotificacionesAutomaticas = useCallback(async (datosFactura) => {
+  const handleSubmitPedido = useCallback(async (e) => {
+    e.preventDefault();
+    
+    if (!validarFormularioPedido()) return;
+    if (!clienteActual) {
+      mostrarMensaje("No hay cliente seleccionado.", 'error');
+      return;
+    }
+    
+    // Mostrar modal de autenticación primero
+    setShowAuthModal(true);
+  }, [validarFormularioPedido, clienteActual, mostrarMensaje]);
+
+    const enviarNotificacionesAutomaticas = useCallback(async (datosFactura) => {
     try {
-      // Generar PDF automáticamente
+        console.log('=== DEBUG NOTIFICACIONES ===');
+        console.log('Cliente en datosFactura:', datosFactura.cliente);
+        console.log('Nombre:', datosFactura.cliente.Nombre);
+        console.log('Número que se usará:', datosFactura.cliente.NumCelular);
+        console.log('clienteActual global:', clienteActual);
+        console.log('=============================');
       const resultadoPDF = generateFacturaPDF(datosFactura);
       
       if (resultadoPDF.success) {
         console.log(`PDF generado: ${resultadoPDF.filename}`);
         
-        // Enviar automáticamente a WhatsApp del cliente
         const cliente = datosFactura.cliente;
         const productos = datosFactura.detalles.map(detalle => 
           `• ${detalle.Nombre_Producto} x${detalle.Cantidad} - $${detalle.Subtotal.toFixed(2)}`
@@ -368,16 +449,12 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
 
 ¡Gracias por tu preferencia! 😊`;
 
-        // Enviar al cliente
-        const numeroCliente = `51${cliente.NumCelular}`;
-        const mensajeCodificadoCliente = encodeURIComponent(mensajeCliente);
-        const urlWhatsAppCliente = `https://wa.me/${numeroCliente}?text=${mensajeCodificadoCliente}`;
+        
         
         setTimeout(() => {
           window.open(urlWhatsAppCliente, '_blank');
         }, 1000);
 
-        // Enviar al administrador
         const mensajeAdmin = `📋 NUEVO PEDIDO #${datosFactura.pedido.ID_Pedido}
 
 👤 Cliente: ${cliente.Nombre} ${cliente.Apellido}
@@ -394,6 +471,11 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
         const mensajeCodificadoAdmin = encodeURIComponent(mensajeAdmin);
         const urlWhatsAppAdmin = `https://wa.me/${numeroAdmin}?text=${mensajeCodificadoAdmin}`;
         
+        const numeroCliente = `51${cliente.NumCelular}`;
+        console.log('el numero: ', numeroCliente)
+        const mensajeCodificadoCliente = encodeURIComponent(mensajeCliente);
+        const urlWhatsAppCliente = `https://wa.me/${numeroCliente}?text=${mensajeCodificadoCliente}`;
+        
         setTimeout(() => {
           window.open(urlWhatsAppAdmin, '_blank');
         }, 2000);
@@ -406,21 +488,21 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
     }
   }, [administradors, mostrarMensaje]);
 
-  // ========================
-  // PROCESAMIENTO DEL PEDIDO
-  // ========================
-  const handleSubmitPedido = useCallback(async (e) => {
-    e.preventDefault();
-    
-    if (!validarFormularioPedido()) return;
-    if (!clienteActual) {
-      mostrarMensaje("No hay cliente seleccionado.", 'error');
-      return;
-    }
-    
+  const confirmarPedidoConAutenticacion = useCallback(async () => {
     setLoading(true);
+    setAuthError("");
     
     try {
+      // Validar credenciales primero
+      const credencialesValidas = await validarCredenciales();
+      
+      if (!credencialesValidas) {
+        return;
+      }
+      
+      // Si las credenciales son válidas, proceder con el pedido
+      setShowAuthModal(false);
+      
       // Verificar stock final
       const stockErrors = [];
       for (const producto of carrito) {
@@ -527,7 +609,28 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
     } finally {
       setLoading(false);
     }
-  }, [pedidoData, clienteActual, carrito, validarFormularioPedido, addPedido, addDetallePedido, addFactura, addHistorialEstado, estadoPedidos, checkStock, decreaseStock, resetearFormularios, limpiarCarrito, enviarNotificacionesAutomaticas, mostrarMensaje]);
+  }, [
+    validarCredenciales, carrito, pedidoData, clienteActual, 
+    checkStock, addPedido, addDetallePedido, decreaseStock, 
+    addFactura, estadoPedidos, addHistorialEstado, 
+    resetearFormularios, limpiarCarrito, enviarNotificacionesAutomaticas, 
+    mostrarMensaje
+  ]);
+
+
+
+  // ========================
+  // CÁLCULOS MEMOIZADOS
+  // ========================
+  
+
+  const totalCarrito = useMemo(() => {
+    return carrito.reduce((total, producto) => total + (producto.Precio_Final * producto.cantidad), 0);
+  }, [carrito]);
+
+  const cantidadTotalProductos = useMemo(() => {
+    return carrito.reduce((total, producto) => total + producto.cantidad, 0);
+  }, [carrito]);
 
   // ========================
   // RENDER
@@ -571,7 +674,7 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
           <span>Cliente: {clienteActual.Nombre} {clienteActual.Apellido}</span>
           <button 
             onClick={() => {
-              logoutCliente();
+              {/*logoutCliente(); */}
               mostrarMensaje("Sesión cerrada correctamente");
             }}
             className={style.btnCerrarSesion}
@@ -667,6 +770,152 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
             <User className={style.icon} />
             {clienteActual ? 'Continuar al Pago' : 'Registrarse y Pagar'}
           </button>
+        </div>
+      )}
+      
+      {/* Modal de login */}
+      {showLoginModal && (
+        <div className={style.modalOverlayy} onClick={() => setShowLoginModal(false)}>
+          <div className={style.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={style.modalHeader}>
+              <h3>
+                <User className={style.icon} />
+                Iniciar Sesión
+              </h3>
+              <button 
+                onClick={() => setShowLoginModal(false)} 
+                className={style.btnCerrar}
+              >
+                ×
+              </button>
+            </div>
+            
+            <form onSubmit={handleLogin} className={style.modalContent}>
+              <div className={style.formGroup}>
+                <label>Usuario *</label>
+                <input
+                  type="text"
+                  name="Usuario"
+                  value={loginData.Usuario}
+                  onChange={handleLoginChange}
+                  className={style.input}
+                  required
+                  autoFocus
+                />
+              </div>
+              
+              <div className={style.formGroup}>
+                <label>Contraseña *</label>
+                <input
+                  type="password"
+                  name="Contrasena"
+                  value={loginData.Contrasena}
+                  onChange={handleLoginChange}
+                  className={style.input}
+                  required
+                />
+              </div>
+      
+              <div className={style.modalAcciones}>
+                <button 
+                  type="button" 
+                  onClick={() => setShowLoginModal(false)}
+                  className={style.btnSecundario}
+                  disabled={loading}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  className={style.btnPrimario}
+                  disabled={loading}
+                >
+                  {loading ? 'Iniciando...' : 'Iniciar Sesión'}
+                </button>
+              </div>
+              
+              <div className={style.loginFooter}>
+                <p>¿No tienes cuenta? <button 
+                  type="button" 
+                  className={style.linkBtn}
+                  onClick={() => {
+                    setShowLoginModal(false);
+                    mostrarMensaje("Por favor regístrate primero");
+                  }}
+                >
+                  Regístrate
+                </button></p>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de autenticación para confirmar pedido */}
+      {showAuthModal && (
+        <div className={style.modalOverlay} onClick={() => setShowAuthModal(false)}>
+          <div className={style.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={style.modalHeader}>
+              <h3>
+                <Lock className={style.icon} />
+                Confirmar Identidad
+              </h3>
+              <p>Por favor ingresa tus credenciales para confirmar el pedido</p>
+            </div>
+            
+            <div className={style.modalContent}>
+              <div className={style.formGroup}>
+                <label>Usuario *</label>
+                <input
+                  type="text"
+                  name="Usuario"
+                  value={authData.Usuario}
+                  onChange={handleAuthChange}
+                  className={style.input}
+                  required
+                  autoFocus
+                />
+              </div>
+              
+              <div className={style.formGroup}>
+                <label>Contraseña *</label>
+                <input
+                  type="password"
+                  name="Contrasena"
+                  value={authData.Contrasena}
+                  onChange={handleAuthChange}
+                  className={style.input}
+                  required
+                />
+              </div>
+              
+              {authError && (
+                <div className={style.mensaje + " " + style.error}>
+                  <AlertTriangle className={style.icon} />
+                  {authError}
+                </div>
+              )}
+              
+              <div className={style.modalAcciones}>
+                <button 
+                  type="button" 
+                  onClick={() => setShowAuthModal(false)}
+                  className={style.btnSecundario}
+                  disabled={loading}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="button"
+                  onClick={confirmarPedidoConAutenticacion}
+                  className={style.btnPrimario}
+                  disabled={loading}
+                >
+                  {loading ? 'Verificando...' : 'Confirmar Pedido'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -822,7 +1071,8 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
                     className={style.btnPrimario}
                     disabled={loading || tieneProblemasStock}
                   >
-                    {loading ? 'Procesando...' : 'Confirmar Pedido'}
+                    <User className={style.icon} />
+                    Confirmar Pedido
                   </button>
                 </div>
               </form>

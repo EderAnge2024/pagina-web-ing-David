@@ -16,7 +16,10 @@ const ClienteForm = () => {
     const [formData, setFormData] = useState({
         Nombre: "",
         Apellido: "",
-        NumCelular: ""
+        NumCelular: "",
+        Email:"",
+        Usuario:"",
+        Contrasena:"",
     })
 
     // Cargar clientes al montar el componente
@@ -42,7 +45,10 @@ const ClienteForm = () => {
             setFormData({
                 Nombre: "",
                 Apellido: "",
-                NumCelular: ""
+                NumCelular: "",
+                Email: "",
+                Usuario: "",
+                Contrasena: ""
             })
             alert("Cliente agregado correctamente")
         } catch (error) {
@@ -67,7 +73,10 @@ const ClienteForm = () => {
         setFormData({
             Nombre: cliente.Nombre,
             Apellido: cliente.Apellido,
-            NumCelular: cliente.NumCelular
+            NumCelular: cliente.NumCelular,
+            Email: cliente.Email,
+            Usuario: cliente.Usuario,
+            Contrasena: cliente.Contrasena
         })
     }, [])
 
@@ -87,7 +96,10 @@ const ClienteForm = () => {
         setFormData({
             Nombre: "",
             Apellido: "",
-            NumCelular: ""
+            NumCelular: "",
+            Email: "",
+            Usuario: "",
+            Contrasena: ""
         })
     }, [])
 
@@ -123,6 +135,33 @@ const ClienteForm = () => {
                         onChange={handleInputChange}
                         className={style.form__input}
                     />
+                    <input
+                        type="text"
+                        placeholder="Correo"
+                        required
+                        name="Email"
+                        value={formData.Email}
+                        onChange={handleInputChange}
+                        className={style.form__input}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Usuario"
+                        required
+                        name="Usuario"
+                        value={formData.Usuario}
+                        onChange={handleInputChange}
+                        className={style.form__input}
+                    />
+                    <input
+                        type="password"
+                        placeholder="Contraseña"
+                        required
+                        name="Contrasena"
+                        value={formData.Contrasena}
+                        onChange={handleInputChange}
+                        className={style.form__input}
+                    />
                     <button type="submit" className={`${style.button} ${style['button--primary']}`}>
                         Guardar Datos
                     </button>
@@ -146,6 +185,22 @@ const ClienteForm = () => {
                                 <p className={style.card__item}>
                                     <span className={style.card__label}>Celular:</span> 
                                     {user.NumCelular}
+                                </p>
+                                <p className={style.card__item}>
+                                    <span className={style.card__label}>token:</span> 
+                                    {user.token}
+                                </p>
+                                <p className={style.card__item}>
+                                    <span className={style.card__label}>Email:</span> 
+                                    {user.Email}
+                                </p>
+                                <p className={style.card__item}>
+                                    <span className={style.card__label}>Usuario:</span> 
+                                    {user.Usuario}
+                                </p>
+                                <p className={style.card__item}>
+                                    <span className={style.card__label}>Contraseña:</span> 
+                                    {user.Contrasena}
                                 </p>
                             </div>
                             <div className={style.card__actions}>
@@ -201,6 +256,30 @@ const ClienteForm = () => {
                                 value={formData.NumCelular}
                                 onChange={handleInputChange}
                                 placeholder="Número de celular"
+                                className={style.form__input}
+                            />
+                            <input 
+                                type="text"
+                                name="Email"
+                                value={formData.Email}
+                                onChange={handleInputChange}
+                                placeholder="Email"
+                                className={style.form__input}
+                            />
+                            <input 
+                                type="text"
+                                name="Usuario"
+                                value={formData.Usuario}
+                                onChange={handleInputChange}
+                                placeholder="Usuario"
+                                className={style.form__input}
+                            />
+                            <input 
+                                type="password"
+                                name="Contrasena"
+                                value={formData.Contrasena}
+                                onChange={handleInputChange}
+                                placeholder="Contrasena"
                                 className={style.form__input}
                             />
                             <div className={style.modal__actions}>
