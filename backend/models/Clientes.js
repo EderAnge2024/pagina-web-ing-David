@@ -22,6 +22,18 @@ const Cliente = sequelize.define('Cliente', {
   token:{
     type: DataTypes.STRING,
     allowNull:false
+  },
+  Email:{
+     type: DataTypes.STRING,
+     allowNull: false
+  },
+  Usuario:{
+     type: DataTypes.STRING,
+     allowNull: false
+  },
+  Contrasena: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 
 })
