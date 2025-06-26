@@ -94,6 +94,7 @@ const ImagenForm = () => {
         })
     }
 
+    // 🔥 FUNCIÓN MEJORADA PARA MANEJAR EL SUBMIT
     const handleSubmit = async (e) => {
         e.preventDefault()
         setUploading(true)
@@ -102,12 +103,46 @@ const ImagenForm = () => {
         try {
             let finalImagenData = { ...imagenData }
             
+            // Subir archivo si existe
             if (selectedFile) {
                 const uploadedUrl = await uploadToCloudinary(selectedFile)
                 finalImagenData.URL = uploadedUrl
             }
             
-            await addImagen(finalImagenData)
+            console.log('📋 Datos a enviar:', finalImagenData)
+            
+            // 🔥 VERIFICAR SI ES LOGO Y ES_PRINCIPAL
+            if (finalImagenData.Tipo_Imagen === "Logo" && finalImagenData.es_principal) {
+                // Primero agregar la imagen SIN establecerla como principal
+                const tempData = { ...finalImagenData, es_principal: false }
+                
+                console.log('🎯 Agregando logo primero sin marcar como principal...')
+                const newImagenId = await addImagen(tempData)
+                
+                // Actualizar lista de imágenes
+                await fetchImagen()
+                
+                // Luego establecer como principal usando el ID de la nueva imagen
+                if (newImagenId) {
+                    console.log('🎯 Estableciendo como principal el ID:', newImagenId)
+                    await setLogoPrincipal(newImagenId)
+                } else {
+                    // Si no tenemos el ID, buscar la imagen recién creada
+                    await new Promise(resolve => setTimeout(resolve, 300))
+                    await fetchImagen()
+                    
+                    const newLogos = getLogos()
+                    const lastLogo = newLogos[newLogos.length - 1]
+                    
+                    if (lastLogo) {
+                        console.log('🎯 Estableciendo como principal (backup):', lastLogo.ID_Imagen)
+                        await setLogoPrincipal(lastLogo.ID_Imagen)
+                    }
+                }
+            } else {
+                // Para banners o logos no principales, agregar normalmente
+                await addImagen(finalImagenData)
+            }
             
             // Limpiar formulario
             setImagenData({ Tipo_Imagen: "", URL: "", es_principal: false })
@@ -117,12 +152,14 @@ const ImagenForm = () => {
             const fileInput = document.querySelector('input[type="file"]')
             if (fileInput) fileInput.value = ""
             
-            // 🔥 FORZAR ACTUALIZACIÓN COMPLETA
+            // Forzar actualización completa
             await fetchImagen()
             
+            console.log('✅ Imagen agregada exitosamente')
+            
         } catch (error) {
-            console.error('Error al agregar imagen:', error)
-            alert('Error al subir la imagen. Por favor, verifica tu configuración de Cloudinary.')
+            console.error('❌ Error al agregar imagen:', error)
+            alert('Error al subir la imagen: ' + error.message)
         } finally {
             setUploading(false)
             setUploadProgress(0)
@@ -159,6 +196,7 @@ const ImagenForm = () => {
         })
     }
 
+    // 🔥 FUNCIÓN MEJORADA PARA MANEJAR LA ACTUALIZACIÓN
     const handleUpdate = async () => {
         setUploading(true)
         
@@ -170,14 +208,32 @@ const ImagenForm = () => {
                 finalFormData.URL = uploadedUrl
             }
             
-            await updateImagen(editingImagen.ID_Imagen, finalFormData)
+            console.log('📋 Datos de actualización:', finalFormData)
+            
+            // 🔥 SI SE ESTÁ MARCANDO COMO PRINCIPAL
+            if (finalFormData.Tipo_Imagen === "Logo" && finalFormData.es_principal && !editingImagen.es_principal) {
+                // Primero actualizar sin marcar como principal
+                const tempData = { ...finalFormData, es_principal: false }
+                await updateImagen(editingImagen.ID_Imagen, tempData)
+                await fetchImagen()
+                
+                // Luego establecer como principal
+                await setLogoPrincipal(editingImagen.ID_Imagen)
+            } else {
+                // Actualización normal
+                await updateImagen(editingImagen.ID_Imagen, finalFormData)
+            }
+            
             await fetchImagen() // 🔥 FORZAR ACTUALIZACIÓN
             setEditingImagen(null)
             setEditingFile(null)
             setEditingPreview("")
+            
+            console.log('✅ Imagen actualizada exitosamente')
+            
         } catch (error) {
-            console.error('Error al actualizar imagen:', error)
-            alert('Error al actualizar la imagen.')
+            console.error('❌ Error al actualizar imagen:', error)
+            alert('Error al actualizar la imagen: ' + error.message)
         } finally {
             setUploading(false)
         }
@@ -203,51 +259,51 @@ const ImagenForm = () => {
     }
 
     // 🔥 FUNCIÓN MEJORADA PARA CAMBIAR LOGO PRINCIPAL
-const handleSetLogoPrincipal = async (logoId) => {
-    if (!window.confirm('¿Deseas cambiar el logo principal?')) {
-        return;
-    }
-    
-    try {
-        setUploading(true)
+    const handleSetLogoPrincipal = async (logoId) => {
+        if (!window.confirm('¿Deseas cambiar el logo principal?')) {
+            return;
+        }
         
-        console.log('🎯 Iniciando cambio de logo principal desde ImagenForm:', logoId)
-        
-        // 1. Llamar a la función del store
-        await setLogoPrincipal(logoId)
-        
-        // 2. Esperar un momento para que se complete la actualización en el servidor
-        await new Promise(resolve => setTimeout(resolve, 300))
-        
-        // 3. Forzar actualización inmediata
-        await fetchImagen()
-        
-        // 4. Disparar evento personalizado para notificar a otros componentes
-        const event = new CustomEvent('logoChanged', { 
-            detail: { 
-                logoId,
-                timestamp: Date.now()
-            } 
-        })
-        
-        window.dispatchEvent(event)
-        console.log('📢 Evento logoChanged disparado:', event.detail)
-        
-        // 5. Forzar re-render adicional con un pequeño delay
-        setTimeout(async () => {
+        try {
+            setUploading(true)
+            
+            console.log('🎯 Iniciando cambio de logo principal desde ImagenForm:', logoId)
+            
+            // 1. Llamar a la función del store
+            await setLogoPrincipal(logoId)
+            
+            // 2. Esperar un momento para que se complete la actualización en el servidor
+            await new Promise(resolve => setTimeout(resolve, 300))
+            
+            // 3. Forzar actualización inmediata
             await fetchImagen()
-            console.log('🔄 Segunda actualización completada')
-        }, 500)
-        
-        alert('Logo principal actualizado correctamente')
-        
-    } catch (error) {
-        console.error('❌ Error al cambiar logo principal:', error)
-        alert('Error al cambiar logo principal: ' + error.message)
-    } finally {
-        setUploading(false)
+            
+            // 4. Disparar evento personalizado para notificar a otros componentes
+            const event = new CustomEvent('logoChanged', { 
+                detail: { 
+                    logoId,
+                    timestamp: Date.now()
+                } 
+            })
+            
+            window.dispatchEvent(event)
+            console.log('📢 Evento logoChanged disparado:', event.detail)
+            
+            // 5. Forzar re-render adicional con un pequeño delay
+            setTimeout(async () => {
+                await fetchImagen()
+                console.log('🔄 Segunda actualización completada')
+            }, 500)
+            
+            alert('Logo principal actualizado correctamente')
+            
+        } catch (error) {
+            console.error('❌ Error al cambiar logo principal:', error)
+            alert('Error al cambiar logo principal: ' + error.message)
+        } finally {
+            setUploading(false)
+        }
     }
-}
 
     const renderImageCard = (imagen, showPrincipalOption = false) => (
         <div key={imagen.ID_Imagen} className={`${styles.imageCard} ${imagen.es_principal ? styles.principalCard : ''}`}>

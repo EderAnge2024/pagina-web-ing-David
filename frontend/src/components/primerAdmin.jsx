@@ -29,12 +29,12 @@ const AgregarAdministradorPrimer = () => {
       await addAdministrador(administradorData)
       setAdministradorData({ 
         Nombre_Administrador: '', 
-        Usuario: '', 
+        Usuario: '',  
         Contrasena: '',
         NumAdministrador:''
       })
       alert('Administrador registrado exitosamente!')
-      window.location.href = '/'
+      window.location.href = '/loginFrom'
     } catch (error) {
       console.error('Error al agregar administrador:', error)
       alert('Error al registrar administrador: ' + error.message)

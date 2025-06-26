@@ -49,7 +49,7 @@ function App() {
             ) : (
               <LoginForm />
             )
-          } 
+          }  
         />
         
         {/* Ruta protegida */}

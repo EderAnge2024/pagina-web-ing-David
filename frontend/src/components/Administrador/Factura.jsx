@@ -16,9 +16,15 @@ const INITIAL_FACTURA_DATA = {
 }
 
 const Factura = () => {
-    // Store hooks
+    // Store hooks - actualizados con los nuevos campos del store
     const { addFactura, fetchFactura, facturas, deleteFactura, updateFactura } = useFacturaStore()
-    const { clientes, fetchCliente } = useClienteStore()
+    const { 
+        clientes, 
+        fetchCliente,
+        isAuthenticated,
+        clienteActual,
+        loading: clienteLoading 
+    } = useClienteStore()
     const { pedidos, fetchPedido } = usePedidoStore()
     const { detallePedidos, fetchDetallePedido } = useDetallePedidoStore()
     const { productos, fetchProducto } = useProductoStore()
@@ -33,71 +39,92 @@ const Factura = () => {
 
     // Initialize data on component mount
     useEffect(() => {
-        initializeData()
-          console.log("Todas las facturas cargadas:", facturas);
-    }, [])
+        const initializeData = async () => {
+            try {
+                setLoading(true)
+                
+                // Verificar si hay funciones de fetch disponibles antes de llamarlas
+                const promises = []
+                
+                if (fetchFactura) promises.push(fetchFactura())
+                if (fetchCliente) promises.push(fetchCliente())
+                if (fetchPedido) promises.push(fetchPedido())
+                if (fetchDetallePedido) promises.push(fetchDetallePedido())
+                if (fetchProducto) promises.push(fetchProducto())
+                
+                await Promise.all(promises)
+                setDataLoaded(true)
+            } catch (error) {
+                console.error('Error al cargar datos:', error)
+                mostrarMensaje('Error al cargar datos', 'error')
+            } finally {
+                setLoading(false)
+            }
+        }
+        
+        // Solo inicializar si no estamos en proceso de carga de cliente
+        if (!clienteLoading) {
+            initializeData()
+        }
+    }, [clienteLoading, fetchFactura, fetchCliente, fetchPedido, fetchDetallePedido, fetchProducto])
 
-const initializeData = async () => {
-    try {
-        setLoading(true)
-        console.log('Iniciando carga de datos...')
-
-        const [facturas, clientes, pedidos, detalles, productos] = await Promise.all([
-            fetchFactura(),
-            fetchCliente(),
-            fetchPedido(),
-            fetchDetallePedido(),
-            fetchProducto()
-        ])
-
-        setDataLoaded(true)
-
-        console.log('Datos cargados exitosamente:')
-        console.log('Facturas:', facturas)
-        console.log('Clientes:', clientes)
-        console.log('Pedidos:', pedidos)
-        console.log('Detalles:', detalles)
-        console.log('Productos:', productos)
-
-    } catch (error) {
-        console.error('Error al cargar datos:', error)
-        mostrarMensaje('Error al cargar datos', 'error')
-    } finally {
-        setLoading(false)
-    }
-}
-
+    // Auto-completar ID_Cliente si hay un cliente autenticado
+    useEffect(() => {
+        if (isAuthenticated && clienteActual?.ID_Cliente) {
+            setFacturaData(prev => ({
+                ...prev,
+                ID_Cliente: clienteActual.ID_Cliente.toString()
+            }))
+        }
+    }, [isAuthenticated, clienteActual])
 
     const mostrarMensaje = useCallback((texto, tipo = 'success') => {
         setMensaje({ texto, tipo })
         setTimeout(() => setMensaje({ texto: '', tipo: '' }), 5000)
     }, [])
 
-    const validarDatosDisponibles = useCallback(() => {
-        return dataLoaded && 
-               clientes?.length > 0 && 
-               pedidos?.length > 0 && 
-               productos?.length > 0
-    }, [dataLoaded, clientes, pedidos, productos])
+    const validarDatosDisponibles = () => 
+        dataLoaded && 
+        clientes?.length > 0 && 
+        pedidos?.length > 0 && 
+        productos?.length > 0
 
     // Form handlers
     const handleInputChange = (e) => {
         const { name, value } = e.target
-        setFacturaData(prev => ({
-            ...prev,
-            [name]: value
-        }))
+        setFacturaData(prev => ({ ...prev, [name]: value }))
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        
+        // Validar autenticación si es necesario
+        if (!isAuthenticated && !facturaData.ID_Cliente) {
+            mostrarMensaje("Debe especificar un ID de cliente o iniciar sesión", 'error')
+            return
+        }
+        
         try {
             setLoading(true)
-            await addFactura(facturaData)
-            setFacturaData(INITIAL_FACTURA_DATA)
+            
+            // Usar el ID del cliente autenticado si no se especifica otro
+            const datosFactura = {
+                ...facturaData,
+                ID_Cliente: facturaData.ID_Cliente || clienteActual?.ID_Cliente?.toString()
+            }
+            
+            await addFactura(datosFactura)
+            setFacturaData({
+                ...INITIAL_FACTURA_DATA,
+                ID_Cliente: isAuthenticated ? clienteActual.ID_Cliente.toString() : ""
+            })
             mostrarMensaje("Factura agregada exitosamente")
-            await fetchFactura()
+            
+            if (fetchFactura) {
+                await fetchFactura()
+            }
         } catch (error) {
+            console.error('Error al agregar factura:', error)
             mostrarMensaje("Error al agregar factura", 'error')
         } finally {
             setLoading(false)
@@ -110,9 +137,13 @@ const initializeData = async () => {
         try {
             setLoading(true)
             await deleteFactura(ID_Factura)
-            await fetchFactura()
+            
+            if (fetchFactura) {
+                await fetchFactura()
+            }
             mostrarMensaje("Factura eliminada correctamente")
         } catch (error) {
+            console.error('Error al eliminar factura:', error)
             mostrarMensaje("Error al eliminar factura", 'error')
         } finally {
             setLoading(false)
@@ -123,12 +154,7 @@ const initializeData = async () => {
     const handleEditClick = (factura) => {
         setEditingFactura({
             ...factura,
-            formData: {
-                ID_Pedido: factura.ID_Pedido,
-                ID_Cliente: factura.ID_Cliente,
-                Fecha: factura.Fecha,
-                Monto_Total: factura.Monto_Total
-            }
+            formData: { ...factura }
         })
     }
 
@@ -136,10 +162,7 @@ const initializeData = async () => {
         const { name, value } = e.target
         setEditingFactura(prev => ({
             ...prev,
-            formData: {
-                ...prev.formData,
-                [name]: value
-            }
+            formData: { ...prev.formData, [name]: value }
         }))
     }
 
@@ -147,267 +170,164 @@ const initializeData = async () => {
         try {
             setLoading(true)
             await updateFactura(editingFactura.ID_Factura, editingFactura.formData)
-            await fetchFactura()
+            
+            if (fetchFactura) {
+                await fetchFactura()
+            }
+            
             setEditingFactura(null)
             mostrarMensaje("Factura actualizada correctamente")
         } catch (error) {
+            console.error('Error al actualizar factura:', error)
             mostrarMensaje("Error al actualizar factura", 'error')
         } finally {
             setLoading(false)
         }
     }
 
-const obtenerDatosCompletosFactura = useCallback((factura) => {
-
-        if (!factura || !factura.ID_Cliente || !factura.ID_Pedido) {
-            console.error('Factura inválida:', factura);
-            return null;
+    // Funciones auxiliares
+    const obtenerCliente = (ID_Cliente) => {
+        // Si es el cliente autenticado, usar sus datos
+        if (isAuthenticated && clienteActual && 
+            String(clienteActual.ID_Cliente).trim() === String(ID_Cliente).trim()) {
+            return clienteActual
         }
-        console.warn("🔍 Verificando datos antes de continuar:", {
-  clientes: clientes.length,
-  pedidos: pedidos.length,
-  detallePedidos: detallePedidos.length,
-  productos: productos.length
-});
-       if (
-            !clientes.length || 
-            !pedidos.length || 
-            !detallePedidos.length || 
-            !productos.length
-        ) {
-            console.warn("🔴 Uno o más datos no están disponibles:", {
-                clientes: clientes.length,
-                pedidos: pedidos.length,
-                detallePedidos: detallePedidos.length,
-                productos: productos.length
-            });
-            return null;
+        
+        // Buscar en la lista de clientes
+        const cliente = clientes?.find(c => String(c.ID_Cliente).trim() === String(ID_Cliente).trim())
+        return cliente || { 
+            ID_Cliente, 
+            Nombre: 'Cliente no encontrado', 
+            Apellido: `(ID: ${ID_Cliente})`, 
+            NumCelular: '' 
         }
+    }
 
-        console.log('Datos de factura recibidos:', factura)
-        console.log('Clientes disponibles:', clientes)
-        console.log('Buscando cliente con ID:', factura.ID_Cliente)
-            
-        // Datos por defecto para campos faltantes
-        const datosBase = {
-            ID_Cliente: factura.ID_Cliente || 'SIN_CLIENTE',
-            ID_Pedido: factura.ID_Pedido || 'SIN_PEDIDO',
-            ...factura
-        };
-    
-        // Conversión segura de IDs para comparación
-        const facturaClienteId = String(factura.ID_Cliente).trim()
-        const facturaPedidoId = String(factura.ID_Pedido).trim()
-        
-        // Búsqueda del cliente con comparación de strings
-        const cliente = clientes.find(c => String(c.ID_Cliente).trim() === facturaClienteId)
-        
-        console.log('Cliente encontrado:', cliente)
-        
-        // Si no se encuentra el cliente, crear uno por defecto con información mínima
-        const clienteData = cliente ? {
-            ID_Cliente: cliente.ID_Cliente,
-            Nombre: cliente.Nombre || 'Cliente',
-            Apellido: cliente.Apellido || 'No especificado',
-            NumCelular: cliente.NumCelular || ''
-        } : {
-            ID_Cliente: factura.ID_Cliente,
-            Nombre: 'Cliente no encontrado',
-            Apellido: `(ID: ${factura.ID_Cliente})`,
-            NumCelular: ''
+    const obtenerPedido = (ID_Pedido) => {
+        const pedido = pedidos?.find(p => String(p.ID_Pedido).trim() === String(ID_Pedido).trim())
+        return pedido || { 
+            ID_Pedido, 
+            Fecha_Pedido: new Date().toISOString(), 
+            Fecha_Entrega: '', 
+            Observaciones: 'Pedido no encontrado' 
         }
+    }
 
-        // Búsqueda del pedido con comparación de strings
-        const pedido = pedidos.find(p => String(p.ID_Pedido).trim() === facturaPedidoId)
+    const obtenerDetalles = (ID_Pedido) => {
+        const detalles = detallePedidos?.filter(d => String(d.ID_Pedido).trim() === String(ID_Pedido).trim())
         
-        const pedidoData = pedido ? {
-            ID_Pedido: pedido.ID_Pedido,
-            Fecha_Pedido: pedido.Fecha_Pedido || factura.Fecha,
-            Fecha_Entrega: pedido.Fecha_Entrega || '',
-            Observaciones: pedido.Observaciones || ''
-        } : {
-            ID_Pedido: factura.ID_Pedido || 'NUEVO',
-            Fecha_Pedido: factura.Fecha || new Date().toISOString(),
-            Fecha_Entrega: '',
-            Observaciones: 'Pedido no encontrado'
-        }
-
-        // Manejo seguro de detalles del pedido
-        const detallesArray = Array.isArray(detallePedidos) ? detallePedidos : []
-        const detalles = detallesArray.filter(d => String(d.ID_Pedido).trim() === facturaPedidoId)
-        
-        let detallesConProductos = []
-        
-        if (detalles.length > 0) {
-            detallesConProductos = detalles.map(detalle => {
-                const producto = productos.find(p => String(p.ID_Producto).trim() === String(detalle.ID_Producto).trim())
-                return {
-                    ...detalle,
-                    Nombre_Producto: producto?.Nombre_Producto || `Producto ${detalle.ID_Producto || 'N/D'}`,
-                    Precio_Unitario: parseFloat(detalle.Precio_Unitario) || 0,
-                    Cantidad: parseInt(detalle.Cantidad) || 0,
-                    Subtotal: parseFloat(detalle.Subtotal) || (parseFloat(detalle.Cantidad || 0) * parseFloat(detalle.Precio_Unitario || 0))
-                }
-            })
-        } else {
-            // Crear un detalle genérico si no hay detalles específicos
-            detallesConProductos = [{
+        if (!detalles || detalles.length === 0) {
+            return [{
                 ID_Detalle: 'GENERICO',
-                ID_Pedido: factura.ID_Pedido,
+                ID_Pedido,
                 ID_Producto: 'SERVICIO',
                 Nombre_Producto: 'Producto/Servicio',
                 Cantidad: 1,
-                Precio_Unitario: parseFloat(factura.Monto_Total) || 0,
-                Subtotal: parseFloat(factura.Monto_Total) || 0
+                Precio_Unitario: parseFloat(facturaData?.Monto_Total) || 0,
+                Subtotal: parseFloat(facturaData?.Monto_Total) || 0
             }]
         }
 
-        // Formateo de fechas mejorado
-        const formatDate = (dateString) => {
-            if (!dateString) return ''
-            try {
-                const date = new Date(dateString)
-                if (isNaN(date.getTime())) return ''
-                return date.toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit'
-                })
-            } catch (error) {
-                console.error('Error al formatear fecha:', error)
-                return ''
+        return detalles.map(detalle => {
+            const producto = productos?.find(p => String(p.ID_Producto).trim() === String(detalle.ID_Producto).trim())
+            return {
+                ...detalle,
+                Nombre_Producto: producto?.Nombre_Producto || `Producto ${detalle.ID_Producto}`,
+                Precio_Unitario: parseFloat(detalle.Precio_Unitario) || 0,
+                Cantidad: parseInt(detalle.Cantidad) || 0,
+                Subtotal: parseFloat(detalle.Subtotal) || 0
             }
+        })
+    }
+
+    const formatDate = (dateString) => {
+        if (!dateString) return ''
+        try {
+            return new Date(dateString).toLocaleDateString('es-ES')
+        } catch {
+            return ''
+        }
+    }
+
+    const obtenerDatosCompletosFactura = (factura) => {
+        if (!factura?.ID_Cliente || !factura?.ID_Pedido || !validarDatosDisponibles()) {
+            return null
         }
 
-        const datosCompletos = {
+        const cliente = obtenerCliente(factura.ID_Cliente)
+        const pedido = obtenerPedido(factura.ID_Pedido)
+        const detalles = obtenerDetalles(factura.ID_Pedido)
+
+        return {
             factura: {
-                ID_Factura: factura.ID_Factura || 'N/A', 
-                Fecha: formatDate(factura.Fecha) || formatDate(new Date()),
+                ID_Factura: factura.ID_Factura || 'N/A',
+                Fecha: formatDate(factura.Fecha),
                 Monto_Total: parseFloat(factura.Monto_Total) || 0
             },
-            cliente: clienteData,
+            cliente,
             pedido: {
-                ...pedidoData,
-                Fecha_Pedido: formatDate(pedidoData.Fecha_Pedido),
-                Fecha_Entrega: formatDate(pedidoData.Fecha_Entrega)
+                ...pedido,
+                Fecha_Pedido: formatDate(pedido.Fecha_Pedido),
+                Fecha_Entrega: formatDate(pedido.Fecha_Entrega)
             },
-            detalles: detallesConProductos,
+            detalles,
             total: parseFloat(factura.Monto_Total) || 0
         }
+    }
 
-        console.log('Datos completos generados:', datosCompletos)
-        return datosCompletos
-
-    }, [validarDatosDisponibles, clientes, pedidos, detallePedidos, productos])
-
-    const obtenerNombreCliente = useCallback((ID_Cliente) => {
-        if (!Array.isArray(clientes)) return 'Cargando...'
-        const cliente = clientes.find(c => String(c.ID_Cliente).trim() === String(ID_Cliente).trim())
-        return cliente ? `${cliente.Nombre} ${cliente.Apellido}` : `Cliente #${ID_Cliente}`
-    }, [clientes])
-    
-    const obtenerTelefonoCliente = useCallback((ID_Cliente) => {
-        if (!Array.isArray(clientes)) return null
-        const cliente = clientes.find(c => String(c.ID_Cliente).trim() === String(ID_Cliente).trim())
-        return cliente?.NumCelular || null
-    }, [clientes])
-    
     const generarYDescargarPDF = async (factura) => {
-        console.log('Intentando generar PDF para factura:', factura)
-        
         if (!validarDatosDisponibles()) {
-            console.log('Datos no disponibles aún')
             mostrarMensaje("Los datos aún se están cargando", 'error')
             return
         }
-        if (!factura.ID_Cliente || !factura.ID_Pedido) {
-            console.error("Factura incompleta, falta ID_Cliente o ID_Pedido:", factura);
-            return;
-        }
+
         try {
             setLoading(true)
-            mostrarMensaje("Generando PDF...", 'info')
-            
-            const datosCompletos = await obtenerDatosCompletosFactura(factura)
-            console.log('Datos completos obtenidos:', datosCompletos)
+            const datosCompletos = obtenerDatosCompletosFactura(factura)
             
             if (!datosCompletos) {
                 throw new Error('No se pudieron obtener los datos completos de la factura')
             }
-            
 
-            // Verificar que los datos esenciales estén presentes
-            if (!datosCompletos.cliente || !datosCompletos.factura) {
-                throw new Error('Datos de cliente o factura incompletos')
-            }
-
-            // Llamar al generador de PDF
             const resultado = generateFacturaPDF(datosCompletos)
             
-            console.log('Resultado PDF:', resultado)
-            
             if (resultado?.success) {
-                mostrarMensaje(`PDF generado y descargado exitosamente`)
-                
-                // Si el generador devuelve un blob o URL, forzar descarga
-                if (resultado.blob) {
-                    const url = URL.createObjectURL(resultado.blob)
-                    const a = document.createElement('a')
-                    a.href = url
-                    a.download = `factura_${factura.ID_Factura}.pdf`
-                    document.body.appendChild(a)
-                    a.click()
-                    document.body.removeChild(a)
-                    URL.revokeObjectURL(url)
-                } else if (resultado.url) {
-                    const a = document.createElement('a')
-                    a.href = resultado.url
-                    a.download = `factura_${factura.ID_Factura}.pdf`
-                    a.click()
-                }
+                mostrarMensaje('PDF generado y descargado exitosamente')
             } else {
                 mostrarMensaje(`Error al generar PDF: ${resultado?.message || 'Error desconocido'}`, 'error')
             }
-            
         } catch (error) {
-            console.error("Error al generar PDF:", error)
+            console.error('Error al generar PDF:', error)
             mostrarMensaje(`Error al generar PDF: ${error.message}`, 'error')
         } finally {
             setLoading(false)
         }
     }
 
-    const enviarPorWhatsApp = async (factura) => {
+    const enviarPorWhatsApp = (factura) => {
         if (!validarDatosDisponibles()) {
             mostrarMensaje("Los datos aún se están cargando", 'error')
             return
         }
 
-        try {
-            const datosCompletos = obtenerDatosCompletosFactura(factura)
-            
-            if (!datosCompletos) {
-                mostrarMensaje("No se pudieron obtener los datos completos de la factura", 'error')
-                return
-            }
+        const datosCompletos = obtenerDatosCompletosFactura(factura)
+        if (!datosCompletos) {
+            mostrarMensaje("No se pudieron obtener los datos completos", 'error')
+            return
+        }
 
-            const { cliente, pedido, detalles, total } = datosCompletos
-            const numeroCliente = cliente.NumCelular?.toString()
-            
-            if (!numeroCliente) {
-                mostrarMensaje("Cliente no tiene número de teléfono registrado", 'error')
-                return
-            }
-            
-            const productos = detalles.length > 0 
-                ? detalles.map(detalle => 
-                    `• ${detalle.Nombre_Producto} x${detalle.Cantidad} - $${(detalle.Subtotal || 0).toFixed(2)}`
-                  ).join('\n')
-                : '• Producto/Servicio'
-            
-            const fechaEntrega = pedido?.Fecha_Entrega || 'Por definir'
-            
-            const mensajeCliente = `🎉 ¡Hola ${cliente.Nombre}!
+        const { cliente, pedido, detalles, total } = datosCompletos
+        
+        if (!cliente.NumCelular) {
+            mostrarMensaje("Cliente no tiene número de teléfono registrado", 'error')
+            return
+        }
+
+        const productos = detalles.map(d => 
+            `• ${d.Nombre_Producto} x${d.Cantidad} - $${d.Subtotal.toFixed(2)}`
+        ).join('\n')
+
+        const mensaje = `🎉 ¡Hola ${cliente.Nombre}!
 
 ✅ Tu factura #${factura.ID_Factura} del pedido #${factura.ID_Pedido} está lista.
 
@@ -415,22 +335,14 @@ const obtenerDatosCompletosFactura = useCallback((factura) => {
 ${productos}
 
 💰 Total: $${total.toFixed(2)}
-📅 Fecha de entrega: ${fechaEntrega}
-${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
+📅 Fecha de entrega: ${pedido.Fecha_Entrega || 'Por definir'}
+${pedido.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
 
 ¡Gracias por tu preferencia! 😊`
-            
-            const numeroClienteEnvio = `51${numeroCliente}`
-            const mensajeCodificado = encodeURIComponent(mensajeCliente)
-            const urlWhatsAppCliente = `https://wa.me/${numeroClienteEnvio}?text=${mensajeCodificado}`
-            
-            window.open(urlWhatsAppCliente, '_blank')
-            mostrarMensaje(`Mensaje enviado al cliente: ${cliente.Nombre} ${cliente.Apellido}`)
-            
-        } catch (error) {
-            mostrarMensaje("Error al enviar mensaje al cliente", 'error')
-            console.error("Error:", error)
-        }
+
+        const url = `https://wa.me/51${cliente.NumCelular}?text=${encodeURIComponent(mensaje)}`
+        window.open(url, '_blank')
+        mostrarMensaje(`Mensaje enviado al cliente: ${cliente.Nombre} ${cliente.Apellido}`)
     }
 
     const verDetallesFactura = (factura) => {
@@ -445,76 +357,75 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
         }
     }
 
-    // Render functions
-    const renderFacturaCard = (factura) => {
-        console.log("Recibida en generarYDescargarPDF:", factura);
-        return(
-        <div key={factura.ID_Factura} className={styles.facturaCard}>
-            <div className={styles.facturaInfo}>
-                <div className={styles.facturaHeader}>
-                    <h3>Factura #{factura.ID_Factura}</h3>
-                    <span className={styles.monto}>${factura.Monto_Total}</span>
+    // Render components
+    const FacturaCard = ({ factura }) => {
+        const cliente = obtenerCliente(factura.ID_Cliente)
+        
+        return (
+            <div key={factura.ID_Factura} className={styles.facturaCard}>
+                <div className={styles.facturaInfo}>
+                    <div className={styles.facturaHeader}>
+                        <h3>Factura #{factura.ID_Factura}</h3>
+                        <span className={styles.monto}>${factura.Monto_Total}</span>
+                    </div>
+                    <p>ID Pedido: {factura.ID_Pedido}</p>
+                    <p>Cliente: {cliente.Nombre} {cliente.Apellido}</p>
+                    <p>Fecha: {formatDate(factura.Fecha)}</p>
+                    {cliente.NumCelular && (
+                        <p className={styles.telefono}>
+                            <Phone size={16} />
+                            {cliente.NumCelular}
+                        </p>
+                    )}
                 </div>
-                <p>ID Pedido: {factura.ID_Pedido}</p>
-                <p>Cliente: {obtenerNombreCliente(factura.ID_Cliente)}</p>
-                <p>Fecha: {new Date(factura.Fecha).toLocaleDateString('es-ES')}</p>
-                {obtenerTelefonoCliente(factura.ID_Cliente) && (
-                    <p className={styles.telefono}>
-                        <Phone size={16} />
-                        {obtenerTelefonoCliente(factura.ID_Cliente)}
-                    </p>
-                )}
+                
+                <div className={styles.actions}>
+                    <button 
+                        onClick={() => verDetallesFactura(factura)}
+                        className={`${styles.button} ${styles.viewButton}`}
+                        title="Ver detalles"
+                        disabled={!dataLoaded}
+                    >
+                        <Eye size={16} /> Ver
+                    </button>
+                    
+                    <button 
+                        onClick={() => generarYDescargarPDF(factura)}
+                        className={`${styles.button} ${styles.pdfButton}`}
+                        disabled={loading || !dataLoaded}
+                        title="Descargar PDF"
+                    >
+                        <Download size={16} /> PDF
+                    </button>
+                    
+                    <button 
+                        onClick={() => enviarPorWhatsApp(factura)}
+                        className={`${styles.button} ${styles.whatsappButton}`}
+                        disabled={loading || !dataLoaded}
+                        title="Enviar por WhatsApp"
+                    >
+                        <Send size={16} /> WhatsApp
+                    </button>
+                    
+                    <button 
+                        onClick={() => handleEditClick(factura)}
+                        className={`${styles.button} ${styles.editButton}`}
+                    >
+                        Editar
+                    </button>
+                    
+                    <button 
+                        onClick={() => handleDelete(factura.ID_Factura)}
+                        className={`${styles.button} ${styles.deleteButton}`}
+                    >
+                        Eliminar
+                    </button>
+                </div>
             </div>
-            
-            <div className={styles.actions}>
-                <button 
-                    onClick={() => verDetallesFactura(factura)}
-                    className={`${styles.button} ${styles.viewButton}`}
-                    title="Ver detalles"
-                    disabled={!dataLoaded}
-                >
-                    <Eye size={16} />
-                    Ver
-                </button>
-                
-                <button 
-                    onClick={() => generarYDescargarPDF(factura)}
-                    className={`${styles.button} ${styles.pdfButton}`}
-                    disabled={loading || !dataLoaded}
-                    title="Descargar PDF"
-                >
-                    <Download size={16} />
-                    PDF
-                </button>
-                
-                <button 
-                    onClick={() => enviarPorWhatsApp(factura)}
-                    className={`${styles.button} ${styles.whatsappButton}`}
-                    disabled={loading || !dataLoaded}
-                    title="Enviar por WhatsApp"
-                >
-                    <Send size={16} />
-                    WhatsApp
-                </button>
-                
-                <button 
-                    onClick={() => handleEditClick(factura)}
-                    className={`${styles.button} ${styles.editButton}`}
-                >
-                    Editar
-                </button>
-                
-                <button 
-                    onClick={() => handleDelete(factura.ID_Factura)}
-                    className={`${styles.button} ${styles.deleteButton}`}
-                >
-                    Eliminar
-                </button>
-            </div>
-        </div>
-    )}
+        )
+    }
 
-    const renderViewModal = () => {
+    const ViewModal = () => {
         if (!viewingFactura) return null
 
         return (
@@ -536,60 +447,51 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
                         {/* Cliente */}
                         <div className={styles.seccion}>
                             <h4>Cliente</h4>
-                            <div>
-                                <p><strong>{viewingFactura.cliente.Nombre} {viewingFactura.cliente.Apellido}</strong></p>
-                                {viewingFactura.cliente.NumCelular && <p><Phone size={14} /> {viewingFactura.cliente.NumCelular}</p>}
-                            </div>
+                            <p><strong>{viewingFactura.cliente.Nombre} {viewingFactura.cliente.Apellido}</strong></p>
+                            {viewingFactura.cliente.NumCelular && (
+                                <p><Phone size={14} /> {viewingFactura.cliente.NumCelular}</p>
+                            )}
                         </div>
 
                         {/* Pedido */}
                         <div className={styles.seccion}>
                             <h4>Pedido #{viewingFactura.pedido.ID_Pedido}</h4>
-                            <div>
-                                <p>Fecha del pedido: {viewingFactura.pedido.Fecha_Pedido}</p>
-                                {viewingFactura.pedido.Fecha_Entrega && (
-                                    <p>Fecha de entrega: {viewingFactura.pedido.Fecha_Entrega}</p>
-                                )}
-                                {viewingFactura.pedido.Observaciones && (
-                                    <p>Observaciones: {viewingFactura.pedido.Observaciones}</p>
-                                )}
-                            </div>
+                            <p>Fecha del pedido: {viewingFactura.pedido.Fecha_Pedido}</p>
+                            {viewingFactura.pedido.Fecha_Entrega && (
+                                <p>Fecha de entrega: {viewingFactura.pedido.Fecha_Entrega}</p>
+                            )}
+                            {viewingFactura.pedido.Observaciones && (
+                                <p>Observaciones: {viewingFactura.pedido.Observaciones}</p>
+                            )}
                         </div>
 
                         {/* Productos */}
                         <div className={styles.seccion}>
                             <h4>Productos</h4>
-                            {viewingFactura.detalles.length > 0 ? (
-                                <div className={styles.productosLista}>
-                                    {viewingFactura.detalles.map((detalle, index) => (
-                                        <div key={index} className={styles.productoDetalle}>
-                                            <span className={styles.nombreProducto}>{detalle.Nombre_Producto}</span>
-                                            <span>Cantidad: {detalle.Cantidad}</span>
-                                            <span>Precio: ${detalle.Precio_Unitario.toFixed(2)}</span>
-                                            <span>Subtotal: ${detalle.Subtotal.toFixed(2)}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p>No se encontraron productos</p>
-                            )}
+                            <div className={styles.productosLista}>
+                                {viewingFactura.detalles.map((detalle, index) => (
+                                    <div key={index} className={styles.productoDetalle}>
+                                        <span className={styles.nombreProducto}>{detalle.Nombre_Producto}</span>
+                                        <span>Cantidad: {detalle.Cantidad}</span>
+                                        <span>Precio: ${detalle.Precio_Unitario.toFixed(2)}</span>
+                                        <span>Subtotal: ${detalle.Subtotal.toFixed(2)}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         <div className={styles.totalFactura}>
                             <strong>Total: ${viewingFactura.total.toFixed(2)}</strong>
                         </div>
 
-                        {/* Acciones del modal */}
                         <div className={styles.accionesModal}>
-
                             {viewingFactura.cliente.NumCelular && (
                                 <button 
                                     onClick={() => enviarPorWhatsApp(viewingFactura.factura)}
                                     className={`${styles.button} ${styles.whatsappButton}`}
                                     disabled={loading}
                                 >
-                                    <Send size={16} />
-                                    Enviar WhatsApp
+                                    <Send size={16} /> Enviar WhatsApp
                                 </button>
                             )}
                         </div>
@@ -599,7 +501,7 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
         )
     }
 
-    const renderEditModal = () => {
+    const EditModal = () => {
         if (!editingFactura) return null
 
         return (
@@ -615,38 +517,18 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
                     <h3 className={styles.modalTitle}>Editar factura</h3>
                     
                     <div className={styles.modalForm}>
-                        <input 
-                            className={styles.input}
-                            type="text"
-                            name="ID_Pedido"
-                            value={editingFactura.formData.ID_Pedido}
-                            onChange={handleEditInputChange}
-                            placeholder="ID del Pedido"
-                        />
-                        <input 
-                            className={styles.input}
-                            type="text"
-                            name="ID_Cliente"
-                            value={editingFactura.formData.ID_Cliente}
-                            onChange={handleEditInputChange}
-                            placeholder="ID del Cliente"
-                        />
-                        <input 
-                            className={styles.input}
-                            type="date"
-                            name="Fecha"
-                            value={editingFactura.formData.Fecha}
-                            onChange={handleEditInputChange}
-                        />
-                        <input 
-                            className={styles.input}
-                            type="number"
-                            step="0.01"
-                            name="Monto_Total"
-                            value={editingFactura.formData.Monto_Total}
-                            onChange={handleEditInputChange}
-                            placeholder="Monto Total"
-                        />
+                        {['ID_Pedido', 'ID_Cliente', 'Fecha', 'Monto_Total'].map(field => (
+                            <input 
+                                key={field}
+                                className={styles.input}
+                                type={field === 'Fecha' ? 'date' : field === 'Monto_Total' ? 'number' : 'text'}
+                                step={field === 'Monto_Total' ? '0.01' : undefined}
+                                name={field}
+                                value={editingFactura.formData[field]}
+                                onChange={handleEditInputChange}
+                                placeholder={field.replace('_', ' ')}
+                            />
+                        ))}
                         
                         <div className={styles.botones}>
                             <button 
@@ -679,10 +561,17 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
             )}
 
             {/* Loading overlay */}
-            {loading && (
+            {(loading || clienteLoading) && (
                 <div className={styles.loadingOverlay}>
                     <div className={styles.spinner}></div>
                     <p>Procesando...</p>
+                </div>
+            )}
+
+            {/* Información del cliente autenticado */}
+            {isAuthenticated && clienteActual && (
+                <div className={styles.clienteInfo}>
+                    <p>Cliente actual: <strong>{clienteActual.Nombre} {clienteActual.Apellido}</strong></p>
                 </div>
             )}
 
@@ -690,43 +579,24 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
             <div className={styles.formContainer}>
                 <h1 className={styles.formTitle}>Agregar facturas</h1>
                 <form onSubmit={handleSubmit} className={styles.form}>
-                    <input
-                        className={styles.input}
-                        type="text"
-                        placeholder="ID del Pedido"
-                        required
-                        name="ID_Pedido"
-                        value={facturaData.ID_Pedido}
-                        onChange={handleInputChange}
-                    />
-                    <input
-                        className={styles.input}
-                        type="text"
-                        placeholder="ID del Cliente"
-                        required
-                        name="ID_Cliente"
-                        value={facturaData.ID_Cliente}
-                        onChange={handleInputChange}
-                    />
-                    <input
-                        className={styles.input}
-                        type="date"
-                        required
-                        name="Fecha"
-                        value={facturaData.Fecha}
-                        onChange={handleInputChange}
-                    />
-                    <input
-                        className={styles.input}
-                        type="number"
-                        step="0.01"
-                        placeholder="Monto Total"
-                        required
-                        name="Monto_Total"
-                        value={facturaData.Monto_Total}
-                        onChange={handleInputChange}
-                    />
-                    <button type="submit" className={styles.button} disabled={loading}>
+                    {Object.keys(INITIAL_FACTURA_DATA).map(field => (
+                        <input
+                            key={field}
+                            className={styles.input}
+                            type={field === 'Fecha' ? 'date' : field === 'Monto_Total' ? 'number' : 'text'}
+                            step={field === 'Monto_Total' ? '0.01' : undefined}
+                            placeholder={field === 'ID_Cliente' && isAuthenticated ? 
+                                'ID Cliente (autocompletado)' : 
+                                field.replace('_', ' del ')
+                            }
+                            required={field !== 'ID_Cliente' || !isAuthenticated}
+                            name={field}
+                            value={facturaData[field]}
+                            onChange={handleInputChange}
+                            disabled={field === 'ID_Cliente' && isAuthenticated}
+                        />
+                    ))}
+                    <button type="submit" className={styles.button} disabled={loading || clienteLoading}>
                         Guardar Datos
                     </button>
                 </form>
@@ -742,14 +612,18 @@ ${pedido?.Observaciones ? `📝 Observaciones: ${pedido.Observaciones}` : ''}
                     </div>
                 ) : (
                     <div>
-                        {facturas?.map(renderFacturaCard)}
+                        {facturas?.length > 0 ? (
+                            facturas.map(factura => <FacturaCard key={factura.ID_Factura} factura={factura} />)
+                        ) : (
+                            <p>No se encontraron facturas</p>
+                        )}
                     </div>
                 )}
             </div>
 
             {/* Modales */}
-            {renderViewModal()}
-            {renderEditModal()}
+            <ViewModal />
+            <EditModal />
         </div>
     )
 }

@@ -4,15 +4,16 @@ import useBusquedaStore from "../../store/BusquedaStore";
 import useClienteStore from "../../store/ClienteStore";
 import useCategoriaStore from "../../store/CategoriaStore";
 import styles from './Menu.module.css';
+import PropTypes from "prop-types";
 
 // Imágenes
-import lupa from '../../img/lupa.png';
+import lupa from '../../img/lupa.png'; 
 
 // Constantes
 const POLLING_INTERVAL = 10000; // 10 segundos
 const MESSAGE_DURATION = 1500; // 1.5 segundos
 
-const Menu = () => {
+const Menu = ({ onNavigateToProfile }) => {
     // Hooks de estado local
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
     const [mensaje, setMensaje] = useState("");
@@ -21,7 +22,6 @@ const Menu = () => {
     
     // Estados del sidebar estilo YouTube
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [mostrarPrecios, setMostrarPrecios] = useState(false);
     
     // Estados del buscador
     const [searchQuery, setSearchQuery] = useState('');
@@ -38,9 +38,35 @@ const Menu = () => {
     // Hooks de stores
     const { productos, fetchProducto } = useProductoStore();
     const { categorias, fetchCategoria } = useCategoriaStore();
-    const { verificarClienteAutenticado } = useClienteStore();
+    const { 
+        isAuthenticated, 
+        clienteActual, 
+        verificarToken, 
+        initializeFromStorage 
+    } = useClienteStore();
 
-    // Efectos
+    // ⭐ EFECTO DE INICIALIZACIÓN Y VERIFICACIÓN DE AUTENTICACIÓN
+    useEffect(() => {
+        const inicializarAuth = async () => {
+            try {
+                // Primero intentar inicializar desde localStorage
+                const hasStoredAuth = initializeFromStorage();
+                
+                if (hasStoredAuth) {
+                    // Si hay datos guardados, verificar que el token sigue siendo válido
+                    await verificarToken();
+                } else {
+                    console.log("No hay autenticación guardada");
+                }
+            } catch (error) {
+                console.error("Error inicializando autenticación:", error);
+            }
+        };
+
+        inicializarAuth();
+    }, [initializeFromStorage, verificarToken]);
+
+    // Efectos de carga de datos
     useEffect(() => {
         const inicializarDatos = async () => {
             try {
@@ -66,10 +92,14 @@ const Menu = () => {
             }
         }, POLLING_INTERVAL);
 
-        return () => clearInterval(interval);
+        return () => clearInterval(interval); 
     }, [fetchProducto, fetchCategoria]);
 
     // Cargar historial de búsqueda
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
+    
     useEffect(() => {
         const savedHistory = JSON.parse(localStorage.getItem('menuSearchHistory') || '[]');
         setSearchHistory(savedHistory.slice(0, 5));
@@ -87,16 +117,6 @@ const Menu = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    useEffect(() => {
-      const verificarToken = async () => {
-        const esValido = await verificarClienteAutenticado();
-        console.log("¿Cliente autenticado?", esValido);
-        setMostrarPrecios(esValido);
-      };
-    
-      verificarToken();
-    }, [verificarClienteAutenticado]);
 
     // Cerrar sidebar con Escape
     useEffect(() => {
@@ -219,6 +239,17 @@ const Menu = () => {
             mostrarMensaje("❌ Error al agregar producto");
         }
     }, [mostrarMensaje]);
+
+    // ⭐ FUNCIÓN ACTUALIZADA: Manejar clic en producto cuando no está autenticado
+    const manejarClickProducto = useCallback((producto) => {
+        if (!isAuthenticated) {
+            // Llamar al callback para navegar al perfil
+            if (onNavigateToProfile) {
+                onNavigateToProfile();
+            }
+            mostrarMensaje("🔒 Inicia sesión para ver detalles y comprar");
+        }
+    }, [isAuthenticated, onNavigateToProfile, mostrarMensaje]);
 
     // Handlers del buscador
     const handleSearchChange = useCallback((e) => {
@@ -511,7 +542,8 @@ const Menu = () => {
                 key={producto.ID_Producto} 
                 className={`${styles.product} ${
                     isOutOfStock ? styles['product--out-of-stock'] : ''
-                }`}
+                } ${!isAuthenticated ? styles.clickableCard : ''}`}
+                onClick={() => manejarClickProducto(producto)}
             >
                 <div className={styles.product__imageContainer}>
                     <img 
@@ -534,29 +566,42 @@ const Menu = () => {
                     <h3 className={styles.product__name}>
                         {producto.Nombre_Producto}
                     </h3>
-                    {mostrarPrecios ? (
-                      <p className={styles.product__price}>
-                        {precioFormateado}
-                      </p>
+                    {/* ⭐ LÓGICA DE PRECIOS ACTUALIZADA */}
+                    {isAuthenticated ? (
+                        <p className={styles.product__price}>
+                            {precioFormateado}
+                        </p>
                     ) : (
-                      <p className={styles.product__price}>
-                        🔒 haz un pedido para ver precios
-                      </p>
+                        <p className={styles.product__price}>
+                            🔒 Inicia sesión para ver precios
+                        </p>
                     )}
                     <p className={styles.product__stock}>
                         Stock: {producto.cantidad_Disponible} unidades
                     </p>
                     
-                    <button 
-                        onClick={() => manejarCompra(producto)}
-                        disabled={isOutOfStock}
-                        className={`${styles.product__addButton} ${
-                            isOutOfStock ? styles['product__addButton--disabled'] : ''
-                        }`}
-                        aria-label={`Agregar ${producto.Nombre_Producto} al carrito`}
-                    >
-                        {isOutOfStock ? 'Sin stock' : 'Agregar al carrito'}
-                    </button>
+                    {/* ⭐ BOTONES ACTUALIZADOS */}
+                    {isAuthenticated ? (
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                manejarCompra(producto);
+                            }}
+                            disabled={isOutOfStock}
+                            className={`${styles.product__addButton} ${
+                                isOutOfStock ? styles['product__addButton--disabled'] : ''
+                            }`}
+                            aria-label={`Agregar ${producto.Nombre_Producto} al carrito`}
+                        >
+                            {isOutOfStock ? 'Sin stock' : 'Agregar al carrito'}
+                        </button>
+                    ) : (
+                        <div className={styles.loginPrompt}>
+                            <p className={styles.loginText}>
+                                🔒 Inicia sesión para comprar
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -610,6 +655,18 @@ const Menu = () => {
                 <div className={styles.menu__content}>
                     <header className={styles.menu__header}>
                         <h2 className={styles.menu__title}>Nuestros Productos</h2>
+                        {/* ⭐ MENSAJE ACTUALIZADO */}
+                        {!isAuthenticated && (
+                            <p className={styles.menu__subtitle}>
+                                🔒 Inicia sesión para ver precios y realizar compras
+                            </p>
+                        )}
+                        {/* ⭐ INFORMACIÓN DE CLIENTE AUTENTICADO (OPCIONAL) */}
+                        {isAuthenticated && clienteActual && (
+                            <p className={styles.menu__welcome}>
+                                ¡Bienvenido/a, {clienteActual.Nombre_Cliente}! 🎉
+                            </p>
+                        )}
                     </header>
                     
                     {renderSearchBar()}
@@ -625,8 +682,12 @@ const Menu = () => {
             {renderMensaje()}
             {renderSidebar()}
             {renderContent()}
-        </div>
+        </div> 
     );
+}; 
+
+Menu.propTypes = {
+    onNavigateToProfile: PropTypes.func
 };
 
 export default Menu;

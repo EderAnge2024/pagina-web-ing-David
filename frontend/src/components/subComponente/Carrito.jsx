@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { 
-  ShoppingCart, User, Calendar, Phone, Trash2, Plus, Minus, 
-  UserCheck, AlertTriangle, FileText, Lock
+  ShoppingCart, Calendar, Trash2, Plus, Minus, 
+  UserCheck, AlertTriangle, FileText
 } from "lucide-react";
 import style from './Carrito.module.css';
 import { generateFacturaPDF } from "../../store/generadorFacturasPdf";
@@ -16,23 +16,8 @@ import useAdministradorStore from "../../store/AdministradorStore";
 
 const Carrito = () => {
   // ========================
-  // ESTADOS DE AUTENTICACIÓN
-  // ========================
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authData, setAuthData] = useState({
-    Usuario: "",
-    Contrasena: ""
-  });
-  const [authError, setAuthError] = useState("");
-
-  // ========================
   // ESTADOS PRINCIPALES
   // ========================
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [loginData, setLoginData] = useState({
-    Usuario: "",
-    Contrasena: ""
-  });
   const [carrito, setCarrito] = useState(() => {
     const carritoGuardado = typeof window !== 'undefined' ? 
       JSON.parse(localStorage.getItem("carrito")) || [] : [];
@@ -45,12 +30,6 @@ const Carrito = () => {
   const [stockWarnings, setStockWarnings] = useState([]);
   const [modalActivo, setModalActivo] = useState(null);
   
-  const [clienteData, setClienteData] = useState({
-    Nombre: "",
-    Apellido: "",
-    NumCelular: ""
-  });
-  
   const [pedidoData, setPedidoData] = useState({
     ID_Cliente: "",
     Fecha_Pedido: "",
@@ -62,12 +41,10 @@ const Carrito = () => {
   // HOOKS DE STORES
   // ========================
   const { 
-    addCliente, 
-    clientes, 
-    fetchCliente, 
     clienteActual,
-    verificarClienteAutenticado,
-    logoutCliente
+    isAuthenticated,
+    initializeFromStorage,
+    verificarToken
   } = useClienteStore();
   
   const { addPedido } = usePedidoStore();
@@ -96,7 +73,10 @@ const Carrito = () => {
   // ========================
   // EFECTOS
   // ========================
-  // mostar mensaje
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+      
   useEffect(() => {
     initializeComponent();
   }, []);
@@ -119,57 +99,35 @@ const Carrito = () => {
       const hoy = new Date().toISOString().slice(0, 10);
       setPedidoData(prev => ({ ...prev, Fecha_Pedido: hoy }));
       
+      // Inicializar desde localStorage primero
+      const hasStoredAuth = initializeFromStorage();
+      
+      // Si no hay datos en localStorage, verificar token
+      if (!hasStoredAuth) {
+        await verificarToken();
+      }
+      
       await Promise.all([
         fetchEstadoPedido(),
         fetchAdministrador(),
-        fetchProducto(),
-        fetchCliente(),
-        verificarClienteAutenticado()
+        fetchProducto()
       ]);
 
-      if (clienteActual) {
-        setPedidoData(prev => ({ 
-          ...prev, 
-          ID_Cliente: clienteActual.ID_Cliente 
-        }));
-      }
     } catch (error) {
       setError("Error al inicializar el componente");
       console.error("Error:", error);
     }
-  }, [fetchEstadoPedido, fetchAdministrador, fetchProducto, fetchCliente, verificarClienteAutenticado, clienteActual]);
+  }, [fetchEstadoPedido, fetchAdministrador, fetchProducto, initializeFromStorage, verificarToken]);
 
-  // ========================
-  // FUNCIONES DE AUTENTICACIÓN
-  // ========================
-  const validarCredenciales = useCallback(async () => {
-    try {
-      const response = await fetch('http://localhost:3001/clientes/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(authData)
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        return true;
-      } else {
-        setAuthError(data.mensaje || "Credenciales incorrectas");
-        return false;
-      }
-    } catch (error) {
-      setAuthError("Error al verificar credenciales");
-      console.error("Error:", error);
-      return false;
+  // Efecto separado para actualizar pedidoData cuando cambie clienteActual
+  useEffect(() => {
+    if (clienteActual?.ID_Cliente) {
+      setPedidoData(prev => ({ 
+        ...prev, 
+        ID_Cliente: clienteActual.ID_Cliente 
+      }));
     }
-  }, [authData]);
-
-  const handleAuthChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setAuthData(prev => ({ ...prev, [name]: value }));
-    setAuthError("");
-  }, []);
+  }, [clienteActual]);
 
   // ========================
   // FUNCIONES DEL CARRITO
@@ -222,7 +180,6 @@ const Carrito = () => {
   // ========================
   // FUNCIONES DE MENSAJES
   // ========================
-
   const limpiarMensajes = useCallback(() => {
     setError("");
     setSuccess("");
@@ -232,24 +189,17 @@ const Carrito = () => {
   // FUNCIONES DE FORMULARIOS
   // ========================
   const resetearFormularios = useCallback(() => {
-    setClienteData({ Nombre: "", Apellido: "", NumCelular: "" });
     setPedidoData({ 
-      ID_Cliente: "", 
+      ID_Cliente: clienteActual?.ID_Cliente || "", 
       Fecha_Pedido: new Date().toISOString().slice(0, 10), 
       Fecha_Entrega: "", 
       Observaciones: "" 
     });
     setModalActivo(null);
-  }, []);
+  }, [clienteActual]);
 
   const cerrarModal = useCallback(() => {
     setModalActivo(null);
-    limpiarMensajes();
-  }, [limpiarMensajes]);
-
-  const handleInputChangeCliente = useCallback((e) => {
-    const { name, value } = e.target;
-    setClienteData(prev => ({ ...prev, [name]: value }));
     limpiarMensajes();
   }, [limpiarMensajes]);
 
@@ -259,67 +209,9 @@ const Carrito = () => {
     limpiarMensajes();
   }, [limpiarMensajes]);
 
-  const handleLoginChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setLoginData(prev => ({ ...prev, [name]: value }));
-  }, []);
-
-  // ========================
-  // FUNCIONES DE CLIENTES
-  // ========================
-  const seleccionarCliente = useCallback((cliente) => {
-    setPedidoData(prev => ({
-      ...prev,
-      ID_Cliente: cliente.ID_Cliente
-    }));
-    setModalActivo('pedido');
-    limpiarMensajes();
-  }, [limpiarMensajes]);
-
-  const abrirFormularioCliente = useCallback(() => {
-    setClienteData({
-      Nombre: "",
-      Apellido: "",
-      NumCelular: ""
-    });
-    setModalActivo('cliente');
-  }, []);
-
   // ========================
   // VALIDACIONES
   // ========================
-  const validarFormularioCliente = useCallback(() => {
-    const { Nombre, Apellido, NumCelular } = clienteData;
-    
-    if (!Nombre.trim()) {
-      mostrarMensaje("El nombre es obligatorio", 'error');
-      return false;
-    }
-    
-    if (!Apellido.trim()) {
-      mostrarMensaje("El apellido es obligatorio", 'error');
-      return false;
-    }
-    
-    if (!NumCelular.trim()) {
-      mostrarMensaje("El número de celular es obligatorio", 'error');
-      return false;
-    }
-    
-    if (!/^\d{9,15}$/.test(NumCelular)) {
-      mostrarMensaje("El número de celular debe tener entre 9 y 15 dígitos", 'error');
-      return false;
-    }
-
-    const clienteExistente = clientes.find(c => c.NumCelular === Number(NumCelular));
-    if (clienteExistente) {
-      mostrarMensaje("Ya existe un cliente con este número de celular", 'error');
-      return false;
-    }
-    
-    return true;
-  }, [clienteData, clientes, mostrarMensaje]);
-
   const validarFormularioPedido = useCallback(() => {
     if (!pedidoData.Fecha_Entrega) {
       mostrarMensaje("La fecha de entrega es obligatoria", 'error');
@@ -346,84 +238,15 @@ const Carrito = () => {
   // ========================
   // FUNCIONES DE PEDIDOS
   // ========================
-  const handleLogin = useCallback(async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    
+  const enviarNotificacionesAutomaticas = useCallback(async (datosFactura) => {
     try {
-      const response = await fetch('http://localhost:3001/clientes/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginData)
-      });
+      console.log('=== DEBUG NOTIFICACIONES ===');
+      console.log('Cliente en datosFactura:', datosFactura.cliente);
+      console.log('Nombre:', datosFactura.cliente.Nombre);
+      console.log('Número que se usará:', datosFactura.cliente.NumCelular);
+      console.log('clienteActual global:', clienteActual);
+      console.log('=============================');
       
-      const data = await response.json();
-      
-      if (response.ok) {
-        mostrarMensaje("Inicio de sesión exitoso");
-        setShowLoginModal(false);
-        verificarClienteAutenticado();
-      } else {
-        mostrarMensaje(data.mensaje || "Error al iniciar sesión", 'error');
-      }
-    } catch (error) {
-      mostrarMensaje("Error del servidor", 'error');
-      console.error("Error en login:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [loginData, verificarClienteAutenticado, mostrarMensaje]);
-
-  const handleSubmitCliente = useCallback(async (e) => {
-    e.preventDefault();
-
-    if (!validarFormularioCliente()) return;
-
-    setLoading(true);
-
-    try {
-      const clienteParaGuardar = {
-        Nombre: clienteData.Nombre.trim(),
-        Apellido: clienteData.Apellido.trim(),
-        NumCelular: Number(clienteData.NumCelular),
-        createdAt: new Date().toISOString()
-      };
-
-      const clienteCreado = await addCliente(clienteParaGuardar);
-
-      setClienteData({ Nombre: "", Apellido: "", NumCelular: "" });
-      seleccionarCliente(clienteCreado);
-      mostrarMensaje("Cliente creado exitosamente");
-
-    } catch (error) {
-      mostrarMensaje("Error al crear cliente. Intente nuevamente.", 'error');
-      console.error("Error al agregar cliente:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [clienteData, validarFormularioCliente, addCliente, seleccionarCliente, mostrarMensaje]);
-
-  const handleSubmitPedido = useCallback(async (e) => {
-    e.preventDefault();
-    
-    if (!validarFormularioPedido()) return;
-    if (!clienteActual) {
-      mostrarMensaje("No hay cliente seleccionado.", 'error');
-      return;
-    }
-    
-    // Mostrar modal de autenticación primero
-    setShowAuthModal(true);
-  }, [validarFormularioPedido, clienteActual, mostrarMensaje]);
-
-    const enviarNotificacionesAutomaticas = useCallback(async (datosFactura) => {
-    try {
-        console.log('=== DEBUG NOTIFICACIONES ===');
-        console.log('Cliente en datosFactura:', datosFactura.cliente);
-        console.log('Nombre:', datosFactura.cliente.Nombre);
-        console.log('Número que se usará:', datosFactura.cliente.NumCelular);
-        console.log('clienteActual global:', clienteActual);
-        console.log('=============================');
       const resultadoPDF = generateFacturaPDF(datosFactura);
       
       if (resultadoPDF.success) {
@@ -449,7 +272,10 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
 
 ¡Gracias por tu preferencia! 😊`;
 
-        
+        const numeroCliente = `51${cliente.NumCelular}`;
+        console.log('el numero: ', numeroCliente)
+        const mensajeCodificadoCliente = encodeURIComponent(mensajeCliente);
+        const urlWhatsAppCliente = `https://wa.me/${numeroCliente}?text=${mensajeCodificadoCliente}`;
         
         setTimeout(() => {
           window.open(urlWhatsAppCliente, '_blank');
@@ -471,11 +297,6 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
         const mensajeCodificadoAdmin = encodeURIComponent(mensajeAdmin);
         const urlWhatsAppAdmin = `https://wa.me/${numeroAdmin}?text=${mensajeCodificadoAdmin}`;
         
-        const numeroCliente = `51${cliente.NumCelular}`;
-        console.log('el numero: ', numeroCliente)
-        const mensajeCodificadoCliente = encodeURIComponent(mensajeCliente);
-        const urlWhatsAppCliente = `https://wa.me/${numeroCliente}?text=${mensajeCodificadoCliente}`;
-        
         setTimeout(() => {
           window.open(urlWhatsAppAdmin, '_blank');
         }, 2000);
@@ -488,142 +309,182 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
     }
   }, [administradors, mostrarMensaje]);
 
-  const confirmarPedidoConAutenticacion = useCallback(async () => {
-    setLoading(true);
-    setAuthError("");
-    
-    try {
-      // Validar credenciales primero
-      const credencialesValidas = await validarCredenciales();
-      
-      if (!credencialesValidas) {
-        return;
+  const handleSubmitPedido = useCallback(async (e) => {
+  e.preventDefault();
+  
+  if (!validarFormularioPedido()) return;
+  
+  // Verificar autenticación
+  if (!isAuthenticated || !clienteActual) {
+    mostrarMensaje("No hay cliente autenticado. Por favor, inicia sesión.", 'error');
+    return;
+  }
+  
+  setLoading(true);
+  
+  try {
+    // Verificar stock final
+    const stockErrors = [];
+    for (const producto of carrito) {
+      const stockCheck = checkStock(producto.ID_Producto, producto.cantidad);
+      if (!stockCheck.available) {
+        stockErrors.push(`${producto.Nombre_Producto}: solicitado ${producto.cantidad}, disponible ${stockCheck.cantidadDisponible}`);
       }
-      
-      // Si las credenciales son válidas, proceder con el pedido
-      setShowAuthModal(false);
-      
-      // Verificar stock final
-      const stockErrors = [];
-      for (const producto of carrito) {
-        const stockCheck = checkStock(producto.ID_Producto, producto.cantidad);
-        if (!stockCheck.available) {
-          stockErrors.push(`${producto.Nombre_Producto}: solicitado ${producto.cantidad}, disponible ${stockCheck.cantidadDisponible}`);
-        }
-      }
-      
-      if (stockErrors.length > 0) {
-        mostrarMensaje(`Problemas de stock:\n${stockErrors.join('\n')}`, 'error');
-        return;
-      }
-
-      // Crear pedido
-      const nuevoPedido = {
-        ...pedidoData,
-        ID_Cliente: clienteActual.ID_Cliente
-      };
-      
-      const pedidoCreado = await addPedido(nuevoPedido);
-      const idPedido = pedidoCreado.ID_Pedido || pedidoCreado;
-      
-      // Procesar detalles del pedido
-      let subtotalTotal = 0;
-      const detallesPedido = [];
-      
-      for (const producto of carrito) {
-        const detalle = {
-          ID_Pedido: idPedido,
-          ID_Producto: producto.ID_Producto,
-          Cantidad: producto.cantidad,
-          Precio_Unitario: producto.Precio_Final,
-          Descuento: 0,
-          Subtotal: producto.cantidad * producto.Precio_Final * (1 - producto.Descuento / 100)
-        };
-        subtotalTotal += detalle.Subtotal;
-        detallesPedido.push({
-          ...detalle,
-          Nombre_Producto: producto.Nombre_Producto
-        });
-        
-        await addDetallePedido(detalle);
-        await decreaseStock(producto.ID_Producto, producto.cantidad);
-      }
-      
-      // Crear factura
-      const nuevaFactura = {
-        ID_Pedido: idPedido,
-        ID_Cliente: clienteActual.ID_Cliente,
-        Fecha: new Date().toISOString().slice(0, 10),
-        Monto_Total: subtotalTotal
-      };
-      
-      const facturaCreada = await addFactura(nuevaFactura);
-      const idFactura = facturaCreada?.ID_Factura || facturaCreada?.id || facturaCreada;
-      
-      // Crear historial de estado
-      const estadoEnProceso = estadoPedidos.find(estado => estado.Estado === 'En Proceso');
-      const idEstadoEnProceso = estadoEnProceso ? estadoEnProceso.ID_EstadoPedido : 1;
-      
-      const historialData = {
-        ID_EstadoPedido: idEstadoEnProceso,
-        ID_Pedido: idPedido,
-        Fecha: new Date().toISOString()
-      };
-      
-      await addHistorialEstado(historialData);
-
-      // Preparar datos para notificaciones
-      const datosFactura = {
-        pedido: {
-          ID_Pedido: idPedido,
-          Fecha_Pedido: pedidoData.Fecha_Pedido,
-          Fecha_Entrega: pedidoData.Fecha_Entrega,
-          Observaciones: pedidoData.Observaciones
-        },
-        cliente: clienteActual,
-        detalles: detallesPedido.map(detalle => ({
-          ...detalle,
-          Cantidad: Number(detalle.Cantidad) || 0,
-          Precio_Unitario: Number(detalle.Precio_Unitario) || 0,
-          Subtotal: Number(detalle.Subtotal) || 0,
-          Descuento: Number(detalle.Descuento) || 0
-        })),
-        factura: {
-          ...nuevaFactura,
-          ID_Factura: idFactura,
-          Monto_Total: Number(subtotalTotal) || 0
-        },
-        total: Number(subtotalTotal) || 0
-      };
-      
-      // Limpiar estado
-      resetearFormularios();
-      limpiarCarrito();
-      
-      // Enviar notificaciones automáticamente
-      await enviarNotificacionesAutomaticas(datosFactura);
-      
-    } catch (error) {
-      mostrarMensaje("Error al procesar el pedido.", 'error');
-      console.error("Error al guardar pedido:", error);
-    } finally {
-      setLoading(false);
     }
-  }, [
-    validarCredenciales, carrito, pedidoData, clienteActual, 
-    checkStock, addPedido, addDetallePedido, decreaseStock, 
-    addFactura, estadoPedidos, addHistorialEstado, 
-    resetearFormularios, limpiarCarrito, enviarNotificacionesAutomaticas, 
-    mostrarMensaje
-  ]);
+    
+    if (stockErrors.length > 0) {
+      mostrarMensaje(`Problemas de stock:\n${stockErrors.join('\n')}`, 'error');
+      return;
+    }
 
+    // Crear pedido
+    const nuevoPedido = {
+      ...pedidoData,
+      ID_Cliente: clienteActual.ID_Cliente
+    };
+    
+    const pedidoCreado = await addPedido(nuevoPedido);
+    const idPedido = pedidoCreado.ID_Pedido || pedidoCreado;
+    
+    // Procesar detalles del pedido
+    let subtotalTotal = 0;
+    const detallesPedido = [];
+    
+    for (const producto of carrito) {
+      const detalle = {
+        ID_Pedido: idPedido,
+        ID_Producto: producto.ID_Producto,
+        Cantidad: producto.cantidad,
+        Precio_Unitario: producto.Precio_Final,
+        Descuento: 0,
+        Subtotal: producto.cantidad * producto.Precio_Final * (1 - producto.Descuento / 100)
+      };
+      subtotalTotal += detalle.Subtotal;
+      detallesPedido.push({
+        ...detalle,
+        Nombre_Producto: producto.Nombre_Producto
+      });
+      
+      await addDetallePedido(detalle);
+      await decreaseStock(producto.ID_Producto, producto.cantidad);
+    }
+    
+    // Crear factura
+    const nuevaFactura = {
+      ID_Pedido: idPedido,
+      ID_Cliente: clienteActual.ID_Cliente,
+      Fecha: new Date().toISOString().slice(0, 10),
+      Monto_Total: subtotalTotal
+    };
+    
+    const facturaCreada = await addFactura(nuevaFactura);
+    const idFactura = facturaCreada?.ID_Factura || facturaCreada?.id || facturaCreada;
+    
+    // CORRECCIÓN: Crear historial de estado con mejor manejo de errores
+    console.log('Estados disponibles:', estadoPedidos); // Para debug
+    
+    // Buscar el estado correcto (prueba varios nombres posibles)
+    let estadoInicial = estadoPedidos.find(estado => 
+      estado.Estado === 'En Proceso' || 
+      estado.Estado === 'Pendiente' || 
+      estado.Estado === 'Nuevo' ||
+      estado.Estado === 'Creado'
+    );
+    
+    // Si no encuentra ningún estado específico, toma el primero disponible
+    if (!estadoInicial && estadoPedidos.length > 0) {
+      estadoInicial = estadoPedidos[0];
+      console.warn('No se encontró un estado específico, usando el primero disponible:', estadoInicial);
+    }
+    
+    // Validar que existe un estado válido antes de crear el historial
+    if (!estadoInicial) {
+      throw new Error('No se encontró ningún estado de pedido válido en la base de datos');
+    }
+    
+    const historialData = {
+      ID_EstadoPedido: estadoInicial.ID_EstadoPedido,
+      ID_Pedido: idPedido,
+      Fecha: new Date().toISOString()
+    };
+    
+    console.log('Creando historial con estado:', estadoInicial); // Para debug
+    console.log('Datos del historial:', historialData); // Para debug
+    
+    await addHistorialEstado(historialData);
 
+    // Preparar datos para notificaciones
+    const datosFactura = {
+      pedido: {
+        ID_Pedido: idPedido,
+        Fecha_Pedido: pedidoData.Fecha_Pedido,
+        Fecha_Entrega: pedidoData.Fecha_Entrega,
+        Observaciones: pedidoData.Observaciones
+      },
+      cliente: clienteActual,
+      detalles: detallesPedido.map(detalle => ({
+        ...detalle,
+        Cantidad: Number(detalle.Cantidad) || 0,
+        Precio_Unitario: Number(detalle.Precio_Unitario) || 0,
+        Subtotal: Number(detalle.Subtotal) || 0,
+        Descuento: Number(detalle.Descuento) || 0
+      })),
+      factura: {
+        ...nuevaFactura,
+        ID_Factura: idFactura,
+        Monto_Total: Number(subtotalTotal) || 0
+      },
+      total: Number(subtotalTotal) || 0
+    };
+    
+    // Limpiar estado
+    resetearFormularios();
+    limpiarCarrito();
+    
+    // Enviar notificaciones automáticamente
+    await enviarNotificacionesAutomaticas(datosFactura);
+    
+  } catch (error) {
+    mostrarMensaje("Error al procesar el pedido.", 'error');
+    console.error("Error al guardar pedido:", error);
+    
+    // Información adicional para debug
+    if (error.response?.data) {
+      console.error("Detalles del error del servidor:", error.response.data);
+    }
+  } finally {
+    setLoading(false);
+  }
+}, [
+  validarFormularioPedido, carrito, pedidoData, clienteActual, isAuthenticated,
+  checkStock, addPedido, addDetallePedido, decreaseStock, 
+  addFactura, estadoPedidos, addHistorialEstado, 
+  resetearFormularios, limpiarCarrito, enviarNotificacionesAutomaticas, 
+  mostrarMensaje
+]);
+
+const verificarEstadosDisponibles = useCallback(() => {
+  console.log('=== ESTADOS DISPONIBLES ===');
+  estadoPedidos.forEach((estado, index) => {
+    console.log(`${index + 1}. ID: ${estado.ID_EstadoPedido}, Estado: "${estado.Estado}"`);
+  });
+  console.log('===========================');
+  
+  if (estadoPedidos.length === 0) {
+    console.warn('⚠️ No hay estados de pedido cargados. Verifica que fetchEstadoPedido() se ejecute correctamente.');
+  }
+}, [estadoPedidos]);
+
+// Llamar esta función en useEffect para debug (opcional)
+useEffect(() => {
+  if (estadoPedidos.length > 0) {
+    verificarEstadosDisponibles();
+  }
+}, [estadoPedidos, verificarEstadosDisponibles]);
 
   // ========================
   // CÁLCULOS MEMOIZADOS
   // ========================
-  
-
   const totalCarrito = useMemo(() => {
     return carrito.reduce((total, producto) => total + (producto.Precio_Final * producto.cantidad), 0);
   }, [carrito]);
@@ -668,19 +529,10 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
       )}
 
       {/* Indicador de cliente */}
-      {clienteActual && (
+      {clienteActual && isAuthenticated && (
         <div className={style.clienteActivo}>
           <UserCheck size={16} />
           <span>Cliente: {clienteActual.Nombre} {clienteActual.Apellido}</span>
-          <button 
-            onClick={() => {
-              {/*logoutCliente(); */}
-              mostrarMensaje("Sesión cerrada correctamente");
-            }}
-            className={style.btnCerrarSesion}
-          >
-            Cerrar Sesión
-          </button>
         </div>
       )}
 
@@ -763,213 +615,76 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
           </button>
           
           <button 
-            onClick={clienteActual ? () => setModalActivo('pedido') : abrirFormularioCliente}
+            onClick={() => setModalActivo('pedido')}
             className={style.btnPrimario}
-            disabled={loading || tieneProblemasStock}
+            disabled={loading || tieneProblemasStock || !isAuthenticated || !clienteActual}
           >
-            <User className={style.icon} />
-            {clienteActual ? 'Continuar al Pago' : 'Registrarse y Pagar'}
+            <FileText className={style.icon} />
+            {!isAuthenticated || !clienteActual ? 'Inicia sesión para continuar' : 'Procesar Pedido'}
           </button>
         </div>
       )}
-      
-      {/* Modal de login */}
-      {showLoginModal && (
-        <div className={style.modalOverlayy} onClick={() => setShowLoginModal(false)}>
-          <div className={style.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={style.modalHeader}>
-              <h3>
-                <User className={style.icon} />
-                Iniciar Sesión
-              </h3>
-              <button 
-                onClick={() => setShowLoginModal(false)} 
-                className={style.btnCerrar}
-              >
-                ×
-              </button>
-            </div>
-            
-            <form onSubmit={handleLogin} className={style.modalContent}>
-              <div className={style.formGroup}>
-                <label>Usuario *</label>
-                <input
-                  type="text"
-                  name="Usuario"
-                  value={loginData.Usuario}
-                  onChange={handleLoginChange}
-                  className={style.input}
-                  required
-                  autoFocus
-                />
-              </div>
-              
-              <div className={style.formGroup}>
-                <label>Contraseña *</label>
-                <input
-                  type="password"
-                  name="Contrasena"
-                  value={loginData.Contrasena}
-                  onChange={handleLoginChange}
-                  className={style.input}
-                  required
-                />
-              </div>
-      
-              <div className={style.modalAcciones}>
-                <button 
-                  type="button" 
-                  onClick={() => setShowLoginModal(false)}
-                  className={style.btnSecundario}
-                  disabled={loading}
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  className={style.btnPrimario}
-                  disabled={loading}
-                >
-                  {loading ? 'Iniciando...' : 'Iniciar Sesión'}
-                </button>
-              </div>
-              
-              <div className={style.loginFooter}>
-                <p>¿No tienes cuenta? <button 
-                  type="button" 
-                  className={style.linkBtn}
-                  onClick={() => {
-                    setShowLoginModal(false);
-                    mostrarMensaje("Por favor regístrate primero");
-                  }}
-                >
-                  Regístrate
-                </button></p>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {/* Modal de autenticación para confirmar pedido */}
-      {showAuthModal && (
-        <div className={style.modalOverlay} onClick={() => setShowAuthModal(false)}>
-          <div className={style.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={style.modalHeader}>
-              <h3>
-                <Lock className={style.icon} />
-                Confirmar Identidad
-              </h3>
-              <p>Por favor ingresa tus credenciales para confirmar el pedido</p>
-            </div>
-            
-            <div className={style.modalContent}>
-              <div className={style.formGroup}>
-                <label>Usuario *</label>
-                <input
-                  type="text"
-                  name="Usuario"
-                  value={authData.Usuario}
-                  onChange={handleAuthChange}
-                  className={style.input}
-                  required
-                  autoFocus
-                />
-              </div>
-              
-              <div className={style.formGroup}>
-                <label>Contraseña *</label>
-                <input
-                  type="password"
-                  name="Contrasena"
-                  value={authData.Contrasena}
-                  onChange={handleAuthChange}
-                  className={style.input}
-                  required
-                />
-              </div>
-              
-              {authError && (
-                <div className={style.mensaje + " " + style.error}>
-                  <AlertTriangle className={style.icon} />
-                  {authError}
-                </div>
-              )}
-              
-              <div className={style.modalAcciones}>
-                <button 
-                  type="button" 
-                  onClick={() => setShowAuthModal(false)}
-                  className={style.btnSecundario}
-                  disabled={loading}
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="button"
-                  onClick={confirmarPedidoConAutenticacion}
-                  className={style.btnPrimario}
-                  disabled={loading}
-                >
-                  {loading ? 'Verificando...' : 'Confirmar Pedido'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de nuevo cliente */}
-      {modalActivo === 'cliente' && (
+      {/* Modal de pedido */}
+      {modalActivo === 'pedido' && (
         <div className={style.modalOverlay} onClick={cerrarModal}>
           <div className={style.modal} onClick={(e) => e.stopPropagation()}>
             <div className={style.modalHeader}>
               <h3>
-                <User className={style.icon} />
-                Nuevo Cliente
+                <FileText className={style.icon} />
+                Datos del Pedido
               </h3>
               <button onClick={cerrarModal} className={style.btnCerrar}>×</button>
             </div>
             
-            <form onSubmit={handleSubmitCliente} className={style.modalContent}>
-              <div className={style.formGroup}>
-                <label>Nombre *</label>
-                <input
-                  type="text"
-                  name="Nombre"
-                  value={clienteData.Nombre}
-                  onChange={handleInputChangeCliente}
-                  className={style.input}
-                  required
-                  autoFocus
-                />
+            <form onSubmit={handleSubmitPedido} className={style.modalContent}>
+              <div className={style.clienteSeleccionado}>
+                <h4>Cliente:</h4>
+                <p>
+                  {clienteActual?.Nombre} {clienteActual?.Apellido}
+                </p>
               </div>
               
               <div className={style.formGroup}>
-                <label>Apellido *</label>
+                <label>Fecha de Entrega *</label>
                 <input
-                  type="text"
-                  name="Apellido"
-                  value={clienteData.Apellido}
-                  onChange={handleInputChangeCliente}
+                  type="date"
+                  name="Fecha_Entrega"
+                  value={pedidoData.Fecha_Entrega}
+                  onChange={handleInputChangePedido}
                   className={style.input}
+                  min={new Date().toISOString().slice(0, 10)}
                   required
                 />
               </div>
               
               <div className={style.formGroup}>
-                <label>Teléfono *</label>
-                <input
-                  type="tel"
-                  name="NumCelular"
-                  value={clienteData.NumCelular}
-                  onChange={handleInputChangeCliente}
-                  className={style.input}
-                  placeholder="987654321"
-                  required
+                <label>Observaciones</label>
+                <textarea
+                  name="Observaciones"
+                  value={pedidoData.Observaciones}
+                  onChange={handleInputChangePedido}
+                  className={style.textarea}
+                  placeholder="Instrucciones especiales, comentarios..."
+                  rows="3"
                 />
               </div>
-
+              
+              <div className={style.resumenPedido}>
+                <h4>Resumen del Pedido:</h4>
+                <div className={style.resumenItems}>
+                  {carrito.map((producto, index) => (
+                    <div key={index} className={style.resumenItem}>
+                      <span>{producto.Nombre_Producto} x{producto.cantidad}</span>
+                      <span>${(producto.Precio_Final * producto.cantidad).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className={style.resumenTotal}>
+                  <strong>Total: ${totalCarrito.toFixed(2)}</strong>
+                </div>
+              </div>
+              
               <div className={style.modalAcciones}>
                 <button 
                   type="button" 
@@ -982,101 +697,12 @@ ${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}
                 <button 
                   type="submit"
                   className={style.btnPrimario}
-                  disabled={loading}
+                  disabled={loading || tieneProblemasStock}
                 >
-                  {loading ? 'Creando...' : 'Crear Cliente'}
+                  {loading ? 'Procesando...' : 'Procesar Pedido'}
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de pedido */}
-      {modalActivo === 'pedido' && clienteActual && (
-        <div className={style.modalOverlay} onClick={cerrarModal}>
-          <div className={style.modal} onClick={(e) => e.stopPropagation()}>
-            <div className={style.modalHeader}>
-              <h3>
-                <FileText className={style.icon} />
-                Finalizar Pedido
-              </h3>
-              <button onClick={cerrarModal} className={style.btnCerrar}>×</button>
-            </div>
-            
-            <div className={style.modalContent}>
-              {/* Información del cliente */}
-              <div className={style.clienteSeleccionado}>
-                <h4>Cliente Seleccionado:</h4>
-                <div className={style.clienteInfo}>
-                  <p><strong>{clienteActual.Nombre} {clienteActual.Apellido}</strong></p>
-                  <p><Phone className={style.iconSmall} /> {clienteActual.NumCelular}</p>
-                </div>
-              </div>
-
-              {/* Resumen del pedido */}
-              <div className={style.resumenPedido}>
-                <h4>Resumen del Pedido:</h4>
-                {carrito.map((producto, index) => (
-                  <div key={index} className={style.resumenItem}>
-                    <span>{producto.Nombre_Producto}</span>
-                    <span>x{producto.cantidad}</span>
-                    <span>${(producto.Precio_Final * producto.cantidad).toFixed(2)}</span>
-                  </div>
-                ))}
-                <div className={style.resumenTotal}>
-                  <strong>Total: ${totalCarrito.toFixed(2)}</strong>
-                </div>
-              </div>
-
-              {/* Formulario del pedido */}
-              <form onSubmit={handleSubmitPedido}>
-                <div className={style.formGroup}>
-                  <label>Fecha de Entrega *</label>
-                  <input
-                    type="date"
-                    name="Fecha_Entrega"
-                    value={pedidoData.Fecha_Entrega}
-                    onChange={handleInputChangePedido}
-                    className={style.input}
-                    min={new Date().toISOString().slice(0, 10)}
-                    required
-                  />
-                </div>
-                
-                <div className={style.formGroup}>
-                  <label>Observaciones</label>
-                  <textarea
-                    name="Observaciones"
-                    value={pedidoData.Observaciones}
-                    onChange={handleInputChangePedido}
-                    className={style.textarea}
-                    rows="3"
-                    placeholder="Observaciones adicionales del pedido..."
-                  />
-                </div>
-                
-                <div className={style.modalAcciones}>
-                  <button 
-                    type="button" 
-                    onClick={cerrarModal}
-                    className={style.btnSecundario}
-                    disabled={loading}
-                  >
-                    <Calendar className={style.icon} />
-                    Volver
-                  </button>
-                  <button 
-                    type="submit"
-                    className={style.btnPrimario}
-                    disabled={loading || tieneProblemasStock}
-                  >
-                    <User className={style.icon} />
-                    Confirmar Pedido
-                  </button>
-                </div>
-              </form>
-            </div>
           </div>
         </div>
       )}

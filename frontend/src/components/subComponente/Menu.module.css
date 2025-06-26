@@ -680,6 +680,41 @@
   font-size: 1.1rem;
 }
 
+/* Estilos para tarjetas clickeables cuando no está autenticado */
+.clickableCard {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.clickableCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para el prompt de login */
+.loginPrompt {
+    padding: 12px;
+    text-align: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px dashed #dee2e6;
+}
+
+.loginText {
+    margin: 0;
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Subtítulo del menú */
+.menu__subtitle {
+    margin: 8px 0 0 0;
+    color: #6c757d;
+    font-size: 14px;
+    text-align: center;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .menu {

@@ -21,7 +21,7 @@ export const useAuth = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       checkAuthStatus();
-    }, 1 * 60 * 1000); // Verificar cada 5 minutos
+    }, 10 * 60 * 1000); // Verificar cada 5 minutos
 
     return () => clearInterval(interval);
   }, [checkAuthStatus]);

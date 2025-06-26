@@ -160,6 +160,12 @@ const Principal = () => {
     setIsMenuOpen(false);
   }, []);
 
+  const handleNavigateToProfile = useCallback(() => {
+        console.log('🔄 Navegando a perfil desde componente Inicio');
+        setActivateComponent('perfil');
+        setIsMenuOpen(false);
+    }, []);
+    
   const goToLogin = useCallback(() => {
     navigate('/loginFrom');
   }, [navigate]);
@@ -298,8 +304,8 @@ const Principal = () => {
 
   const renderMainContent = () => {
     const components = {
-      inicio: <Inicio />,
-      menu: <Menu />,
+      inicio: <Inicio onNavigateToProfile={handleNavigateToProfile}/>,
+      menu: <Menu onNavigateToProfile={handleNavigateToProfile}/>,
       servicio: <Servicio />,
       carrito: <Carrito />,
       perfil: <PerfilFrom />
