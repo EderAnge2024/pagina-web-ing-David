@@ -5,6 +5,7 @@ import Administrador from './components/AdministradorComponent';
 import LoginForm from './components/LoginAdministrador';
 import AgregarAdministradorPrimer from './components/primerAdmin';
 import useAdministradorStore from './store/AdministradorStore';
+import TerminosCondiciones from './components/Administrador/TerminosCondiciones';
 import { useAuth } from './hooks/useAuth'; // Importar el hook
 import { useState, useEffect } from 'react';
 
@@ -39,7 +40,6 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<Principal />} />
-        
         {/* Ruta raíz dinámica */}
         <Route 
           path="/loginFrom" 
@@ -63,6 +63,7 @@ function App() {
             )
           }
         />
+        <Route path='/terminos_condiciones' element={<TerminosCondiciones />} />
       </Routes>
     </BrowserRouter>
   );

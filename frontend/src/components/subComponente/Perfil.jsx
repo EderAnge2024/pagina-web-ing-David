@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useClienteStore from '../../store/ClienteStore'
 import style from './perfil.module.css'
+import TerminosCondiciones from '../Administrador/TerminosCondiciones'
 
 const PerfilForm = () => {
     const { 
@@ -20,6 +21,7 @@ const PerfilForm = () => {
     const [modoLogin, setModoLogin] = useState(true)
     const [editandoPerfil, setEditandoPerfil] = useState(false)
     const [localLoading, setLocalLoading] = useState(false)
+    const [aceptaTerminos,setAceptaTerminos] = useState(false)
     
     const [formData, setFormData] = useState({
         Nombre: "",
@@ -87,9 +89,18 @@ const PerfilForm = () => {
     const handleSubmit = useCallback(async (e) => {
         e.preventDefault()
         setLocalLoading(true)
-        
+    
         try {
+            console.log("aceptaTerminos:", aceptaTerminos)
+    
+            if (!aceptaTerminos) {
+                alert("Debes aceptar los términos y condiciones antes de registrarte.")
+                setLocalLoading(false)
+                return // <-- Esto es importante para que NO continúe
+            }
+    
             await addCliente(formData)
+    
             setFormData({ 
                 Nombre: "", 
                 Apellido: "", 
@@ -98,6 +109,9 @@ const PerfilForm = () => {
                 Usuario: "", 
                 Contrasena: "" 
             })
+    
+            setAceptaTerminos(false) // Reiniciamos checkbox después del registro
+    
             alert("Cliente registrado correctamente. Ahora puedes iniciar sesión.")
             setModoLogin(true)
         } catch (error) {
@@ -106,8 +120,8 @@ const PerfilForm = () => {
         } finally {
             setLocalLoading(false)
         }
-    }, [addCliente, formData])
-
+    }, [addCliente, formData, aceptaTerminos])
+    
     // Login de cliente
     const handleLogin = useCallback(async (e) => {
         e.preventDefault()
@@ -264,7 +278,6 @@ const PerfilForm = () => {
                                     onChange={handleInputChange} 
                                     className={style.input} 
                                 />
-                                
                                 <div className={style.actions}>
                                     <button 
                                         type="submit" 
@@ -382,6 +395,16 @@ const PerfilForm = () => {
                                 required 
                                 className={style.input} 
                             />
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={aceptaTerminos}
+                                  onChange={e => setAceptaTerminos(e.target.checked)}
+                                  style={{ marginRight: '0.5rem' }}
+                                />
+                                Acepto los <a href="/terminos_condiciones" target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>términos y condiciones</a>
+                            </label>
+                    
                         </>
                     )}
                     <input 
@@ -402,7 +425,7 @@ const PerfilForm = () => {
                         required 
                         className={style.input} 
                     />
-
+                    
                     <div className={style.actions}>
                         <button 
                             type="submit" 

@@ -37,6 +37,8 @@ const Carrito = () => {
     Observaciones: ""
   });
 
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
+
   // ========================
   // HOOKS DE STORES
   // ========================
@@ -684,7 +686,18 @@ useEffect(() => {
                   <strong>Total: ${totalCarrito.toFixed(2)}</strong>
                 </div>
               </div>
-              
+              {/* Checkbox de términos y condiciones */}
+              <div className={style.formGroup} style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={aceptaTerminos}
+                    onChange={e => setAceptaTerminos(e.target.checked)}
+                    style={{ marginRight: '0.5rem' }}
+                  />
+                  Acepto los <a href="/terminos_condiciones" target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>términos y condiciones</a>
+                </label>
+              </div>
               <div className={style.modalAcciones}>
                 <button 
                   type="button" 
@@ -697,7 +710,7 @@ useEffect(() => {
                 <button 
                   type="submit"
                   className={style.btnPrimario}
-                  disabled={loading || tieneProblemasStock}
+                  disabled={loading || tieneProblemasStock || !aceptaTerminos}
                 >
                   {loading ? 'Procesando...' : 'Procesar Pedido'}
                 </button>

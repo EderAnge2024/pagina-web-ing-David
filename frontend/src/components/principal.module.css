@@ -377,6 +377,9 @@
   background-color: #e05555;
   transform: translateY(-2px);
 }
+.terminosCondiciones{
+   margin-left: 50%;
+}
 
 .copyright {
   text-align: center;

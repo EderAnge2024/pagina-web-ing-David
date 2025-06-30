@@ -353,6 +353,7 @@ const Principal = () => {
       <div className={styles.footer_content}>
         <div className={styles.footer_section}>
           {renderContactInfo()}
+          <a className={styles.terminosCondiciones} href="/terminos_condiciones">Términos y condiciones</a>
           <button 
             onClick={goToLogin} 
             className={styles.admin_button}

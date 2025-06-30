@@ -4,9 +4,11 @@ import style from './Clientes.module.css'
 
 const ClienteForm = () => {
     const { 
+        fetchCliente,
         addCliente, 
         clientes, 
         updateCliente, 
+        deleteCliente,
         loading,
         initializeFromStorage
     } = useClienteStore()
@@ -24,7 +26,8 @@ const ClienteForm = () => {
     // Cargar datos al montar el componente
     useEffect(() => {
         initializeFromStorage()
-    }, [initializeFromStorage])
+        fetchCliente()
+    }, [initializeFromStorage,fetchCliente])
 
     // Manejar cambios en el formulario
     const handleInputChange = useCallback((e) => {
@@ -58,9 +61,9 @@ const ClienteForm = () => {
     const handleDelete = useCallback(async (ID_Cliente) => {
         if (window.confirm("¿Estás seguro de eliminar este cliente?")) {
             try {
-                // Implementar la lógica de eliminación directamente aquí
-                // o agregar la función deleteCliente al store si la necesitas
-                alert("Funcionalidad de eliminar no implementada en el store actual")
+                await deleteCliente(ID_Cliente)
+                alert("Cliente elminado correctamente")
+                fetchCliente()
             } catch (error) {
                 alert("Error al eliminar cliente")
             }

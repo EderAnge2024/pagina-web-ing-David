@@ -10,6 +10,26 @@ const useClienteStore = create((set, get) => ({
   loading: false,
 
   // Inicializar desde localStorage al cargar la app
+
+  fetchCliente: async()=>{
+        try {
+            const response = await axios.get('http://localhost:3001/clientes')
+            set({clientes: response.data})
+        } catch (error) {
+            console.log("Error fecthing clientes", error.message)
+        }
+    },
+
+  deleteCliente: async(ID_Cliente)=>{
+        try {
+            const response = await axios.delete(`http://localhost:3001/clientes/${ID_Cliente}`)
+            console.log("cliente delete:",response.data)
+            set((state)=>({clientes: state.clientes.filter(cliente=>cliente.ID_Cliente !== ID_Cliente)})) 
+        } catch (error) {                                                          
+            console.log("Error deleting cliente:", error.message)
+        }
+    },
+
   initializeFromStorage: () => {
     try {
       const token = localStorage.getItem('authToken')
