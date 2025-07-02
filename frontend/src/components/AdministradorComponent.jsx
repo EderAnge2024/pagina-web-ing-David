@@ -51,6 +51,7 @@ const LazyFactura = lazy(() => import("./Administrador/Factura"));
 const LazyHistorialEstado = lazy(() => import("./Administrador/HistorialEstado"));
 const LazyPedido = lazy(() => import("./Administrador/Pedido"));
 const LazyProyecto = lazy(() => import("./Administrador/Proyecto"));
+const LazyTerminosAdmin = lazy(() => import("./Administrador/TerminosAdmin"));
 const Lazycolors = lazy(() => import("./PaletaColores"));
 
 const LoadingSpinner = () => (
@@ -144,7 +145,14 @@ const Administrador = () => {
             label: 'Detalle Pedidos', 
             icon: '📝',
             description: 'Información detallada'
-        }
+        },
+        { 
+            key: 'TerminosAdmin', 
+            label: 'Terminos y condiciones', 
+            icon: '📝',
+            description: 'editar los terminos y condiciones'
+        },
+
     ], []);
 
     // Inicialización controlada
@@ -287,6 +295,7 @@ const Administrador = () => {
             'Factura': <LazyFactura />,
             'HistorialEstado': <LazyHistorialEstado />,
             'DetallePedidoFrom': <LazyDetallePedidoFrom />,
+            'TerminosAdmin': <LazyTerminosAdmin />,
             'colors': <Lazycolors />
         };
 

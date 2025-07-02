@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useClienteStore from '../../store/ClienteStore'
 import style from './perfil.module.css'
-import TerminosCondiciones from '../Administrador/TerminosCondiciones'
+import TerminosCondiciones from '../subComponente/TerminosCondiciones'
 
 const PerfilForm = () => {
     const { 
@@ -395,16 +395,6 @@ const PerfilForm = () => {
                                 required 
                                 className={style.input} 
                             />
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={aceptaTerminos}
-                                  onChange={e => setAceptaTerminos(e.target.checked)}
-                                  style={{ marginRight: '0.5rem' }}
-                                />
-                                Acepto los <a href="/terminos_condiciones" target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>términos y condiciones</a>
-                            </label>
-                    
                         </>
                     )}
                     <input 
@@ -425,6 +415,29 @@ const PerfilForm = () => {
                         required 
                         className={style.input} 
                     />
+                    
+                    {/* Términos y condiciones solo para registro */}
+                    {!modoLogin && (
+                        <div className={style.terminosContainer}>
+                            <label className={style.terminosLabel}>
+                                <input
+                                    type="checkbox"
+                                    checked={aceptaTerminos}
+                                    onChange={e => setAceptaTerminos(e.target.checked)}
+                                    className={style.terminosCheckbox}
+                                />
+                                Acepto los{' '}
+                                <a 
+                                    href="/terminos-condiciones" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className={style.terminosLink}
+                                >
+                                    términos y condiciones
+                                </a>
+                            </label>
+                        </div>
+                    )}
                     
                     <div className={style.actions}>
                         <button 

@@ -273,7 +273,7 @@ const ImagenForm = () => {
             await setLogoPrincipal(logoId)
             
             // 2. Esperar un momento para que se complete la actualización en el servidor
-            await new Promise(resolve => setTimeout(resolve, 300))
+            await new Promise(resolve => setTimeout(resolve, 500))
             
             // 3. Forzar actualización inmediata
             await fetchImagen()
@@ -282,7 +282,8 @@ const ImagenForm = () => {
             const event = new CustomEvent('logoChanged', { 
                 detail: { 
                     logoId,
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    source: 'ImagenForm'
                 } 
             })
             
@@ -293,13 +294,14 @@ const ImagenForm = () => {
             setTimeout(async () => {
                 await fetchImagen()
                 console.log('🔄 Segunda actualización completada')
-            }, 500)
+            }, 1000)
             
-            alert('Logo principal actualizado correctamente')
+            // 6. Notificar al usuario con un mensaje más claro
+            alert('✅ Logo principal actualizado correctamente. El cambio se reflejará en toda la aplicación.')
             
         } catch (error) {
             console.error('❌ Error al cambiar logo principal:', error)
-            alert('Error al cambiar logo principal: ' + error.message)
+            alert('❌ Error al cambiar logo principal: ' + error.message)
         } finally {
             setUploading(false)
         }
@@ -363,27 +365,16 @@ const ImagenForm = () => {
                 <div className={styles.formSection}>
                     <h1 className={styles.sectionTitle}>Gestión de Imágenes</h1>
                     
-                    {/* Logo Principal Actual */}
-                    {logoPrincipal && (
-                        <div className={styles.currentLogoSection}>
-                            <h2 className={styles.subTitle}>Logo Principal Actual</h2>
-                            <div className={styles.currentLogoDisplay}>
-                                <img 
-                                    src={logoPrincipal.URL} 
-                                    alt="Logo Principal"
-                                    className={styles.currentLogo}
-                                    key={`logo-${logoPrincipal.ID_Imagen}-${Date.now()}`} // 🔥 Key único
-                                />
-                                <p>{logoPrincipal.Tipo_Imagen}</p>
-                            </div>
+                    {/* Indicador si no hay logo principal */}
+                    {!logoPrincipal && (
+                        <div className={styles.noLogoSection}>
+                            <h2 className={styles.subTitle}>⚠️ Sin Logo Principal</h2>
+                            <p className={styles.warningText}>
+                                No hay un logo principal configurado. 
+                                Selecciona un logo y márcalo como principal para que aparezca en la aplicación.
+                            </p>
                         </div>
                     )}
-                    
-                    {/* Mensaje de configuración */}
-                    <div className={styles.configAlert}>
-                        <p><strong>⚠️ Configuración necesaria:</strong></p>
-                        <p>Asegúrate de configurar tu CLOUDINARY_CLOUD_NAME y CLOUDINARY_UPLOAD_PRESET en el componente.</p>
-                    </div>
                     
                     <form onSubmit={handleSubmit} className={styles.form}>
                         <div className={styles.formGroup}>

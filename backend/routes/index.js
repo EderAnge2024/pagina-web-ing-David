@@ -11,6 +11,8 @@ const {historialEstadoRouters} = require('../routes/HistorialEstadoRoutes')
 const {proyectoRouters} = require('../routes/ProyectoRoutes')
 const {administradorRouters} = require('../routes/AdministradorRoutes')
 const {imagenRouters} = require('../routes/ImagenRoutes')
+const { terminosRouters } = require('./TerminosCondicionesRoutes')
+// const configuracionGeneralRouters = require('./ConfiguracionGeneralRoutes')
 
 const router= Router()
 router.use('/clientes',clienteRouters)
@@ -25,5 +27,7 @@ router.use('/historialEstado',historialEstadoRouters)
 router.use('/proyecto',proyectoRouters)
 router.use('/administrador',administradorRouters)
 router.use('/imagen',imagenRouters)
+router.use('/terminos', terminosRouters)
+// router.use('/configuracion-general', configuracionGeneralRouters)
 
 module.exports = router

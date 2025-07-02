@@ -272,3 +272,29 @@
   background: #e9ecef;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
+.terminosContainer {
+  margin: 1rem 0;
+}
+
+.terminosLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.terminosCheckbox {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.terminosLink {
+  color: #1976d2;
+  text-decoration: underline;
+}
+
+.terminosLink:hover {
+  text-decoration: none;
+}

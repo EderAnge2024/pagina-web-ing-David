@@ -21,7 +21,7 @@ const footerColors = [
 ];
 
 const ColorPalette = () => {
-  const { setHeaderColor, setFooterColor } = useColorStore();
+  const { setHeaderColor, setFooterColor, resetToDefaults } = useColorStore();
 
   const handleCustomHeader = (e) => setHeaderColor(e.target.value);
   const handleCustomFooter = (e) => setFooterColor(e.target.value);
@@ -110,6 +110,17 @@ const ColorPalette = () => {
           </div>
         </div>
 
+      </div>
+      
+      {/* Botón para restaurar colores por defecto */}
+      <div className="reset-section">
+        <button 
+          className="reset-button"
+          onClick={resetToDefaults}
+          title="Restaurar los colores originales del proyecto"
+        >
+          🎨 Restaurar Colores Por Defecto
+        </button>
       </div>
     </div>
   );

@@ -5,9 +5,9 @@ import Administrador from './components/AdministradorComponent';
 import LoginForm from './components/LoginAdministrador';
 import AgregarAdministradorPrimer from './components/primerAdmin';
 import useAdministradorStore from './store/AdministradorStore';
-import TerminosCondiciones from './components/Administrador/TerminosCondiciones';
 import { useAuth } from './hooks/useAuth'; // Importar el hook
 import { useState, useEffect } from 'react';
+import TerminosCondiciones from './components/subComponente/TerminosCondiciones';
 
 function App() {
   // Usar el hook useAuth en lugar de useAuthStore directamente
@@ -40,6 +40,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<Principal />} />
+        {/* Ruta de términos y condiciones */}
+        <Route path='/terminos-condiciones' element={<TerminosCondiciones />} />
         {/* Ruta raíz dinámica */}
         <Route 
           path="/loginFrom" 
@@ -63,7 +65,6 @@ function App() {
             )
           }
         />
-        <Route path='/terminos_condiciones' element={<TerminosCondiciones />} />
       </Routes>
     </BrowserRouter>
   );

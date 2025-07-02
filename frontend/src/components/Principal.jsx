@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
 
 // Subcomponentes
@@ -20,6 +20,7 @@ import styles from './principal.module.css';
 import useImagenStore from "../store/ImagenStore";
 import {useColorStore} from "../store/colorStore";
 import PerfilFrom from "./subComponente/Perfil";
+import { useTerminosStore } from "../store/TerminosStore";
 
 // Constantes
 const NAVIGATION_ITEMS = [
@@ -41,20 +42,40 @@ const Principal = () => {
   // Hooks de estado
   const [activateComponent, setActivateComponent] = useState('inicio');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // 🔥 Estado para controlar re-renders del logo
   const [logoUpdateTrigger, setLogoUpdateTrigger] = useState(0);
   
   // Hooks de navegación y stores
   const navigate = useNavigate();
   const { fetchImagen, imagenes, getLogoPrincipal } = useImagenStore();
+  const { ultimo, fetchUltimo } = useTerminosStore();
 
-  // 🔥 Función para forzar actualización del logo
+  // 🔥 CORREGIDO: Usar useMemo para evitar re-renders infinitos del color store
+  const colorStore = useColorStore();
+  const headerColor = useMemo(() => colorStore.headerColor, [colorStore.headerColor]);
+  const footerColor = useMemo(() => colorStore.footerColor, [colorStore.footerColor]);
+  const getTextColor = useMemo(() => colorStore.getTextColor, [colorStore.getTextColor]);
+  const getHeaderContrastColors = useMemo(() => colorStore.getHeaderContrastColors, [colorStore.getHeaderContrastColors]);
+  const getFooterContrastColors = useMemo(() => colorStore.getFooterContrastColors, [colorStore.getFooterContrastColors]);
+
+  // 🔥 Memoizar los colores de contraste para evitar recálculos
+  const headerContrastColors = useMemo(() => getHeaderContrastColors(), [headerColor, getHeaderContrastColors]);
+  const footerContrastColors = useMemo(() => getFooterContrastColors(), [footerColor, getFooterContrastColors]);
+
+  // Función para forzar actualización del logo
   const forceLogoUpdate = useCallback(() => {
     setLogoUpdateTrigger(prev => prev + 1);
     console.log('🔄 Forzando actualización del logo');
   }, []);
 
-  // 🔥 Efecto para cargar datos iniciales
+  // 🔥 Efecto para aplicar estilos de color al montar el componente
+  useEffect(() => {
+    const applyStyles = colorStore.applyStyles;
+    if (applyStyles) {
+      applyStyles();
+    }
+  }, [colorStore.applyStyles]);
+
+  // Efecto para cargar datos iniciales
   useEffect(() => {
     const loadInitialData = async () => {
       try {
@@ -70,89 +91,79 @@ const Principal = () => {
     loadInitialData();
   }, [fetchImagen, forceLogoUpdate]);
 
-  // 🔥 Efecto mejorado para detectar cambios en imágenes
+  // Efecto mejorado para detectar cambios en imágenes
   useEffect(() => {
-    console.log('🔍 Cambio detectado en imágenes, total:', imagenes.length);
+    console.log('🔍 Cambio detectado en imágenes, total:', imagenes.length)
     
-    const logos = imagenes.filter(img => img.Tipo_Imagen === "Logo");
-    const logoPrincipal = logos.find(logo => logo.es_principal === true);
+    const logos = imagenes.filter(img => img.Tipo_Imagen === "Logo")
+    const logoPrincipal = logos.find(logo => logo.es_principal === true)
     
-    console.log('📊 Logos disponibles:', logos.length);
-    console.log('⭐ Logo principal actual:', logoPrincipal ? logoPrincipal.ID_Imagen : 'ninguno');
+    console.log('📊 Logos disponibles:', logos.length)
+    console.log('⭐ Logo principal actual:', logoPrincipal ? logoPrincipal.ID_Imagen : 'ninguno')
     
-    // Forzar actualización del logo cuando cambien las imágenes
-    forceLogoUpdate();
+    forceLogoUpdate()
     
-  }, [imagenes, forceLogoUpdate]); // Dependencia directa de imagenes
+  }, [imagenes, forceLogoUpdate]);
 
-  // 🔥 Escuchar evento personalizado de cambio de logo (mejorado)
+  // Escuchar evento personalizado de cambio de logo (mejorado)
   useEffect(() => {
     const handleLogoChange = async (event) => {
-      console.log('🎯 Evento logoChanged recibido:', event.detail);
+      console.log('🎯 Evento logoChanged recibido:', event.detail)
       
       try {
-        // Esperar un momento para asegurar la actualización en el servidor
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Refrescar datos desde el servidor
-        await fetchImagen();
-        
-        // Forzar actualización del logo
-        forceLogoUpdate();
-        
-        console.log('✅ Logo actualizado después del evento personalizado');
-        
+        await new Promise(resolve => setTimeout(resolve, 300))
+        await fetchImagen()
+        forceLogoUpdate()
+        console.log('✅ Logo actualizado después del evento personalizado')
       } catch (error) {
-        console.error('❌ Error actualizando logo después del evento:', error);
+        console.error('❌ Error actualizando logo después del evento:', error)
       }
-    };
+    }
 
-    window.addEventListener('logoChanged', handleLogoChange);
+    window.addEventListener('logoChanged', handleLogoChange)
     
     return () => {
-      window.removeEventListener('logoChanged', handleLogoChange);
-    };
-  }, [fetchImagen, forceLogoUpdate]);
+      window.removeEventListener('logoChanged', handleLogoChange)
+    }
+  }, [fetchImagen, forceLogoUpdate])
 
-  // 🔥 Polling inteligente para actualizaciones automáticas
+  // Polling inteligente para actualizaciones automáticas (reducido)
   useEffect(() => {
-    let intervalId;
+    let intervalId
     
     const setupPolling = () => {
       intervalId = setInterval(async () => {
         try {
-          const currentLogoPrincipal = getLogoPrincipal();
-          const currentLogoId = currentLogoPrincipal?.ID_Imagen;
+          const currentLogoPrincipal = getLogoPrincipal()
+          const currentLogoId = currentLogoPrincipal?.ID_Imagen
           
-          // Hacer fetch de las imágenes
-          await fetchImagen();
+          await fetchImagen()
           
-          // Verificar si cambió el logo principal
-          const newLogoPrincipal = getLogoPrincipal();
-          const newLogoId = newLogoPrincipal?.ID_Imagen;
+          const newLogoPrincipal = getLogoPrincipal()
+          const newLogoId = newLogoPrincipal?.ID_Imagen
           
           if (currentLogoId !== newLogoId) {
             console.log('🔄 Cambio de logo detectado en polling:', {
               anterior: currentLogoId,
               nuevo: newLogoId
-            });
-            forceLogoUpdate();
+            })
+            forceLogoUpdate()
           }
           
         } catch (error) {
-          console.error('❌ Error en polling:', error);
+          console.error('❌ Error en polling:', error)
         }
-      }, 2000); // Cada 2 segundos
-    };
+      }, 50000)
+    }
     
-    setupPolling();
+    setupPolling()
     
     return () => {
       if (intervalId) {
-        clearInterval(intervalId);
+        clearInterval(intervalId)
       }
-    };
-  }, [fetchImagen, getLogoPrincipal, forceLogoUpdate]);
+    }
+  }, [fetchImagen, getLogoPrincipal, forceLogoUpdate])
 
   // Handlers
   const handleNavClick = useCallback((component) => {
@@ -161,10 +172,10 @@ const Principal = () => {
   }, []);
 
   const handleNavigateToProfile = useCallback(() => {
-        console.log('🔄 Navegando a perfil desde componente Inicio');
-        setActivateComponent('perfil');
-        setIsMenuOpen(false);
-    }, []);
+    console.log('🔄 Navegando a perfil desde componente Inicio');
+    setActivateComponent('perfil');
+    setIsMenuOpen(false);
+  }, []);
     
   const goToLogin = useCallback(() => {
     navigate('/loginFrom');
@@ -174,45 +185,30 @@ const Principal = () => {
     setIsMenuOpen(prev => !prev);
   }, []);
 
-  // Función para calcular color de texto contrastante
-  const getTextColor = (bgColor) => {
-    if (!bgColor) return 'inherit';
-    const hex = bgColor.replace('#', '');
-    const r = parseInt(hex.substr(0, 2), 16); 
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    return brightness > 125 ? 'black' : 'white';
-  };
-  
-  const headerColor = useColorStore(state => state.headerColor);
-  const footerColor = useColorStore(state => state.footerColor);
-
-  // 🔥 Componente de logo completamente refactorizado y optimizado
+  // Componente de logo completamente refactorizado y optimizado
   const renderLogo = useCallback(() => {
-    console.log('🖼️ Renderizando logo - Trigger:', logoUpdateTrigger);
-    console.log('🖼️ Total imágenes disponibles:', imagenes.length);
+    console.log('🖼️ Renderizando logo - Trigger:', logoUpdateTrigger)
+    console.log('🖼️ Total imágenes disponibles:', imagenes.length)
     
-    // Obtener logo principal desde el store (siempre fresco)
-    const logoPrincipal = getLogoPrincipal();
+    const logoPrincipal = imagenes.find(img => img.Tipo_Imagen === "Logo" && img.es_principal)
     
     if (logoPrincipal && logoPrincipal.URL) {
       console.log('✅ Renderizando logo principal:', {
         id: logoPrincipal.ID_Imagen,
         url: logoPrincipal.URL,
         trigger: logoUpdateTrigger
-      });
+      })
       
       return (
         <div className={styles.logo_container}>
           <div className={styles.logo} onClick={() => window.location.href = "/"}>
             <img 
-              src={logoPrincipal.URL} 
+              src={`${logoPrincipal.URL}?v=${Date.now()}`}
               alt="Logo Principal de la empresa"
               key={`logo-principal-${logoPrincipal.ID_Imagen}-${logoUpdateTrigger}`}
               onLoad={() => console.log('✅ Logo principal cargado exitosamente')}
               onError={(e) => {
-                console.error('❌ Error cargando logo principal:', logoPrincipal.URL);
+                console.error('❌ Error cargando logo principal:', logoPrincipal.URL)
                 e.target.style.display = 'none';
               }}
               style={{ 
@@ -224,23 +220,22 @@ const Principal = () => {
             />
           </div>
         </div>
-      );
+      )
     }
 
-    // Fallback: buscar cualquier logo disponible
-    const primerLogo = imagenes.find(img => img.Tipo_Imagen === "Logo" && img.URL);
+    const primerLogo = imagenes.find(img => img.Tipo_Imagen === "Logo" && img.URL)
     
     if (primerLogo) {
       console.log('⚠️ Usando logo fallback:', {
         id: primerLogo.ID_Imagen,
         url: primerLogo.URL
-      });
+      })
       
       return (
         <div className={styles.logo_container}>
           <div className={styles.logo} onClick={() => window.location.href = "/"}>
             <img 
-              src={primerLogo.URL} 
+              src={`${primerLogo.URL}?v=${Date.now()}`}
               alt="Logo de la empresa"
               key={`logo-fallback-${primerLogo.ID_Imagen}-${logoUpdateTrigger}`}
               onLoad={() => console.log('✅ Logo fallback cargado exitosamente')}
@@ -257,11 +252,10 @@ const Principal = () => {
             />
           </div>
         </div>
-      );
+      )
     }
 
-    // Último recurso: mostrar texto
-    console.log('⚠️ No hay logos disponibles, mostrando texto por defecto');
+    console.log('⚠️ No hay logos disponibles, mostrando texto por defecto')
     return (
       <div className={styles.logo_container}>
         <div className={styles.logo}>
@@ -270,8 +264,8 @@ const Principal = () => {
           </span>
         </div>
       </div>
-    );
-  }, [logoUpdateTrigger, imagenes, getLogoPrincipal]);
+    )
+  }, [logoUpdateTrigger, imagenes])
 
   const renderHamburgerMenu = () => (
     <button 
@@ -344,16 +338,18 @@ const Principal = () => {
     </>
   );
 
+  // 🔥 CORREGIDO: Footer con colores de contraste memoizados
   const renderFooter = () => (
-    <footer className={styles.modern_footer}
-    style={{
-      backgroundColor: footerColor || undefined,
-      color: getTextColor(footerColor),
-    }}>
+    <footer 
+      className={styles.modern_footer}
+      style={{
+        backgroundColor: footerColor || undefined,
+        color: footerContrastColors.textColor,
+      }}
+    >
       <div className={styles.footer_content}>
         <div className={styles.footer_section}>
           {renderContactInfo()}
-          <a className={styles.terminosCondiciones} href="/terminos_condiciones">Términos y condiciones</a>
           <button 
             onClick={goToLogin} 
             className={styles.admin_button}
@@ -367,18 +363,44 @@ const Principal = () => {
         </div>
       </div>
       <div className={styles.copyright}>
-        <p>© {new Date().getFullYear()} Tu Empresa. Todos los derechos reservados.</p>
+        <p>
+          © {new Date().getFullYear()} Tu Empresa. Todos los derechos reservados. |
+          <a 
+            href="/terminos-condiciones" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            style={{ 
+              color: footerContrastColors.linkColor, 
+              textDecoration: 'underline', 
+              marginLeft: 8 
+            }}
+          >
+            Términos y Condiciones
+          </a>
+        </p>
+        {ultimo && (
+          <div style={{ 
+            marginTop: 10, 
+            fontSize: 13, 
+            color: footerContrastColors.secondaryTextColor, 
+            textAlign: 'center' 
+          }}>
+            <div dangerouslySetInnerHTML={{ __html: ultimo.contenido }} />
+          </div>
+        )}
       </div>
     </footer>
   );
 
   return (
     <div className={styles.principal_container}>
-      <header className={styles.modern_header}
-      style={{
-        backgroundColor: headerColor || undefined,
-        color: getTextColor(headerColor),
-      }}>
+      <header 
+        className={styles.modern_header}
+        style={{
+          backgroundColor: headerColor || undefined,
+          color: headerContrastColors.textColor,
+        }}
+      >
         {renderLogo()}
         {renderHamburgerMenu()}
         {renderNavigation()}
