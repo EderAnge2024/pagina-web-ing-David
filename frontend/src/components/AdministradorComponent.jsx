@@ -53,6 +53,7 @@ const LazyPedido = lazy(() => import("./Administrador/Pedido"));
 const LazyProyecto = lazy(() => import("./Administrador/Proyecto"));
 const LazyTerminosAdmin = lazy(() => import("./Administrador/TerminosAdmin"));
 const Lazycolors = lazy(() => import("./PaletaColores"));
+const LazyInformacion = lazy(()=> import("./Administrador/informacionPie/Informacion"))
 
 const LoadingSpinner = () => (
     <div className={stiloAdmin.componentLoading}>
@@ -151,6 +152,12 @@ const Administrador = () => {
             label: 'Terminos y condiciones', 
             icon: '📝',
             description: 'editar los terminos y condiciones'
+        },
+        { 
+            key: 'Informacion', 
+            label: 'Informacion footer', 
+            icon: '📝',
+            description: 'editar la informacion'
         },
 
     ], []);
@@ -296,7 +303,8 @@ const Administrador = () => {
             'HistorialEstado': <LazyHistorialEstado />,
             'DetallePedidoFrom': <LazyDetallePedidoFrom />,
             'TerminosAdmin': <LazyTerminosAdmin />,
-            'colors': <Lazycolors />
+            'colors': <Lazycolors />,
+            'Informacion':<LazyInformacion></LazyInformacion>
         };
 
         const ActiveComponent = componentMap[activateComponent];

@@ -7,6 +7,7 @@ import Inicio from "./subComponente/Inicio";
 import Menu from "./subComponente/Menu";
 import Servicio from "./subComponente/Servicio";
 import PrefilFrom from "./subComponente/Perfil";
+import useInformacionStore from "../store/InformacionStore";
 
 // Imágenes
 import carrito from '../img/carrito.png';
@@ -48,6 +49,11 @@ const Principal = () => {
   const navigate = useNavigate();
   const { fetchImagen, imagenes, getLogoPrincipal } = useImagenStore();
   const { ultimo, fetchUltimo } = useTerminosStore();
+
+  const {fetchInformacion} = useInformacionStore()
+  const [companyInfo, setCompanyInfo] = useState({});
+
+
 
   // 🔥 CORREGIDO: Usar useMemo para evitar re-renders infinitos del color store
   const colorStore = useColorStore();
@@ -165,6 +171,23 @@ const Principal = () => {
     }
   }, [fetchImagen, getLogoPrincipal, forceLogoUpdate])
 
+  // para el footer
+  useEffect(() => {
+     const cargarInformacion = async () => {
+       const data = await fetchInformacion();
+   
+       // Agrupar por tipo
+       const agrupado = {};
+       data.forEach(item => {
+         agrupado[item.Tipo_Informacion] = item.Dato;
+       });
+   
+       setCompanyInfo(agrupado); // Ahora tienes un objeto tipo { Telefono: ..., Correo: ..., etc. }
+     };
+   
+     cargarInformacion();
+   }, [fetchInformacion]);
+   
   // Handlers
   const handleNavClick = useCallback((component) => {
     setActivateComponent(component);
@@ -312,32 +335,40 @@ const Principal = () => {
     );
   };
 
-  const renderContactInfo = () => (
-    <>
-      <div className={styles.info_item}>
-        <span className={styles.icon} role="img" aria-label="Teléfono">📞</span>
-        <p>Teléfono: {COMPANY_INFO.phone}</p>
-      </div>
-      <div className={styles.info_item}>
-        <span className={styles.icon} role="img" aria-label="Email">✉️</span>
-        <p>Email: {COMPANY_INFO.email}</p>
-      </div>
-    </>
-  );
-
-  const renderAddressInfo = () => (
-    <>
-      <div className={styles.info_item}>
-        <span className={styles.icon} role="img" aria-label="Dirección">📍</span>
-        <p>Dirección: {COMPANY_INFO.address}</p>
-      </div>
-      <div className={styles.info_item}>
-        <span className={styles.icon} role="img" aria-label="Servicios">🎧</span>
-        <p>Servicios: {COMPANY_INFO.services}</p>
-      </div>
-    </>
-  );
-
+  const renderContactInfo = () => {
+    if (!companyInfo) return <p>Cargando contacto...</p>;
+  
+    return (
+      <>
+        <div className={styles.info_item}>
+          <span className={styles.icon} role="img" aria-label="Teléfono">📞</span>
+          <p>Teléfono: {companyInfo['Telefono'] || 'No disponible'}</p>
+        </div>
+        <div className={styles.info_item}>
+          <span className={styles.icon} role="img" aria-label="Email">✉️</span>
+          <p>Email: {companyInfo['Correo'] || 'No disponible'}</p>
+        </div>
+      </>
+    );
+  };
+  
+  const renderAddressInfo = () => {
+    if (!companyInfo) return <p>Cargando dirección...</p>;
+  
+    return (
+      <>
+        <div className={styles.info_item}>
+          <span className={styles.icon} role="img" aria-label="Dirección">📍</span>
+          <p>Dirección: {companyInfo['Direccion'] || 'No disponible'}</p>
+        </div>
+        <div className={styles.info_item}>
+          <span className={styles.icon} role="img" aria-label="Servicios">🎧</span>
+          <p>Servicios: {companyInfo['Servicios'] || 'No disponible'}</p>
+        </div>
+      </>
+    );
+  };
+  
   // 🔥 CORREGIDO: Footer con colores de contraste memoizados
   const renderFooter = () => (
     <footer 
