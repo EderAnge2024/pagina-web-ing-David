@@ -226,7 +226,7 @@ const ProductosForm = () => {
             await updateProducto(editingProducto.ID_Producto, finalFormData);
             setEditingProducto(null);
             setEditingFile(null);
-            setEditingPreview("");
+            setEditingPreview(""); 
             fetchProducto();
             alert("Producto actualizado exitosamente");
         } catch (error) {

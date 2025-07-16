@@ -9,7 +9,7 @@ const TerminosCondiciones = () => {
   }, []);
 
   if (loading) {
-    return (
+    return ( 
       <div style={{ 
         maxWidth: 700, 
         margin: '2rem auto', 
