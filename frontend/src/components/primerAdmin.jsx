@@ -11,7 +11,8 @@ const AgregarAdministradorPrimer = () => {
     Nombre_Administrador: '',
     Usuario: '',
     Contrasena: '',
-    NumAdministrador:''
+    NumAdministrador:'',
+    Email:''
   })
 
   const handleInputChange = (e) => {
@@ -31,7 +32,8 @@ const AgregarAdministradorPrimer = () => {
         Nombre_Administrador: '', 
         Usuario: '',  
         Contrasena: '',
-        NumAdministrador:''
+        NumAdministrador:'',
+        Email:''
       })
       alert('Administrador registrado exitosamente!')
       window.location.href = '/loginFrom'
@@ -83,6 +85,18 @@ const AgregarAdministradorPrimer = () => {
               required
               placeholder="Mínimo 8 caracteres"
               minLength="8"
+              className={styles.adminInput}
+            />
+          </div>
+          <div className={styles.adminFormGroup}>
+            <label htmlFor="Email" className={styles.adminLabel}>Email</label>
+            <input
+              type="text"
+              name="Email"
+              value={administradorData.Email}
+              onChange={handleInputChange}
+              required
+              placeholder="ejm: hola@gmail.com"
               className={styles.adminInput}
             />
           </div>

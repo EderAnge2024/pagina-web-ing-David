@@ -60,7 +60,7 @@ const TerminosAdmin = () => {
   return (
     <div style={{ maxWidth: 700, margin: '2rem auto', background: '#fff', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.07)', padding: '2rem' }}>
       <h2 style={{ marginBottom: 20 }}>Administrar Términos y Condiciones</h2>
-      <form onSubmit={handleSubmit} style={{ marginBottom: 30 }}>
+      <div onSubmit={handleSubmit} style={{ marginBottom: 30 }}>
         <ReactQuill
           value={formContenido}
           onChange={setFormContenido}
@@ -68,7 +68,7 @@ const TerminosAdmin = () => {
           style={{ height: 200, marginBottom: 10 }}
           placeholder="Escribe los términos y condiciones aquí..."
         />
-      </form>
+      </div>
       <div style={{ marginBottom: 30, marginTop: 32 }}>
         <button type="button" onClick={handleSubmit} style={{ background: '#3b5bdb', color: '#fff', border: 'none', padding: '8px 22px', borderRadius: 5, fontWeight: 600, marginRight: 10 }} disabled={loading}>
           {editId ? 'Actualizar' : 'Agregar'}

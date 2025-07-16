@@ -19,6 +19,14 @@ const Administrador = sequelize.define('Administrador', {
     type: DataTypes.STRING,
     allowNull: true
   },
+  Email: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+    validate: {
+      isEmail: true
+    }
+  },
   NumAdministrador: {
     type: DataTypes.INTEGER,
     allowNull: false

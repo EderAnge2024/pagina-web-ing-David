@@ -5,7 +5,12 @@ const {
     getAllAdministradorsController,
     updateAdministradorByIdController,
     deleteAdministradorByIdController,
+    generarCodigoRecuperacion,
+    verificarCodigoRecuperacion,
+    solicitarCodigoRecuperacionEmail,
+    verificarCodigoRecuperacionEmail
 } = require('../controllers/administradorControllers');
+// const { sendWhatsAppMessage, initWhatsApp } = require('../whatsappService');
 
 const administradorRouters = Router();
 
@@ -91,6 +96,53 @@ administradorRouters.delete("/:ID_Administrador", async (req, res) => {
         res.status(200).json({ message: "Administrador eliminado exitosamente" }); 
     } catch (error) {
         res.status(500).json({ error: error.message }); 
+    }
+});
+
+// Endpoint para solicitar código de recuperación
+administradorRouters.post('/recuperar', async (req, res) => {
+    const { usuario } = req.body;
+    try {
+        // Inicializa WhatsApp si es necesario
+        initWhatsApp();
+        const { codigo, numero } = await generarCodigoRecuperacion(usuario);
+        await sendWhatsAppMessage(numero, `Tu código de recuperación es: ${codigo}`);
+        res.status(200).json({ mensaje: 'Código enviado por WhatsApp' });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Endpoint para verificar código y cambiar contraseña
+administradorRouters.post('/recuperar/verificar', async (req, res) => {
+    const { usuario, codigo, nuevaContrasena } = req.body;
+    try {
+        await verificarCodigoRecuperacion(usuario, codigo, nuevaContrasena);
+        res.status(200).json({ mensaje: 'Contraseña actualizada correctamente' });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Endpoint para solicitar código de recuperación por email
+administradorRouters.post('/recuperar-email', async (req, res) => {
+    const { email } = req.body;
+    try {
+        await solicitarCodigoRecuperacionEmail(email);
+        res.status(200).json({ mensaje: 'Código enviado por correo electrónico' });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Endpoint para verificar código y cambiar contraseña por email
+administradorRouters.post('/recuperar-email/verificar', async (req, res) => {
+    const { email, codigo, nuevaContrasena } = req.body;
+    try {
+        await verificarCodigoRecuperacionEmail(email, codigo, nuevaContrasena);
+        res.status(200).json({ mensaje: 'Contraseña actualizada correctamente' });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 });
 
