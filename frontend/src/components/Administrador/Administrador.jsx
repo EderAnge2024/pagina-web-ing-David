@@ -5,8 +5,8 @@ import style from './Administrador.module.css'
 const Administrador = () => {
     const {addAdministrador, fetchAdministrador, administradors, deleteAdministrador, updateAdministrador} = useAdministradorStore() 
     const [editingAdministrador, setEditingAdministrador] = useState(null)
-    const [administradorData, setAdministradorData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: "",NumAdministrador: ""})
-    const [formData, setFormData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: "",NumAdministrador: ""})
+    const [administradorData, setAdministradorData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: "",NumAdministrador: "", Email: ""})
+    const [formData, setFormData] = useState({Nombre_Administrador:"", Usuario:"", Contrasena: "",NumAdministrador: "", Email: ""})
 
     useEffect(()=>{
         fetchAdministrador()
@@ -40,7 +40,8 @@ const Administrador = () => {
             Nombre_Administrador: administrador.Nombre_Administrador, 
             Usuario: administrador.Usuario, 
             Contrasena: administrador.Contrasena,
-            NumAdministrador: administrador.NumAdministrador
+            NumAdministrador: administrador.NumAdministrador,
+            Email: administrador.Email || ""
         })
     }
 
@@ -57,7 +58,8 @@ const Administrador = () => {
         const updateData = {
             Nombre_Administrador: formData.Nombre_Administrador,
             Usuario: formData.Usuario,
-            NumAdministrador: formData.NumAdministrador
+            NumAdministrador: formData.NumAdministrador,
+            Email: formData.Email
         };
     
         if (formData.Contrasena && formData.Contrasena !== editingAdministrador.Contrasena) {
@@ -110,14 +112,17 @@ const Administrador = () => {
                     value={administradorData.NumAdministrador}
                     onChange={handleInputChange}
                     />
+                    <input
+                    type="email"
+                    placeholder="Email"
+                    required
+                    name="Email"
+                    value={administradorData.Email}
+                    onChange={handleInputChange}
+                    />
                     <button className={style.saveBtn}>Guardar Datos</button>
                 </form>
             </div>
-            <div>
-                <h1>Generdor de facturas</h1>
-                
-            </div>
-            
             <div className={style.listContainer}>
                 <h1>Lista de administradores</h1>
                 <div>
@@ -127,6 +132,7 @@ const Administrador = () => {
                                 <p>Nombre: {user.Nombre_Administrador}</p>
                                 <p>Usuario: {user.Usuario}</p>
                                 <p>Contraseña: {user.Contrasena.replace(/./g, '*')}</p>
+                                <p>Email: {user.Email}</p>
                             </div>
                             <div>
                                 <button 
@@ -178,6 +184,13 @@ const Administrador = () => {
                         value={formData.NumAdministrador}
                         onChange={handleInputChangeUpdate}
                         placeholder="NumAdministrador"
+                      />
+                      <input 
+                        type="email"
+                        name="Email"
+                        value={formData.Email}
+                        onChange={handleInputChangeUpdate}
+                        placeholder="Email"
                       />
                       <div className={style.botones}>
                         <button className={style.saveBtn} onClick={handleUpdate}>Guardar</button>

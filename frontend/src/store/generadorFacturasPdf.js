@@ -1,41 +1,139 @@
 import jsPDF from 'jspdf'
 
-export const generateFacturaPDF = ({ cliente, ventas, fecha }) => {
+export const generateFacturaPDF = ({ pedido, cliente, detalles, factura, total }) => {
     const doc = new jsPDF()
+     
+    // Configuración de colores y estilos
+    const primaryColor = [41, 128, 185] // Azul
+    const secondaryColor = [52, 73, 94] // Gris oscuro
+    const accentColor = [231, 76, 60] // Rojo
     
-    // Encabezado
-    doc.setFontSize(18)
-    doc.text('FACTURA', 105, 20, { align: 'center' })
+    // Encabezado principal
+    doc.setFillColor(...primaryColor)
+    doc.rect(0, 0, 210, 30, 'F')
+    
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(22)
+    doc.setFont('helvetica', 'bold')
+    doc.text('BOLETA DE VENTA', 105, 20, { align: 'center' })
+    
+    // Información de la empresa (opcional)
+    doc.setTextColor(...secondaryColor)
+    doc.setFontSize(10)
+    doc.text('Tu Empresa', 20, 40)
+    doc.text('Dirección de la empresa', 20, 45)
+    doc.text('Teléfono: +51 999 999 999', 20, 50)
+    
+    // Número de factura y fecha
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Boleta N°: ${factura.ID_Factura || 'PENDIENTE'}`, 140, 40)
+    doc.text(`Pedido N°: ${pedido.ID_Pedido || 'NUEVO'}`, 140, 45)
+    doc.text(`Fecha: ${factura.Fecha || new Date().toLocaleDateString()}`, 140, 50)
+    
+    // Línea separadora
+    doc.setDrawColor(...primaryColor)
+    doc.setLineWidth(0.5)
+    doc.line(20, 60, 190, 60)
     
     // Información del cliente
-    doc.setFontSize(12)
-    doc.text(`Cliente: ${cliente.Nombre_Cliente}`, 20, 40)
-    doc.text(`Número: ${cliente.Num_Cliente}`, 20, 50)
-    doc.text(`Fecha: ${fecha}`, 20, 60)
+    doc.setTextColor(...secondaryColor)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('DATOS DEL CLIENTE', 20, 75)
     
-    // Tabla de ventas
-    let y = 80
-    doc.text('Detalle de ventas:', 20, y)
-    y += 10
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Cliente: ${cliente.Nombre} ${cliente.Apellido}`, 20, 85)
+    doc.text(`Teléfono: ${cliente.NumCelular}`, 20, 92)
+    if (cliente.Email) {
+        doc.text(`Email: ${cliente.Email}`, 20, 99)
+    }
+    if (cliente.Direccion) {
+        doc.text(`Dirección: ${cliente.Direccion}`, 20, cliente.Email ? 106 : 99)
+    }
     
-    // Encabezados de tabla
-    doc.text('ID Venta', 20, y)
-    doc.text('Fecha', 60, y)
-    doc.text('Total', 120, y)
-    y += 10
+    // Información del pedido
+    const infoY = cliente.Email && cliente.Direccion ? 115 : (cliente.Email || cliente.Direccion ? 108 : 101)
+    doc.setFontSize(11)
+    doc.text(`Fecha de Pedido: ${pedido.Fecha_Pedido || 'Hoy'}`, 20, infoY)
+    doc.text(`Fecha de Entrega: ${pedido.Fecha_Entrega || 'Por definir'}`, 20, infoY + 7)
     
-    // Filas de tabla
-    ventas.forEach(venta => {
-        doc.text(venta.ID_Venta.toString(), 20, y)
-        doc.text(venta.Fecha, 60, y)
-        doc.text(`$${venta.Total.toFixed(2)}`, 120, y)
-        y += 10
+    if (pedido.Observaciones) {
+        doc.text(`Observaciones: ${pedido.Observaciones}`, 20, infoY + 14)
+    }
+    
+    // Tabla de productos
+    const tableStartY = infoY + (pedido.Observaciones ? 25 : 18)
+    
+    // Encabezado de la tabla
+    doc.setFillColor(...primaryColor)
+    doc.rect(20, tableStartY, 170, 10, 'F')
+    
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.text('PRODUCTO', 25, tableStartY + 7)
+    doc.text('CANT.', 110, tableStartY + 7)
+    doc.text('PRECIO UNIT.', 130, tableStartY + 7)
+    doc.text('SUBTOTAL', 165, tableStartY + 7)
+    
+    // Filas de la tabla
+    let currentY = tableStartY + 15
+    doc.setTextColor(...secondaryColor)
+    doc.setFont('helvetica', 'normal')
+    
+    detalles.forEach((detalle, index) => {
+        // Alternar color de fondo para mejor legibilidad
+        if (index % 2 === 0) {
+            doc.setFillColor(245, 245, 245)
+            doc.rect(20, currentY - 5, 170, 10, 'F')
+        }
+        
+        // Limitar el nombre del producto si es muy largo
+        const nombreProducto = detalle.Nombre_Producto.length > 25 
+            ? detalle.Nombre_Producto.substring(0, 25) + '...' 
+            : detalle.Nombre_Producto
+        
+        doc.text(nombreProducto, 25, currentY)
+        doc.text(detalle.Cantidad.toString(), 115, currentY, { align: 'center' })
+        doc.text(`$${detalle.Precio_Unitario.toFixed(2)}`, 145, currentY, { align: 'center' })
+        doc.text(`$${detalle.Subtotal.toFixed(2)}`, 175, currentY, { align: 'center' })
+        
+        currentY += 10
     })
     
+    // Línea separadora antes del total
+    doc.setDrawColor(...primaryColor)
+    doc.line(20, currentY + 5, 190, currentY + 5)
+    
     // Total
-    const total = ventas.reduce((sum, venta) => sum + venta.Total, 0)
-    doc.text(`TOTAL: $${total.toFixed(2)}`, 120, y + 10)
+    doc.setFillColor(...accentColor)
+    doc.rect(130, currentY + 10, 60, 12, 'F')
+    
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`TOTAL: $${total.toFixed(2)}`, 160, currentY + 18, { align: 'center' })
+    
+    // Pie de página
+    const footerY = currentY + 35
+    doc.setTextColor(...secondaryColor)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'italic')
+    doc.text('Gracias por su compra', 105, footerY, { align: 'center' })
+    doc.text(`Generado el ${new Date().toLocaleString()}`, 105, footerY + 5, { align: 'center' })
+    
+    // Generar nombre del archivo
+    const fechaArchivo = new Date().toLocaleDateString().replace(/\//g, '-')
+    const nombreArchivo = `Boleta_${cliente.Nombre}_${cliente.Apellido}_${fechaArchivo}.pdf`
     
     // Guardar el PDF
-    doc.save(`Factura_${cliente.Num_Cliente}_${fecha.replace(/\//g, '-')}.pdf`)
+    doc.save(nombreArchivo)
+    
+    return {
+        success: true,
+        filename: nombreArchivo,
+        message: 'PDF generado exitosamente'
+    }
 }

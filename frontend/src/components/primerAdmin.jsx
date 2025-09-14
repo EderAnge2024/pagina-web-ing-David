@@ -11,7 +11,8 @@ const AgregarAdministradorPrimer = () => {
     Nombre_Administrador: '',
     Usuario: '',
     Contrasena: '',
-    NumAdministrador:''
+    NumAdministrador:'',
+    Email:''
   })
 
   const handleInputChange = (e) => {
@@ -29,12 +30,13 @@ const AgregarAdministradorPrimer = () => {
       await addAdministrador(administradorData)
       setAdministradorData({ 
         Nombre_Administrador: '', 
-        Usuario: '', 
+        Usuario: '',  
         Contrasena: '',
-        NumAdministrador:''
+        NumAdministrador:'',
+        Email:''
       })
       alert('Administrador registrado exitosamente!')
-      window.location.href = '/'
+      window.location.href = '/loginFrom'
     } catch (error) {
       console.error('Error al agregar administrador:', error)
       alert('Error al registrar administrador: ' + error.message)
@@ -83,6 +85,18 @@ const AgregarAdministradorPrimer = () => {
               required
               placeholder="Mínimo 8 caracteres"
               minLength="8"
+              className={styles.adminInput}
+            />
+          </div>
+          <div className={styles.adminFormGroup}>
+            <label htmlFor="Email" className={styles.adminLabel}>Email</label>
+            <input
+              type="text"
+              name="Email"
+              value={administradorData.Email}
+              onChange={handleInputChange}
+              required
+              placeholder="ejm: hola@gmail.com"
               className={styles.adminInput}
             />
           </div>

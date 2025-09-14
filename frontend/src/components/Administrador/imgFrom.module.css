@@ -447,6 +447,45 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.logoStatus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.statusBadge {
+  background: #28a745;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.statusText {
+  font-size: 0.85rem;
+  color: #6c757d;
+  text-align: center;
+}
+
+.noLogoSection {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.warningText {
+  color: #856404;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  line-height: 1.4;
+}
+
 /* Checkbox personalizado */
 .checkboxLabel {
   display: flex;
@@ -684,4 +723,47 @@
     .primaryButton, .secondaryButton {
         width: 100%;
     }
+}
+
+.testSection {
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.testTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin-bottom: 10px;
+}
+
+.testDescription {
+  color: #424242;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.testButton {
+  background: #1976d2;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.testButton:hover:not(:disabled) {
+  background: #1565c0;
+}
+
+.testButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }

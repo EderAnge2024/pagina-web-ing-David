@@ -51,6 +51,9 @@ const LazyFactura = lazy(() => import("./Administrador/Factura"));
 const LazyHistorialEstado = lazy(() => import("./Administrador/HistorialEstado"));
 const LazyPedido = lazy(() => import("./Administrador/Pedido"));
 const LazyProyecto = lazy(() => import("./Administrador/Proyecto"));
+const LazyTerminosAdmin = lazy(() => import("./Administrador/TerminosAdmin"));
+const Lazycolors = lazy(() => import("./PaletaColores"));
+const LazyInformacion = lazy(()=> import("./Administrador/informacionPie/Informacion"))
 
 const LoadingSpinner = () => (
     <div className={stiloAdmin.componentLoading}>
@@ -143,7 +146,20 @@ const Administrador = () => {
             label: 'Detalle Pedidos', 
             icon: '📝',
             description: 'Información detallada'
-        }
+        },
+        { 
+            key: 'TerminosAdmin', 
+            label: 'Terminos y condiciones', 
+            icon: '📝',
+            description: 'editar los terminos y condiciones'
+        },
+        { 
+            key: 'Informacion', 
+            label: 'Informacion footer', 
+            icon: '📝',
+            description: 'editar la informacion'
+        },
+
     ], []);
 
     // Inicialización controlada
@@ -226,6 +242,15 @@ const Administrador = () => {
         }
     }, [handleNavClick]);
 
+    const goToPaleta = useCallback(() => {
+        try {
+            handleNavClick('colors');
+        } catch (err) {
+            console.error('Error navegando a la Paleta:', err);
+            setError('Error al cargar la Paleta');
+        }
+    }, [handleNavClick]);
+
     const openMenuInNewTab = useCallback(() => {
         try {
             window.open('/', '_blank');
@@ -276,7 +301,10 @@ const Administrador = () => {
             'Pedido': <LazyPedido />,
             'Factura': <LazyFactura />,
             'HistorialEstado': <LazyHistorialEstado />,
-            'DetallePedidoFrom': <LazyDetallePedidoFrom />
+            'DetallePedidoFrom': <LazyDetallePedidoFrom />,
+            'TerminosAdmin': <LazyTerminosAdmin />,
+            'colors': <Lazycolors />,
+            'Informacion':<LazyInformacion></LazyInformacion>
         };
 
         const ActiveComponent = componentMap[activateComponent];
@@ -345,6 +373,14 @@ const Administrador = () => {
                     >
                         <span className={stiloAdmin.actionIcon}>📊</span>
                         {!sidebarCollapsed && <span>Dashboard</span>}
+                    </button>
+                    {/* Paleta de colores, Raaa */}
+                    <button 
+                        onClick={goToPaleta}
+                        className={stiloAdmin.actionButton}
+                        title="Paleta de Colores_fondos-Encabezaso y pie, y, tipos letras"
+                    >
+                        <span className={stiloAdmin.actionIcon}>🎨 Paleta Colores</span>
                     </button>
                     <button 
                         onClick={openMenuInNewTab}

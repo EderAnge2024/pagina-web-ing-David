@@ -1,91 +1,139 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { ShoppingCart, User, Calendar, Phone, Trash2, Plus, Minus, Send, MessageCircle, AlertTriangle } from "lucide-react";
+import { 
+  ShoppingCart, Calendar, Trash2, Plus, Minus, 
+  UserCheck, AlertTriangle, FileText
+} from "lucide-react";
 import style from './Carrito.module.css';
+import { generateFacturaPDF } from "../../store/generadorFacturasPdf";
 import useProductoStore from '../../store/ProductoStore';
 import useClienteStore from "../../store/ClienteStore";
 import usePedidoStore from "../../store/PedidoStore";
 import useDetallePedidoStore from '../../store/DetallePedidoStore';
-import useFacturaStore from "../../store/FacturaStore";
+import useFacturaStore from "../../store/FacturaStore"; 
 import useHistorialEstadoStore from "../../store/HistorialEstadoStore";
 import useEstadoPedidoStore from "../../store/EstadoPedidoStore";
 import useAdministradorStore from "../../store/AdministradorStore";
 
 const Carrito = () => {
-  // Estados principales - ahora cargamos desde localStorage
+  // ========================
+  // ESTADOS PRINCIPALES
+  // ========================
   const [carrito, setCarrito] = useState(() => {
-    const carritoGuardado = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem("carrito")) || [] : [];
+    const carritoGuardado = typeof window !== 'undefined' ? 
+      JSON.parse(localStorage.getItem("carrito")) || [] : [];
     return carritoGuardado;
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [stockWarnings, setStockWarnings] = useState([]); // Nuevo estado para advertencias de stock
-  
-  // Estados de formularios
-  const [mostrarFormularioCliente, setMostrarFormularioCliente] = useState(false);
-  const [mostrarFormularioPedido, setMostrarFormularioPedido] = useState(false);
-  
-  // Estados de datos
-  const [clienteData, setClienteData] = useState({
-    Nombre: "",
-    Apellido: "",
-    NumCelular: ""
-  });
+  const [success, setSuccess] = useState("");
+  const [stockWarnings, setStockWarnings] = useState([]);
+  const [modalActivo, setModalActivo] = useState(null);
   
   const [pedidoData, setPedidoData] = useState({
     ID_Cliente: "",
     Fecha_Pedido: "",
-    Fecha_Entrega: ""
+    Fecha_Entrega: "",
+    Observaciones: ""
   });
-  
-  const [clienteGuardado, setClienteGuardado] = useState(null);
-  const [numCelularBusqueda, setNumCelularBusqueda] = useState("");
 
-  // Hooks de stores reales
-  const { addCliente } = useClienteStore();
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
+
+  // ========================
+  // HOOKS DE STORES
+  // ========================
+  const { 
+    clienteActual,
+    isAuthenticated,
+    initializeFromStorage,
+    verificarToken
+  } = useClienteStore();
+  
   const { addPedido } = usePedidoStore();
   const { addDetallePedido } = useDetallePedidoStore();
   const { addFactura } = useFacturaStore();
   const { addHistorialEstado } = useHistorialEstadoStore();
   const { estadoPedidos, fetchEstadoPedido } = useEstadoPedidoStore();
-  const { administradors, fetchAdministrador} = useAdministradorStore();
-  
-  // Hook del store de productos
+  const { administradors, fetchAdministrador } = useAdministradorStore();
   const { decreaseStock, checkStock, productos, fetchProducto } = useProductoStore();
 
-  // Efectos
+  const mostrarMensaje = useCallback((mensaje, tipo = 'success') => {
+    if (tipo === 'success') {
+      setSuccess(mensaje);
+      setError("");
+      setTimeout(() => setSuccess(""), 5000);
+    } else {
+      setError(mensaje);
+      setSuccess("");
+    }
+  }, []);
+  
+  const tieneProblemasStock = useMemo(() => {
+    return stockWarnings.length > 0;
+  }, [stockWarnings]);
+
+  // ========================
+  // EFECTOS
+  // ========================
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+      
   useEffect(() => {
     initializeComponent();
   }, []);
 
-  // Actualizar localStorage cuando cambia el carrito
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem("carrito", JSON.stringify(carrito));
     }
   }, [carrito]);
 
-  // Verificar stock cuando cambia el carrito
   useEffect(() => {
     verificarStockCarrito();
   }, [carrito, productos]);
 
-  // Funciones de inicialización
+  // ========================
+  // FUNCIONES DE INICIALIZACIÓN
+  // ========================
   const initializeComponent = useCallback(async () => {
     try {
       const hoy = new Date().toISOString().slice(0, 10);
       setPedidoData(prev => ({ ...prev, Fecha_Pedido: hoy }));
       
-      await fetchEstadoPedido();
-      await fetchAdministrador();
-      await fetchProducto(); // Cargar productos para verificar stock
+      // Inicializar desde localStorage primero
+      const hasStoredAuth = initializeFromStorage();
+      
+      // Si no hay datos en localStorage, verificar token
+      if (!hasStoredAuth) {
+        await verificarToken();
+      }
+      
+      await Promise.all([
+        fetchEstadoPedido(),
+        fetchAdministrador(),
+        fetchProducto()
+      ]);
+
     } catch (error) {
       setError("Error al inicializar el componente");
       console.error("Error:", error);
     }
-  }, [fetchEstadoPedido,fetchAdministrador, fetchProducto]);
+  }, [fetchEstadoPedido, fetchAdministrador, fetchProducto, initializeFromStorage, verificarToken]);
 
-  // Función para verificar stock del carrito
+  // Efecto separado para actualizar pedidoData cuando cambie clienteActual
+  useEffect(() => {
+    if (clienteActual?.ID_Cliente) {
+      setPedidoData(prev => ({ 
+        ...prev, 
+        ID_Cliente: clienteActual.ID_Cliente 
+      }));
+    }
+  }, [clienteActual]);
+
+  // ========================
+  // FUNCIONES DEL CARRITO
+  // ========================
   const verificarStockCarrito = useCallback(() => {
     const warnings = [];
     
@@ -106,45 +154,6 @@ const Carrito = () => {
     setStockWarnings(warnings);
   }, [carrito, checkStock]);
 
-  // Cálculos memoizados
-  const totalCarrito = useMemo(() => {
-    return carrito.reduce((total, producto) => total + (producto.Precio_Final * producto.cantidad), 0);
-  }, [carrito]);
-
-  const cantidadTotalProductos = useMemo(() => {
-    return carrito.reduce((total, producto) => total + producto.cantidad, 0);
-  }, [carrito]);
-
-  // Verificar si hay problemas de stock antes de procesar el pedido
-  const tieneProblemasStock = useMemo(() => {
-    return stockWarnings.length > 0;
-  }, [stockWarnings]);
-
-  // FUNCIONES DE WHATSAPP CORREGIDAS - SOLO PARA ADMINISTRADOR
-  const generarMensajeWhatsAppAdmin = useCallback(() => {
-    const productos = carrito.map(producto => 
-      `- ${producto.Nombre_Producto} (Cantidad: ${producto.cantidad}, Precio: $${producto.Precio_Final})`
-    ).join('\n');
-    
-    const fechaEntrega = pedidoData.Fecha_Entrega || 'Por definir';
-    const cliente = clienteGuardado ? `${clienteGuardado.Nombre} ${clienteGuardado.Apellido}` : 'Cliente no identificado';
-    const telefono = clienteGuardado ? clienteGuardado.NumCelular : 'No disponible';
-    
-    return `📋 NUEVO PEDIDO\n\n👤 Cliente: ${cliente}\n📱 Teléfono: ${telefono}\n\n🛍️ Productos:\n${productos}\n\n💰 Total: $${totalCarrito.toFixed(2)}\n📅 Fecha de entrega: ${fechaEntrega}`;
-  }, [carrito, totalCarrito, pedidoData.Fecha_Entrega, clienteGuardado]);
-
-  const enviarWhatsAppAdmin = useCallback(() => {
-    if (carrito.length === 0) {
-      setError("El carrito está vacío");
-      return;
-    }
-    
-    const mensaje = generarMensajeWhatsAppAdmin();
-    const telefono = '51' + administradors[0].NumAdministrador; // Número del negocio
-    window.open(`https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`, '_blank');
-  }, [carrito, generarMensajeWhatsAppAdmin, administradors]);
-
-  // Funciones de manejo del carrito
   const actualizarCantidadProducto = useCallback((index, nuevaCantidad) => {
     if (nuevaCantidad <= 0) {
       eliminarProducto(index);
@@ -167,28 +176,47 @@ const Carrito = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem("carrito");
     }
+    mostrarMensaje("Carrito limpiado correctamente");
+  }, [mostrarMensaje]);
+
+  // ========================
+  // FUNCIONES DE MENSAJES
+  // ========================
+  const limpiarMensajes = useCallback(() => {
+    setError("");
+    setSuccess("");
   }, []);
 
-  // Funciones de validación
-  const validarFormularioCliente = useCallback(() => {
-    const { Nombre, Apellido, NumCelular } = clienteData;
-    
-    if (!Nombre.trim() || !Apellido.trim() || !NumCelular.trim()) {
-      setError("Todos los campos del cliente son obligatorios");
-      return false;
-    }
-    
-    if (!/^\d{9,15}$/.test(NumCelular)) {
-      setError("El número de celular debe tener entre 9 y 15 dígitos");
-      return false;
-    }
-    
-    return true;
-  }, [clienteData]);
+  // ========================
+  // FUNCIONES DE FORMULARIOS
+  // ========================
+  const resetearFormularios = useCallback(() => {
+    setPedidoData({ 
+      ID_Cliente: clienteActual?.ID_Cliente || "", 
+      Fecha_Pedido: new Date().toISOString().slice(0, 10), 
+      Fecha_Entrega: "", 
+      Observaciones: "" 
+    });
+    setModalActivo(null);
+  }, [clienteActual]);
 
+  const cerrarModal = useCallback(() => {
+    setModalActivo(null);
+    limpiarMensajes();
+  }, [limpiarMensajes]);
+
+  const handleInputChangePedido = useCallback((e) => {
+    const { name, value } = e.target;
+    setPedidoData(prev => ({ ...prev, [name]: value }));
+    limpiarMensajes();
+  }, [limpiarMensajes]);
+
+  // ========================
+  // VALIDACIONES
+  // ========================
   const validarFormularioPedido = useCallback(() => {
     if (!pedidoData.Fecha_Entrega) {
-      setError("La fecha de entrega es obligatoria");
+      mostrarMensaje("La fecha de entrega es obligatoria", 'error');
       return false;
     }
     
@@ -197,562 +225,494 @@ const Carrito = () => {
     fechaActual.setHours(0, 0, 0, 0);
     
     if (fechaEntrega < fechaActual) {
-      setError("La fecha de entrega no puede ser anterior a hoy");
+      mostrarMensaje("La fecha de entrega no puede ser anterior a hoy", 'error');
       return false;
     }
 
-    // Validar stock antes de procesar el pedido
     if (tieneProblemasStock) {
-      setError("Hay problemas de stock que deben resolverse antes de procesar el pedido");
+      mostrarMensaje("Hay problemas de stock que deben resolverse antes de procesar el pedido", 'error');
       return false;
     }
     
     return true;
-  }, [pedidoData, tieneProblemasStock]);
+  }, [pedidoData, tieneProblemasStock, mostrarMensaje]);
 
-  // Función para verificar cliente existente usando localStorage como en el código original
-  const verificarClienteExiste = useCallback(async (numCelular) => {
+  // ========================
+  // FUNCIONES DE PEDIDOS
+  // ========================
+  const enviarNotificacionesAutomaticas = useCallback(async (datosFactura) => {
     try {
-      const clientesGuardados = JSON.parse(localStorage.getItem("clientes")) || [];
-      return clientesGuardados.find(cliente => cliente.NumCelular === Number(numCelular));
+      console.log('=== DEBUG NOTIFICACIONES ===');
+      console.log('Cliente en datosFactura:', datosFactura.cliente);
+      console.log('Nombre:', datosFactura.cliente.Nombre);
+      console.log('Número que se usará:', datosFactura.cliente.NumCelular);
+      console.log('clienteActual global:', clienteActual);
+      console.log('=============================');
+      
+      const resultadoPDF = generateFacturaPDF(datosFactura);
+      
+      if (resultadoPDF.success) {
+        console.log(`PDF generado: ${resultadoPDF.filename}`);
+        
+        const cliente = datosFactura.cliente;
+        const productos = datosFactura.detalles.map(detalle => 
+          `• ${detalle.Nombre_Producto} x${detalle.Cantidad} - $${detalle.Subtotal.toFixed(2)}`
+        ).join('\n');
+        
+        const fechaEntrega = new Date(datosFactura.pedido.Fecha_Entrega).toLocaleDateString('es-ES');
+        
+        const mensajeCliente = `🎉 ¡Hola ${cliente.Nombre}!
+
+✅ Tu pedido #${datosFactura.pedido.ID_Pedido} ha sido confirmado.
+
+📋 DETALLES:
+${productos}
+
+💰 Total: $${datosFactura.total.toFixed(2)}
+📅 Entrega: ${fechaEntrega}
+${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}` : ''}
+
+¡Gracias por tu preferencia! 😊`;
+
+        const numeroCliente = `51${cliente.NumCelular}`;
+        console.log('el numero: ', numeroCliente)
+        const mensajeCodificadoCliente = encodeURIComponent(mensajeCliente);
+        const urlWhatsAppCliente = `https://wa.me/${numeroCliente}?text=${mensajeCodificadoCliente}`;
+        
+        setTimeout(() => {
+          window.open(urlWhatsAppCliente, '_blank');
+        }, 1000);
+
+        const mensajeAdmin = `📋 NUEVO PEDIDO #${datosFactura.pedido.ID_Pedido}
+
+👤 Cliente: ${cliente.Nombre} ${cliente.Apellido}
+📱 Teléfono: ${cliente.NumCelular}
+
+🛍️ Productos:
+${productos}
+
+💰 Total: $${datosFactura.total.toFixed(2)}
+📅 Entrega: ${fechaEntrega}
+${datosFactura.pedido.Observaciones ? `📝 ${datosFactura.pedido.Observaciones}` : ''}`;
+
+        const numeroAdmin = administradors.length > 0 ? administradors[0].NumAdministrador : '51987654321';
+        const mensajeCodificadoAdmin = encodeURIComponent(mensajeAdmin);
+        const urlWhatsAppAdmin = `https://wa.me/${numeroAdmin}?text=${mensajeCodificadoAdmin}`;
+        
+        setTimeout(() => {
+          window.open(urlWhatsAppAdmin, '_blank');
+        }, 2000);
+        
+        mostrarMensaje("Pedido procesado. Notificaciones enviadas automáticamente.");
+      }
     } catch (error) {
-      console.error("Error al verificar cliente:", error);
-      return null;
+      console.error("Error en notificaciones automáticas:", error);
+      mostrarMensaje("Pedido procesado, pero hubo un error en las notificaciones.", 'error');
     }
-  }, []);
+  }, [administradors, mostrarMensaje]);
 
-  // Funciones de manejo de formularios
-  const handleInputChangeCliente = useCallback((e) => {
-    const { name, value } = e.target;
-    setClienteData(prev => ({ ...prev, [name]: value }));
-    setError("");
-  }, []);
-
-  const handleInputChangePedido = useCallback((e) => {
-    const { name, value } = e.target;
-    setPedidoData(prev => ({ ...prev, [name]: value }));
-    setError("");
-  }, []);
-
-  const handleSubmitCliente = useCallback(async (e) => {
-    e.preventDefault();
-    
-    if (!validarFormularioCliente()) return;
-    
-    setLoading(true);
-    setError("");
-    
-    try {
-      const clienteParaGuardar = {
-        Nombre: clienteData.Nombre.trim(),
-        Apellido: clienteData.Apellido.trim(),
-        NumCelular: Number(clienteData.NumCelular),
-      };
-      
-      const clienteCreado = await addCliente(clienteParaGuardar);
-      
-      setClienteData({ Nombre: "", Apellido: "", NumCelular: "" });
-      setClienteGuardado(clienteCreado);
-      setMostrarFormularioCliente(false);
-      setMostrarFormularioPedido(true);
-      
-    } catch (error) {
-      setError("Error al agregar cliente. Intente nuevamente.");
-      console.error("Error al agregar cliente:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [clienteData, validarFormularioCliente, addCliente]);
-
-  // Función principal para procesar pedido con stores reales - CORREGIDA
   const handleSubmitPedido = useCallback(async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  if (!validarFormularioPedido()) return;
+  
+  // Verificar autenticación
+  if (!isAuthenticated || !clienteActual) {
+    mostrarMensaje("No hay cliente autenticado. Por favor, inicia sesión.", 'error');
+    return;
+  }
+  
+  setLoading(true);
+  
+  try {
+    // Verificar stock final
+    const stockErrors = [];
+    for (const producto of carrito) {
+      const stockCheck = checkStock(producto.ID_Producto, producto.cantidad);
+      if (!stockCheck.available) {
+        stockErrors.push(`${producto.Nombre_Producto}: solicitado ${producto.cantidad}, disponible ${stockCheck.cantidadDisponible}`);
+      }
+    }
     
-    if (!validarFormularioPedido()) return;
-    if (!clienteGuardado) {
-      setError("No hay cliente registrado.");
+    if (stockErrors.length > 0) {
+      mostrarMensaje(`Problemas de stock:\n${stockErrors.join('\n')}`, 'error');
       return;
     }
-    
-    setLoading(true);
-    setError("");
-    
-    try {
-      // 1. Verificar stock una vez más antes de procesar
-      const stockErrors = [];
-      for (const producto of carrito) {
-        const stockCheck = checkStock(producto.ID_Producto, producto.cantidad);
-        if (!stockCheck.available) {
-          stockErrors.push(`${producto.Nombre_Producto}: solicitado ${producto.cantidad}, disponible ${stockCheck.cantidadDisponible}`);
-        }
-      }
-      
-      if (stockErrors.length > 0) {
-        setError(`Problemas de stock:\n${stockErrors.join('\n')}`);
-        return;
-      }
 
-      const nuevoPedido = {
-        ...pedidoData,
-        ID_Cliente: clienteGuardado.ID_Cliente
-      };
-      
-      // 2. Guardar pedido usando store real
-      const pedidoCreado = await addPedido(nuevoPedido);
-      const idPedido = pedidoCreado.ID_Pedido || pedidoCreado;
-      
-      // 3. Guardar detalles del pedido Y disminuir stock
-      let subtotalTotal = 0;
-      const stockUpdateResults = [];
-      
-      for (const producto of carrito) {
-        // Guardar detalle del pedido
-        const detalle = {
-          ID_Pedido: idPedido,
-          ID_Producto: producto.ID_Producto,
-          Cantidad: producto.cantidad,
-          Precio_Unitario: producto.Precio_Final,
-          Descuento: 0,
-          Subtotal: producto.cantidad * producto.Precio_Final
-        };
-        subtotalTotal += detalle.Subtotal;
-        await addDetallePedido(detalle);
-        
-        // Disminuir stock del producto
-        const stockResult = await decreaseStock(producto.ID_Producto, producto.cantidad);
-        stockUpdateResults.push({
-          producto: producto.Nombre_Producto,
-          cantidad: producto.cantidad,
-          success: stockResult.success,
-          error: stockResult.error,
-          nuevoStock: stockResult.nuevaCantidad
-        });
-        
-        if (!stockResult.success) {
-          console.error(`Error al actualizar stock de ${producto.Nombre_Producto}:`, stockResult.error);
-        }
-      }
-      
-      // 4. Generar factura automáticamente
-      const nuevaFactura = {
+    // Crear pedido
+    const nuevoPedido = {
+      ...pedidoData,
+      ID_Cliente: clienteActual.ID_Cliente
+    };
+    
+    const pedidoCreado = await addPedido(nuevoPedido);
+    const idPedido = pedidoCreado.ID_Pedido || pedidoCreado;
+    
+    // Procesar detalles del pedido
+    let subtotalTotal = 0;
+    const detallesPedido = [];
+    
+    for (const producto of carrito) {
+      const detalle = {
         ID_Pedido: idPedido,
-        ID_Cliente: clienteGuardado.ID_Cliente,
-        Fecha: new Date().toISOString().slice(0, 10),
-        Monto_Total: subtotalTotal
+        ID_Producto: producto.ID_Producto,
+        Cantidad: producto.cantidad,
+        Precio_Unitario: producto.Precio_Final,
+        Descuento: 0,
+        Subtotal: producto.cantidad * producto.Precio_Final * (1 - producto.Descuento / 100)
       };
-      await addFactura(nuevaFactura);
+      subtotalTotal += detalle.Subtotal;
+      detallesPedido.push({
+        ...detalle,
+        Nombre_Producto: producto.Nombre_Producto
+      });
       
-      // 5. Crear registro en historial de estados
-      const estadoEnProceso = estadoPedidos.find(estado => estado.Estado === 'En Proceso');
-      const idEstadoEnProceso = estadoEnProceso ? estadoEnProceso.ID_EstadoPedido : 1;
-      
-      const nuevoHistorialEstado = {
-        ID_EstadoPedido: idEstadoEnProceso,
+      await addDetallePedido(detalle);
+      await decreaseStock(producto.ID_Producto, producto.cantidad);
+    }
+    
+    // Crear factura
+    const nuevaFactura = {
+      ID_Pedido: idPedido,
+      ID_Cliente: clienteActual.ID_Cliente,
+      Fecha: new Date().toISOString().slice(0, 10),
+      Monto_Total: subtotalTotal
+    };
+    
+    const facturaCreada = await addFactura(nuevaFactura);
+    const idFactura = facturaCreada?.ID_Factura || facturaCreada?.id || facturaCreada;
+    
+    // CORRECCIÓN: Crear historial de estado con mejor manejo de errores
+    console.log('Estados disponibles:', estadoPedidos); // Para debug
+    
+    // Buscar el estado correcto (prueba varios nombres posibles)
+    let estadoInicial = estadoPedidos.find(estado => 
+      estado.Estado === 'En Proceso' || 
+      estado.Estado === 'Pendiente' || 
+      estado.Estado === 'Nuevo' ||
+      estado.Estado === 'Creado'
+    );
+    
+    // Si no encuentra ningún estado específico, toma el primero disponible
+    if (!estadoInicial && estadoPedidos.length > 0) {
+      estadoInicial = estadoPedidos[0];
+      console.warn('No se encontró un estado específico, usando el primero disponible:', estadoInicial);
+    }
+    
+    // Validar que existe un estado válido antes de crear el historial
+    if (!estadoInicial) {
+      throw new Error('No se encontró ningún estado de pedido válido en la base de datos');
+    }
+    
+    const historialData = {
+      ID_EstadoPedido: estadoInicial.ID_EstadoPedido,
+      ID_Pedido: idPedido,
+      Fecha: new Date().toISOString()
+    };
+    
+    console.log('Creando historial con estado:', estadoInicial); // Para debug
+    console.log('Datos del historial:', historialData); // Para debug
+    
+    await addHistorialEstado(historialData);
+
+    // Preparar datos para notificaciones
+    const datosFactura = {
+      pedido: {
         ID_Pedido: idPedido,
-        Fecha: new Date().toISOString().slice(0, 10)
-      };
-      await addHistorialEstado(nuevoHistorialEstado);
-      
-      // 6. Mostrar resumen de actualización de stock
-      const stockExitosos = stockUpdateResults.filter(r => r.success);
-      const stockFallidos = stockUpdateResults.filter(r => !r.success);
-      
-      let mensajeStock = '';
-      if (stockExitosos.length > 0) {
-        mensajeStock += 'Stock actualizado:\n';
-        stockExitosos.forEach(r => {
-          mensajeStock += `- ${r.producto}: -${r.cantidad} (nuevo stock: ${r.nuevoStock})\n`;
-        });
-      }
-      
-      if (stockFallidos.length > 0) {
-        mensajeStock += '\nAdvertencias de stock:\n';
-        stockFallidos.forEach(r => {
-          mensajeStock += `- ${r.producto}: ${r.error}\n`;
-        });
-      }
-      
-      // 7. Limpiar estado
-      resetearFormularios();
-      limpiarCarrito();
-      
-      // 8. CORREGIDO: Solo mostrar mensaje de éxito y enviar al administrador
-      const mensajeCompleto = `Pedido y factura guardados correctamente.\n\n${mensajeStock}`;
-      alert(mensajeCompleto);
-      
-      const confirmarEnvio = confirm("¿Desea enviar un WhatsApp al administrador con los detalles del pedido?");
-      if (confirmarEnvio) {
-        enviarWhatsAppAdmin();
-      }
-      
-    } catch (error) {
-      setError("Error al guardar el pedido.");
-      console.error("Error al guardar pedido:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [pedidoData, clienteGuardado, carrito, validarFormularioPedido, addPedido, addDetallePedido, addFactura, addHistorialEstado, estadoPedidos, limpiarCarrito, checkStock, decreaseStock, enviarWhatsAppAdmin]);
-
-  // Funciones de utilidades
-  const resetearFormularios = useCallback(() => {
-    setPedidoData({
-      ID_Cliente: "",
-      Fecha_Pedido: new Date().toISOString().slice(0, 10),
-      Fecha_Entrega: ""
-    });
-    setMostrarFormularioPedido(false);
-    setMostrarFormularioCliente(false);
-    setClienteGuardado(null);
-    setNumCelularBusqueda("");
-    setStockWarnings([]);
-  }, []);
-
-  const manejarBusquedaCliente = useCallback(async () => {
-    if (!numCelularBusqueda.trim()) {
-      setError("Por favor, ingrese número de celular para verificar cliente.");
-      return;
-    }
+        Fecha_Pedido: pedidoData.Fecha_Pedido,
+        Fecha_Entrega: pedidoData.Fecha_Entrega,
+        Observaciones: pedidoData.Observaciones
+      },
+      cliente: clienteActual,
+      detalles: detallesPedido.map(detalle => ({
+        ...detalle,
+        Cantidad: Number(detalle.Cantidad) || 0,
+        Precio_Unitario: Number(detalle.Precio_Unitario) || 0,
+        Subtotal: Number(detalle.Subtotal) || 0,
+        Descuento: Number(detalle.Descuento) || 0
+      })),
+      factura: {
+        ...nuevaFactura,
+        ID_Factura: idFactura,
+        Monto_Total: Number(subtotalTotal) || 0
+      },
+      total: Number(subtotalTotal) || 0
+    };
     
-    setLoading(true);
-    setError("");
+    // Limpiar estado
+    resetearFormularios();
+    limpiarCarrito();
     
-    try {
-      const clienteExistente = await verificarClienteExiste(numCelularBusqueda);
-      
-      if (!clienteExistente) {
-        setClienteData(prev => ({ ...prev, NumCelular: numCelularBusqueda }));
-        setMostrarFormularioCliente(true);
-        setMostrarFormularioPedido(false);
-        setClienteGuardado(null);
-      } else {
-        setClienteGuardado(clienteExistente);
-        setPedidoData(prev => ({
-          ...prev,
-          ID_Cliente: clienteExistente.ID_Cliente
-        }));
-        setMostrarFormularioPedido(true);
-        setMostrarFormularioCliente(false);
-      }
-    } catch (error) {
-      setError("Error al buscar cliente");
-    } finally {
-      setLoading(false);
+    // Enviar notificaciones automáticamente
+    await enviarNotificacionesAutomaticas(datosFactura);
+    
+  } catch (error) {
+    mostrarMensaje("Error al procesar el pedido.", 'error');
+    console.error("Error al guardar pedido:", error);
+    
+    // Información adicional para debug
+    if (error.response?.data) {
+      console.error("Detalles del error del servidor:", error.response.data);
     }
-  }, [numCelularBusqueda, verificarClienteExiste]);
+  } finally {
+    setLoading(false);
+  }
+}, [
+  validarFormularioPedido, carrito, pedidoData, clienteActual, isAuthenticated,
+  checkStock, addPedido, addDetallePedido, decreaseStock, 
+  addFactura, estadoPedidos, addHistorialEstado, 
+  resetearFormularios, limpiarCarrito, enviarNotificacionesAutomaticas, 
+  mostrarMensaje
+]);
 
-  // Render del componente
+const verificarEstadosDisponibles = useCallback(() => {
+  console.log('=== ESTADOS DISPONIBLES ===');
+  estadoPedidos.forEach((estado, index) => {
+    console.log(`${index + 1}. ID: ${estado.ID_EstadoPedido}, Estado: "${estado.Estado}"`);
+  });
+  console.log('===========================');
+  
+  if (estadoPedidos.length === 0) {
+    console.warn('⚠️ No hay estados de pedido cargados. Verifica que fetchEstadoPedido() se ejecute correctamente.');
+  }
+}, [estadoPedidos]);
+
+// Llamar esta función en useEffect para debug (opcional)
+useEffect(() => {
+  if (estadoPedidos.length > 0) {
+    verificarEstadosDisponibles();
+  }
+}, [estadoPedidos, verificarEstadosDisponibles]);
+
+  // ========================
+  // CÁLCULOS MEMOIZADOS
+  // ========================
+  const totalCarrito = useMemo(() => {
+    return carrito.reduce((total, producto) => total + (producto.Precio_Final * producto.cantidad), 0);
+  }, [carrito]);
+
+  const cantidadTotalProductos = useMemo(() => {
+    return carrito.reduce((total, producto) => total + producto.cantidad, 0);
+  }, [carrito]);
+
+  // ========================
+  // RENDER
+  // ========================
   return (
-    <div className={style.container}>
+    <div className={style.carritoContainer}>
       {/* Header */}
-      <div className={style.header}>
-        <ShoppingCart className={style.headerIcon} />
-        <h2 className={style.headerTitle}>Carrito de Compras</h2>
-        {carrito.length > 0 && (
-          <span className={style.productCount}>
+      <div className={style.carritoHeader}>
+        <h2>
+          <ShoppingCart className={style.icon} />
+          Carrito de Compras
+        </h2>
+        <div className={style.carritoInfo}>
+          <span className={style.cantidadTotal}>
             {cantidadTotalProductos} productos
           </span>
-        )}
+          <span className={style.totalCarrito}>
+            Total: ${totalCarrito.toFixed(2)}
+          </span>
+        </div>
       </div>
 
-      {/* Mensajes de error */}
+      {/* Mensajes */}
       {error && (
-        <div className={style.errorMessage}>
+        <div className={style.mensaje + " " + style.error}>
+          <AlertTriangle className={style.icon} />
           {error}
+        </div>
+      )}
+      
+      {success && (
+        <div className={style.mensaje + " " + style.success}>
+          ✅ {success}
+        </div>
+      )}
+
+      {/* Indicador de cliente */}
+      {clienteActual && isAuthenticated && (
+        <div className={style.clienteActivo}>
+          <UserCheck size={16} />
+          <span>Cliente: {clienteActual.Nombre} {clienteActual.Apellido}</span>
         </div>
       )}
 
       {/* Advertencias de stock */}
       {stockWarnings.length > 0 && (
         <div className={style.stockWarnings}>
-          <div className={style.warningHeader}>
-            <AlertTriangle className={style.warningIcon} />
-            <span>Problemas de Stock Detectados</span>
-          </div>
+          <h4>⚠️ Problemas de Stock:</h4>
           {stockWarnings.map((warning, index) => (
-            <div key={index} className={style.warningItem}>
+            <div key={index} className={style.stockWarning}>
               <strong>{warning.producto}:</strong> 
               Solicitado: {warning.solicitado}, Disponible: {warning.disponible}
-              <button 
-                onClick={() => actualizarCantidadProducto(warning.index, warning.disponible)}
-                className={style.fixStockButton}
-              >
-                Ajustar a {warning.disponible}
-              </button>
             </div>
           ))}
         </div>
       )}
 
-      {/* Carrito vacío */}
-      {carrito.length === 0 ? (
-        <div className={style.emptyCart}>
-          <ShoppingCart className={style.emptyCartIcon} />
-          <p className={style.emptyCartText}>El carrito está vacío</p>
-        </div>
-      ) : (
-        <div>
-          {/* Lista de productos */}
-          <div className={style.productList}>
-            {carrito.map((producto, index) => {
-              const hasStockIssue = stockWarnings.some(w => w.index === index);
-              
-              return (
-                <div 
-                  key={index} 
-                  className={`${style.productItem} ${hasStockIssue ? style.stockIssueItem : ''}`}
-                >
-                  <div className={style.imageContainer}>
-                    <img 
-                      src={producto.Url || 'https://via.placeholder.com/150'} 
-                      alt={producto.Nombre_Producto}
-                      className={style.productImage}
-                      onError={(e) => {
-                        // Solo intentamos el fallback si no es ya el placeholder
-                        if (!e.target.src.includes('via.placeholder.com')) {
-                          e.target.src = 'https://placehold.co/150'; 
-                          e.target.onerror = null; 
-                        } else {
-                          // Si ya estamos en el fallback y falla, lo dejamos vacío
-                          e.target.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // 1px transparent
-                          e.target.onerror = null;
-                        }
-                      }}
-                    />
-                    {hasStockIssue && (
-                      <div className={style.stockIssueOverlay}>
-                        <AlertTriangle className={style.stockIssueIcon} />
-                      </div>
-                    )}
-                  </div>
-                  <div className={style.productInfo}>
-                    <h3 className={style.productName}>{producto.Nombre_Producto}</h3>
-                    <p className={style.productPrice}>${producto.Precio_Final}</p>
-                    {hasStockIssue && (
-                      <p className={style.stockIssueText}>Stock insuficiente</p>
-                    )}
-                  </div>
-                  
-                  {/* Controles de cantidad */}
-                  <div className={style.quantityControls}>
-                    <button
-                      onClick={() => actualizarCantidadProducto(index, producto.cantidad - 1)}
-                      className={style.quantityButton}
-                      disabled={loading}
-                    >
-                      <Minus className={style.quantityIcon} />
-                    </button>
-                    <span className={style.quantityValue}>{producto.cantidad}</span>
-                    <button
-                      onClick={() => actualizarCantidadProducto(index, producto.cantidad + 1)}
-                      className={style.quantityButton}
-                      disabled={loading}
-                    >
-                      <Plus className={style.quantityIcon} />
-                    </button>
-                  </div>
-                  
-                  {/* Subtotal y eliminar */}
-                  <div className={style.subtotalContainer}>
-                    <p className={style.subtotal}>
-                      ${(producto.Precio_Final * producto.cantidad).toFixed(2)}
-                    </p>
-                    <button
-                      onClick={() => eliminarProducto(index)}
-                      className={style.deleteButton}
-                      disabled={loading}
-                    >
-                      <Trash2 className={style.deleteIcon} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+      {/* Lista de productos en el carrito */}
+      <div className={style.carritoLista}>
+        {carrito.length === 0 ? (
+          <div className={style.carritoVacio}>
+            <ShoppingCart className={style.iconGrande} />
+            <p>Tu carrito está vacío</p>
           </div>
-
-          {/* Total */}
-          <div className={style.totalContainer}>
-            <div className={style.totalRow}>
-              <span>Total:</span>
-              <span className={style.totalAmount}>${totalCarrito.toFixed(2)}</span>
-            </div>
-            {tieneProblemasStock && (
-              <div className={style.stockWarningTotal}>
-                ⚠️ Resuelve los problemas de stock antes de proceder
+        ) : (
+          carrito.map((producto, index) => (
+            <div key={index} className={style.productoCarrito}>
+              <div className={style.productoInfo}>
+                <h4>{producto.Nombre_Producto}</h4>
+                <p className={style.precioUnitario}>
+                  ${producto.Precio_Final} c/u
+                </p>
               </div>
-            )}
-          </div>
-
-          {/* Búsqueda de cliente */}
-          <div className={style.clientSearch}>
-            <div className={style.searchHeader}>
-              <Phone className={style.searchIcon} />
-              <label className={style.searchLabel}>Buscar Cliente</label>
-            </div>
-            <div className={style.searchControls}>
-              <input
-                type="text"
-                placeholder="Número de Celular"
-                value={numCelularBusqueda}
-                onChange={(e) => setNumCelularBusqueda(e.target.value)}
-                className={style.searchInput}
+              
+              <div className={style.cantidadControles}>
+                <button 
+                  onClick={() => actualizarCantidadProducto(index, producto.cantidad - 1)}
+                  className={style.btnCantidad}
+                  disabled={loading}
+                >
+                  <Minus className={style.iconSmall} />
+                </button>
+                
+                <span className={style.cantidad}>{producto.cantidad}</span>
+                
+                <button 
+                  onClick={() => actualizarCantidadProducto(index, producto.cantidad + 1)}
+                  className={style.btnCantidad}
+                  disabled={loading}
+                >
+                  <Plus className={style.iconSmall} />
+                </button>
+              </div>
+              
+              <div className={style.subtotal}>
+                ${(producto.Precio_Final * producto.cantidad).toFixed(2)}
+              </div>
+              
+              <button 
+                onClick={() => eliminarProducto(index)}
+                className={style.btnEliminar}
                 disabled={loading}
-              />
-              <button
-                onClick={manejarBusquedaCliente}
-                disabled={loading || !numCelularBusqueda.trim() || tieneProblemasStock}
-                className={style.searchButton}
               >
-                <User className={style.searchButtonIcon} />
-                {loading ? 'Buscando...' : 'Buscar'}
+                <Trash2 className={style.iconSmall} />
               </button>
             </div>
-          </div>
+          ))
+        )}
+      </div>
 
-          {/* Botones de acción - CORREGIDO */}
-          <div className={style.actionButtons}>
-            <button
-              onClick={enviarWhatsAppAdmin}
-              disabled={loading || tieneProblemasStock}
-              className={style.whatsappButton}
-            >
-              <MessageCircle className={style.whatsappIcon} />
-              Enviar Pedido por WhatsApp
-            </button>
-            <button
-              onClick={limpiarCarrito}
-              disabled={loading}
-              className={style.clearButton}
-            >
-              <Trash2 className={style.clearIcon} />
-              Limpiar Carrito
-            </button>
-          </div>
+      {/* Acciones del carrito */}
+      {carrito.length > 0 && (
+        <div className={style.carritoAcciones}>
+          <button 
+            onClick={limpiarCarrito}
+            className={style.btnSecundario}
+            disabled={loading}
+          >
+            <Trash2 className={style.icon} />
+            Limpiar Carrito
+          </button>
+          
+          <button 
+            onClick={() => setModalActivo('pedido')}
+            className={style.btnPrimario}
+            disabled={loading || tieneProblemasStock || !isAuthenticated || !clienteActual}
+          >
+            <FileText className={style.icon} />
+            {!isAuthenticated || !clienteActual ? 'Inicia sesión para continuar' : 'Procesar Pedido'}
+          </button>
         </div>
       )}
 
-      {/* Formulario de Cliente */}
-      {mostrarFormularioCliente && (
-        <div className={style.modalOverlay}>
-          <div className={style.modalContent}>
+      {/* Modal de pedido */}
+      {modalActivo === 'pedido' && (
+        <div className={style.modalOverlay} onClick={cerrarModal}>
+          <div className={style.modal} onClick={(e) => e.stopPropagation()}>
             <div className={style.modalHeader}>
-              <User className={style.modalIcon} />
-              <h3 className={style.modalTitle}>Agregar Cliente</h3>
+              <h3>
+                <FileText className={style.icon} />
+                Datos del Pedido
+              </h3>
+              <button onClick={cerrarModal} className={style.btnCerrar}>×</button>
             </div>
-            <form onSubmit={handleSubmitCliente} className={style.modalForm}>
-              <input
-                type="text"
-                placeholder="Nombre"
-                required
-                name="Nombre"
-                value={clienteData.Nombre}
-                onChange={handleInputChangeCliente}
-                className={style.formInput}
-                disabled={loading}
-              />
-              <input
-                type="text"
-                placeholder="Apellido"
-                required
-                name="Apellido"
-                value={clienteData.Apellido}
-                onChange={handleInputChangeCliente}
-                className={style.formInput}
-                disabled={loading}
-              />
-              <input
-                type="text"
-                placeholder="Número de Celular"
-                required
-                name="NumCelular"
-                value={clienteData.NumCelular}
-                onChange={handleInputChangeCliente}
-                className={style.formInput}
-                disabled={loading}
-              />
-              <div className={style.formButtons}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMostrarFormularioCliente(false);
-                    setClienteData({ Nombre: "", Apellido: "", NumCelular: "" });
-                  }}
-                  disabled={loading}
-                  className={style.cancelButton}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={style.submitButton}
-                >
-                  {loading ? 'Guardando...' : 'Guardar Datos'}
-                </button>
+            
+            <form onSubmit={handleSubmitPedido} className={style.modalContent}>
+              <div className={style.clienteSeleccionado}>
+                <h4>Cliente:</h4>
+                <p>
+                  {clienteActual?.Nombre} {clienteActual?.Apellido}
+                </p>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Formulario de Pedido */}
-      {mostrarFormularioPedido && (
-        <div className={style.modalOverlay}>
-          <div className={style.modalContent}>
-            <div className={style.modalHeader}>
-              <Calendar className={style.modalIcon} />
-              <h3 className={style.modalTitle}>Completar Pedido</h3>
-            </div>
-            <form onSubmit={handleSubmitPedido} className={style.modalForm}>
+              
               <div className={style.formGroup}>
-                <label className={style.formLabel}>Cliente</label>
-                <input
-                  type="text"
-                  value={`${clienteGuardado?.Nombre || ""} ${clienteGuardado?.Apellido || ""}`}
-                  readOnly
-                  className={style.formInputReadonly}
-                />
-              </div>
-              <div className={style.formGroup}>
-                <label className={style.formLabel}>Fecha de Entrega</label>
+                <label>Fecha de Entrega *</label>
                 <input
                   type="date"
                   name="Fecha_Entrega"
                   value={pedidoData.Fecha_Entrega}
                   onChange={handleInputChangePedido}
-                  required
-                  className={style.formInput}
-                  disabled={loading}
+                  className={style.input}
                   min={new Date().toISOString().slice(0, 10)}
+                  required
                 />
               </div>
+              
               <div className={style.formGroup}>
-                <label className={style.formLabel}>Total del Pedido</label>
-                <input
-                  type="text"
-                  value={`$${totalCarrito.toFixed(2)}`}
-                  readOnly
-                  className={style.formInputReadonly}
+                <label>Observaciones</label>
+                <textarea
+                  name="Observaciones"
+                  value={pedidoData.Observaciones}
+                  onChange={handleInputChangePedido}
+                  className={style.textarea}
+                  placeholder="Instrucciones especiales, comentarios..."
+                  rows="3"
                 />
               </div>
-              <div className={style.formButtons}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMostrarFormularioPedido(false);
-                    resetearFormularios();
-                  }}
+              
+              <div className={style.resumenPedido}>
+                <h4>Resumen del Pedido:</h4>
+                <div className={style.resumenItems}>
+                  {carrito.map((producto, index) => (
+                    <div key={index} className={style.resumenItem}>
+                      <span>{producto.Nombre_Producto} x{producto.cantidad}</span>
+                      <span>${(producto.Precio_Final * producto.cantidad).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className={style.resumenTotal}>
+                  <strong>Total: ${totalCarrito.toFixed(2)}</strong>
+                </div>
+              </div>
+              {/* Checkbox de términos y condiciones */}
+              <div className={style.formGroup} style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={aceptaTerminos}
+                    onChange={e => setAceptaTerminos(e.target.checked)}
+                    style={{ marginRight: '0.5rem' }}
+                  />
+                  Acepto los <a href="/terminos_condiciones" target="_blank" rel="noopener noreferrer" style={{ color: '#1976d2', textDecoration: 'underline' }}>términos y condiciones</a>
+                </label>
+              </div>
+              <div className={style.modalAcciones}>
+                <button 
+                  type="button" 
+                  onClick={cerrarModal}
+                  className={style.btnSecundario}
                   disabled={loading}
-                  className={style.cancelButton}
                 >
                   Cancelar
                 </button>
-                <button
+                <button 
                   type="submit"
-                  disabled={loading || tieneProblemasStock}
-                  className={style.submitButton}
+                  className={style.btnPrimario}
+                  disabled={loading || tieneProblemasStock || !aceptaTerminos}
                 >
-                  <Send className={style.submitIcon} />
-                  {loading ? 'Procesando...' : 'Completar Pedido'}
+                  {loading ? 'Procesando...' : 'Procesar Pedido'}
                 </button>
               </div>
             </form>

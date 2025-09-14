@@ -6,12 +6,12 @@ const ImagenForm = () => {
     const { 
         addImagen, 
         fetchImagen, 
-        imagenes, 
+        imagenes,  
         deleteImagen, 
         updateImagen,
-        setLogoPrincipal,    // 🆕 Nueva función
-        getLogoPrincipal,    // 🆕 Helper
-        getLogos            // 🆕 Helper
+        setLogoPrincipal,
+        getLogoPrincipal,
+        getLogos
     } = useImagenStore()
     const [editingImagen, setEditingImagen] = useState(null)
     const [imagenData, setImagenData] = useState({ Tipo_Imagen: "", URL: "", es_principal: false })
@@ -22,11 +22,11 @@ const ImagenForm = () => {
     const [previewUrl, setPreviewUrl] = useState("")
     const [editingFile, setEditingFile] = useState(null)
     const [editingPreview, setEditingPreview] = useState("")
-    const [activeTab, setActiveTab] = useState("logos") // Tab para separar logos y banners
+    const [activeTab, setActiveTab] = useState("logos")
 
-    // Configuración de Cloudinary - Reemplaza con tus credenciales
-    const CLOUDINARY_UPLOAD_PRESET = 'bradatec' // Reemplaza con tu upload preset
-    const CLOUDINARY_CLOUD_NAME = 'davbpytad' // Reemplaza con tu cloud name
+    // Configuración de Cloudinary
+    const CLOUDINARY_UPLOAD_PRESET = 'bradatec'
+    const CLOUDINARY_CLOUD_NAME = 'davbpytad'
 
     useEffect(() => {
         fetchImagen()
@@ -42,7 +42,6 @@ const ImagenForm = () => {
         const file = e.target.files[0]
         if (file) {
             setSelectedFile(file)
-            // Crear preview local
             const reader = new FileReader()
             reader.onload = (e) => setPreviewUrl(e.target.result)
             reader.readAsDataURL(file)
@@ -54,7 +53,6 @@ const ImagenForm = () => {
         const file = e.target.files[0]
         if (file) {
             setEditingFile(file)
-            // Crear preview local
             const reader = new FileReader()
             reader.onload = (e) => setEditingPreview(e.target.result)
             reader.readAsDataURL(file)
@@ -96,6 +94,7 @@ const ImagenForm = () => {
         })
     }
 
+    // 🔥 FUNCIÓN MEJORADA PARA MANEJAR EL SUBMIT
     const handleSubmit = async (e) => {
         e.preventDefault()
         setUploading(true)
@@ -104,33 +103,63 @@ const ImagenForm = () => {
         try {
             let finalImagenData = { ...imagenData }
             
-            // Si hay un archivo seleccionado, subirlo a Cloudinary
+            // Subir archivo si existe
             if (selectedFile) {
                 const uploadedUrl = await uploadToCloudinary(selectedFile)
                 finalImagenData.URL = uploadedUrl
             }
-
-            // Si es un logo y se marca como principal, desmarcar otros logos principales
-            if (finalImagenData.Tipo_Imagen === "Logo" && finalImagenData.es_principal) {
-                // Aquí deberías implementar la lógica para desmarcar otros logos principales
-                // Por ahora solo agregamos la imagen
-            }
             
-            await addImagen(finalImagenData)
+            console.log('📋 Datos a enviar:', finalImagenData)
+            
+            // 🔥 VERIFICAR SI ES LOGO Y ES_PRINCIPAL
+            if (finalImagenData.Tipo_Imagen === "Logo" && finalImagenData.es_principal) {
+                // Primero agregar la imagen SIN establecerla como principal
+                const tempData = { ...finalImagenData, es_principal: false }
+                
+                console.log('🎯 Agregando logo primero sin marcar como principal...')
+                const newImagenId = await addImagen(tempData)
+                
+                // Actualizar lista de imágenes
+                await fetchImagen()
+                
+                // Luego establecer como principal usando el ID de la nueva imagen
+                if (newImagenId) {
+                    console.log('🎯 Estableciendo como principal el ID:', newImagenId)
+                    await setLogoPrincipal(newImagenId)
+                } else {
+                    // Si no tenemos el ID, buscar la imagen recién creada
+                    await new Promise(resolve => setTimeout(resolve, 300))
+                    await fetchImagen()
+                    
+                    const newLogos = getLogos()
+                    const lastLogo = newLogos[newLogos.length - 1]
+                    
+                    if (lastLogo) {
+                        console.log('🎯 Estableciendo como principal (backup):', lastLogo.ID_Imagen)
+                        await setLogoPrincipal(lastLogo.ID_Imagen)
+                    }
+                }
+            } else {
+                // Para banners o logos no principales, agregar normalmente
+                await addImagen(finalImagenData)
+            }
             
             // Limpiar formulario
             setImagenData({ Tipo_Imagen: "", URL: "", es_principal: false })
             setSelectedFile(null)
             setPreviewUrl("")
             
-            // Limpiar input file
             const fileInput = document.querySelector('input[type="file"]')
             if (fileInput) fileInput.value = ""
             
-            fetchImagen()
+            // Forzar actualización completa
+            await fetchImagen()
+            
+            console.log('✅ Imagen agregada exitosamente')
+            
         } catch (error) {
-            console.error('Error al agregar imagen:', error)
-            alert('Error al subir la imagen. Por favor, verifica tu configuración de Cloudinary.')
+            console.error('❌ Error al agregar imagen:', error)
+            alert('Error al subir la imagen: ' + error.message)
         } finally {
             setUploading(false)
             setUploadProgress(0)
@@ -141,7 +170,7 @@ const ImagenForm = () => {
         if(window.confirm("¿Estás seguro de eliminar esta imagen?")) {
             try {
                 await deleteImagen(ID_Imagen)
-                fetchImagen()
+                await fetchImagen() // 🔥 FORZAR ACTUALIZACIÓN
             } catch (error) {
                 console.error('Error al eliminar imagen:', error)
             }
@@ -167,26 +196,44 @@ const ImagenForm = () => {
         })
     }
 
+    // 🔥 FUNCIÓN MEJORADA PARA MANEJAR LA ACTUALIZACIÓN
     const handleUpdate = async () => {
         setUploading(true)
         
         try {
             let finalFormData = { ...formData }
             
-            // Si hay un nuevo archivo, subirlo a Cloudinary
             if (editingFile) {
                 const uploadedUrl = await uploadToCloudinary(editingFile)
                 finalFormData.URL = uploadedUrl
             }
             
-            await updateImagen(editingImagen.ID_Imagen, finalFormData)
-            fetchImagen()
+            console.log('📋 Datos de actualización:', finalFormData)
+            
+            // 🔥 SI SE ESTÁ MARCANDO COMO PRINCIPAL
+            if (finalFormData.Tipo_Imagen === "Logo" && finalFormData.es_principal && !editingImagen.es_principal) {
+                // Primero actualizar sin marcar como principal
+                const tempData = { ...finalFormData, es_principal: false }
+                await updateImagen(editingImagen.ID_Imagen, tempData)
+                await fetchImagen()
+                
+                // Luego establecer como principal
+                await setLogoPrincipal(editingImagen.ID_Imagen)
+            } else {
+                // Actualización normal
+                await updateImagen(editingImagen.ID_Imagen, finalFormData)
+            }
+            
+            await fetchImagen() // 🔥 FORZAR ACTUALIZACIÓN
             setEditingImagen(null)
             setEditingFile(null)
             setEditingPreview("")
+            
+            console.log('✅ Imagen actualizada exitosamente')
+            
         } catch (error) {
-            console.error('Error al actualizar imagen:', error)
-            alert('Error al actualizar la imagen.')
+            console.error('❌ Error al actualizar imagen:', error)
+            alert('Error al actualizar la imagen: ' + error.message)
         } finally {
             setUploading(false)
         }
@@ -211,7 +258,7 @@ const ImagenForm = () => {
         setEditingPreview("")
     }
 
-    // Función para marcar logo como principal
+    // 🔥 FUNCIÓN MEJORADA PARA CAMBIAR LOGO PRINCIPAL
     const handleSetLogoPrincipal = async (logoId) => {
         if (!window.confirm('¿Deseas cambiar el logo principal?')) {
             return;
@@ -219,11 +266,42 @@ const ImagenForm = () => {
         
         try {
             setUploading(true)
-            await setLogoPrincipal(logoId) // Usar la función del store
-            alert('Logo principal actualizado correctamente')
+            
+            console.log('🎯 Iniciando cambio de logo principal desde ImagenForm:', logoId)
+            
+            // 1. Llamar a la función del store
+            await setLogoPrincipal(logoId)
+            
+            // 2. Esperar un momento para que se complete la actualización en el servidor
+            await new Promise(resolve => setTimeout(resolve, 500))
+            
+            // 3. Forzar actualización inmediata
+            await fetchImagen()
+            
+            // 4. Disparar evento personalizado para notificar a otros componentes
+            const event = new CustomEvent('logoChanged', { 
+                detail: { 
+                    logoId,
+                    timestamp: Date.now(),
+                    source: 'ImagenForm'
+                } 
+            })
+            
+            window.dispatchEvent(event)
+            console.log('📢 Evento logoChanged disparado:', event.detail)
+            
+            // 5. Forzar re-render adicional con un pequeño delay
+            setTimeout(async () => {
+                await fetchImagen()
+                console.log('🔄 Segunda actualización completada')
+            }, 1000)
+            
+            // 6. Notificar al usuario con un mensaje más claro
+            alert('✅ Logo principal actualizado correctamente. El cambio se reflejará en toda la aplicación.')
+            
         } catch (error) {
-            console.error('Error al cambiar logo principal:', error)
-            alert('Error al cambiar logo principal: ' + error.message)
+            console.error('❌ Error al cambiar logo principal:', error)
+            alert('❌ Error al cambiar logo principal: ' + error.message)
         } finally {
             setUploading(false)
         }
@@ -256,7 +334,7 @@ const ImagenForm = () => {
             <div className={styles.actions}>
                 {showPrincipalOption && !imagen.es_principal && (
                     <button 
-                        onClick={() => handleSetLogoPrincipal(imagen.ID_Imagen)} // ✅ Usar la nueva función
+                        onClick={() => handleSetLogoPrincipal(imagen.ID_Imagen)}
                         className={styles.principalButton}
                         disabled={uploading}
                     >
@@ -287,26 +365,16 @@ const ImagenForm = () => {
                 <div className={styles.formSection}>
                     <h1 className={styles.sectionTitle}>Gestión de Imágenes</h1>
                     
-                    {/* Logo Principal Actual */}
-                    {logoPrincipal && (
-                        <div className={styles.currentLogoSection}>
-                            <h2 className={styles.subTitle}>Logo Principal Actual</h2>
-                            <div className={styles.currentLogoDisplay}>
-                                <img 
-                                    src={logoPrincipal.URL} 
-                                    alt="Logo Principal"
-                                    className={styles.currentLogo}
-                                />
-                                <p>{logoPrincipal.Tipo_Imagen}</p>
-                            </div>
+                    {/* Indicador si no hay logo principal */}
+                    {!logoPrincipal && (
+                        <div className={styles.noLogoSection}>
+                            <h2 className={styles.subTitle}>⚠️ Sin Logo Principal</h2>
+                            <p className={styles.warningText}>
+                                No hay un logo principal configurado. 
+                                Selecciona un logo y márcalo como principal para que aparezca en la aplicación.
+                            </p>
                         </div>
                     )}
-                    
-                    {/* Mensaje de configuración */}
-                    <div className={styles.configAlert}>
-                        <p><strong>⚠️ Configuración necesaria:</strong></p>
-                        <p>Asegúrate de configurar tu CLOUDINARY_CLOUD_NAME y CLOUDINARY_UPLOAD_PRESET en el componente.</p>
-                    </div>
                     
                     <form onSubmit={handleSubmit} className={styles.form}>
                         <div className={styles.formGroup}>
@@ -473,7 +541,7 @@ const ImagenForm = () => {
                     </div>
                 </div>
 
-                {/* Modal de edición mejorado */}
+                {/* Modal de edición */}
                 {editingImagen && (
                     <div className={styles.modalOverlay}>
                         <div className={styles.modalContent}>

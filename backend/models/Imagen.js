@@ -14,8 +14,12 @@ const Imagen = sequelize.define('Imagen', {
   URL: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  es_principal: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false
   }
-
 })
 
 module.exports = Imagen

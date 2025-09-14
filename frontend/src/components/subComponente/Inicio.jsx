@@ -1,14 +1,20 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 import useImagenStore from "../../store/ImagenStore";
 import useProductoStore from "../../store/ProductoStore";
+import useClienteStore from "../../store/ClienteStore";
 import styles from './inicio.module.css';
 
-const Inicio = ({ searchQuery = "" }) => {
+const Inicio = ({ searchQuery = "", onNavigateToProfile }) => {
+    const navigate = useNavigate();
     const { imagenes, fetchImagen } = useImagenStore();
     const { productos, fetchProducto } = useProductoStore();
+    const { isAuthenticated, verificarToken, initializeFromStorage } = useClienteStore();
     const [mensaje, setMensaje] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [mostrarPrecios, setMostrarPrecios] = useState(false);
+    const [clienteAutenticado, setClienteAutenticado] = useState(false);
     
     // Estados para el carrusel
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -19,6 +25,10 @@ const Inicio = ({ searchQuery = "" }) => {
         ? imagenes.filter(img => img.Tipo_Imagen === "Banner") 
         : [];
 
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
+        
     useEffect(() => {
         const cargarDatos = async () => {
             try {
@@ -37,13 +47,48 @@ const Inicio = ({ searchQuery = "" }) => {
         return () => clearInterval(interval);
     }, [fetchImagen, fetchProducto]);
 
+    // Verificar autenticación del cliente - LÓGICA ACTUALIZADA
+    useEffect(() => {
+        const verificarAutenticacion = async () => {
+            try {
+                // Primero inicializar desde localStorage
+                const tokenEnStorage = initializeFromStorage();
+                
+                if (tokenEnStorage) {
+                    // Si hay token en storage, verificar con el servidor
+                    const esValido = await verificarToken();
+                    console.log("¿Cliente autenticado?", esValido);
+                    setMostrarPrecios(esValido);
+                    setClienteAutenticado(esValido);
+                } else {
+                    // No hay token, cliente no autenticado
+                    console.log("No hay token en storage");
+                    setMostrarPrecios(false);
+                    setClienteAutenticado(false);
+                }
+            } catch (error) {
+                console.error("Error verificando autenticación:", error);
+                setMostrarPrecios(false);
+                setClienteAutenticado(false);
+            }
+        };
+
+        verificarAutenticacion();
+    }, [initializeFromStorage, verificarToken]);
+
+    // También escuchar cambios en el estado de autenticación
+    useEffect(() => {
+        setClienteAutenticado(isAuthenticated);
+        setMostrarPrecios(isAuthenticated);
+    }, [isAuthenticated]);
+
     // Auto-play del carrusel
     useEffect(() => {
         if (!isAutoPlaying || bannerImages.length <= 1) return;
 
         const interval = setInterval(() => {
             setCurrentSlide(prev => (prev + 1) % bannerImages.length);
-        }, 5000); // Cambia cada 5 segundos
+        }, 5000);
 
         return () => clearInterval(interval);
     }, [isAutoPlaying, bannerImages.length]);
@@ -81,6 +126,18 @@ const Inicio = ({ searchQuery = "" }) => {
             console.error("Error al agregar producto:", error);
             setMensaje("❌ Error al agregar producto");
             setTimeout(() => setMensaje(""), 1500);
+        }
+    };
+
+    // Manejar clic en producto cuando no está autenticado
+    const manejarClickProducto = (producto) => {
+        if (!clienteAutenticado) {
+            // Llamar al callback para navegar al perfil
+            if (onNavigateToProfile) {
+                onNavigateToProfile();
+            }
+            setMensaje("🔒 Inicia sesión para ver detalles y comprar");
+            setTimeout(() => setMensaje(""), 2000);
         }
     };
 
@@ -152,7 +209,11 @@ const Inicio = ({ searchQuery = "" }) => {
         const isOutOfStock = producto.cantidad_Disponible <= 0;
 
         return (
-            <div key={producto.ID_Producto} className={styles.productCard}>
+            <div 
+                key={producto.ID_Producto} 
+                className={`${styles.productCard} ${!clienteAutenticado ? styles.clickableCard : ''}`}
+                onClick={() => manejarClickProducto(producto)}
+            >
                 <div className={styles.productImageContainer}>
                     <img 
                         src={producto.Url || '/placeholder-image.png'} 
@@ -178,20 +239,39 @@ const Inicio = ({ searchQuery = "" }) => {
                     <h3 className={styles.productName}>
                         {producto.Nombre_Producto || 'Sin nombre'}
                     </h3>
-                    <p className={styles.productPrice}>
-                        {precioFormateado}
-                    </p>
+                    {/* LÓGICA DE PRECIOS PROTEGIDOS */}
+                    {mostrarPrecios ? (
+                        <p className={styles.productPrice}>
+                            {precioFormateado}
+                        </p>
+                    ) : (
+                        <p className={styles.productPrice}>
+                            🔒 Inicia sesión para ver precios
+                        </p>
+                    )}
                     <p className={styles.productStock}>
                         Stock: {producto.cantidad_Disponible || 0} unidades
                     </p>
                     
-                    <button 
-                        onClick={() => manejarCompra(producto)}
-                        disabled={isOutOfStock}
-                        className={`${styles.addToCartBtn} ${isOutOfStock ? styles.disabled : ''}`}
-                    >
-                        {isOutOfStock ? "Sin Stock" : "Agregar al Carrito"}
-                    </button>
+                    {/* Mostrar botón solo si está autenticado */}
+                    {clienteAutenticado ? (
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation(); // Evitar que se ejecute el click del card
+                                manejarCompra(producto);
+                            }}
+                            disabled={isOutOfStock}
+                            className={`${styles.addToCartBtn} ${isOutOfStock ? styles.disabled : ''}`}
+                        >
+                            {isOutOfStock ? "Sin Stock" : "Agregar al Carrito"}
+                        </button>
+                    ) : (
+                        <div className={styles.loginPrompt}>
+                            <p className={styles.loginText}>
+                                🔒 Inicia sesión para comprar
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -350,6 +430,7 @@ const Inicio = ({ searchQuery = "" }) => {
                         <p className={styles.infoText}>
                             💡 Los productos destacados incluyen artículos premium, 
                             con stock limitado y los más populares de nuestra tienda.
+                            {!clienteAutenticado && " Inicia sesión para ver precios y comprar."}
                         </p>
                     </div>
                 )}
@@ -359,7 +440,8 @@ const Inicio = ({ searchQuery = "" }) => {
 };
 
 Inicio.propTypes = {
-    searchQuery: PropTypes.string
+    searchQuery: PropTypes.string,
+    onNavigateToProfile: PropTypes.func
 };
-
+ 
 export default Inicio;

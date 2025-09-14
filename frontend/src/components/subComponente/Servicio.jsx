@@ -8,6 +8,10 @@ const Servicio = () => {
     const { proyectos, fetchProyecto } = useProyectoStore();
 
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, []);
+    
+    useEffect(() => {
         fetchProyecto();
         fetchEmpleado();
         const interval = setInterval(fetchEmpleado, 10000); // cada 10 segundos

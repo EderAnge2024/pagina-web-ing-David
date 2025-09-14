@@ -3,24 +3,36 @@ import axios from 'axios'
 
 const usePedidoStore = create((set)=>({
     pedidos: [],
-    addPedido: async(pedido)=>{
-        try {
-            const response = await axios.post('http://localhost:3001/pedidos',pedido)
-            set((state)=>({pedidos: [...state.pedidos, response.data]}))// crea una copia el "..."
-            return response.data
-        } catch (error) {
-            console.log("Error adding pedido", error.message)
-            throw error
-        }
+    addPedido: async (pedido) => {
+      try {
+        const response = await axios.post('http://localhost:3001/pedidos', pedido, {
+          withCredentials: true // ✅ NECESARIO para que se envíe cliente_token
+        });
+    
+        set((state) => ({
+          pedidos: [...state.pedidos, response.data]
+        }));
+    
+        return response.data;
+      } catch (error) {
+        console.log("Error adding pedido", error.message);
+        throw error;
+      }
     },
-    fetchPedido: async()=>{
-        try {
-            const response = await axios.get('http://localhost:3001/pedidos')
-            set({pedidos: response.data})
-        } catch (error) {
-            console.log("Error fecthing pedidos", error.message)
-        }
+
+    fetchPedido: async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/pedidos', {
+          withCredentials: true
+        });
+        set({ pedidos: response.data });
+        return response.data;
+      } catch (error) {
+        console.log("Error fetching pedidos", error.message);
+        return [];
+      }
     },
+
     deletePedido: async(ID_Pedido)=>{
         try {
             const response = await axios.delete(`http://localhost:3001/pedidos/${ID_Pedido}`)
